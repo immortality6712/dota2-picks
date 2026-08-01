@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dota 2 — пики героев на крупных турнирах</title>
+<style>
+  :root {
+    --bg: #0e1013;
+    --panel: #171a1f;
+    --panel2: #1e222a;
+    --line: #2b3039;
+    --text: #e6e8ec;
+    --muted: #8b93a1;
+    --red: #c23c2a;
+    --gold: #d2a04a;
+    --green: #4caf7d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #1b1410, var(--bg));
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    margin: 0 0 4px;
+    font-size: 26px;
+    letter-spacing: .5px;
+  }
+  h1 span { color: var(--red); }
+  .sub { color: var(--muted); font-size: 14px; }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    padding: 18px 20px;
+  }
+  select, input {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 14px;
+    outline: none;
+  }
+  select:focus, input:focus { border-color: var(--gold); }
+  select { min-width: 320px; }
+  input { width: 200px; }
+  .stats {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    padding: 0 20px 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .stats b { color: var(--gold); font-size: 15px; }
+  main { padding: 0 20px 60px; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover { color: var(--gold); }
+  th.active { color: var(--gold); }
+  td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #20242b;
+    white-space: nowrap;
+  }
+  tr:hover td { background: var(--panel); }
+  .rank { color: var(--muted); width: 34px; }
+  .hero { display: flex; align-items: center; gap: 10px; }
+  .hero img {
+    width: 52px;
+    height: 29px;
+    object-fit: cover;
+    border-radius: 3px;
+    background: var(--panel2);
+  }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bar {
+    position: relative;
+    background: var(--panel2);
+    border-radius: 3px;
+    height: 18px;
+    min-width: 90px;
+  }
+  .bar i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--red);
+    border-radius: 3px;
+    opacity: .55;
+  }
+  .bar span {
+    position: relative;
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    line-height: 18px;
+    font-variant-numeric: tabular-nums;
+  }
+  .wr-hi { color: var(--green); }
+  .wr-lo { color: #d9634f; }
+  .msg { padding: 40px 20px; text-align: center; color: var(--muted); }
+  .msg.err { color: #d9634f; }
+  footer {
+    padding: 18px 20px 40px;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--line);
+  }
+  a { color: var(--gold); }
+  @media (max-width: 640px) {
+    select, input { min-width: 0; width: 100%; }
+    .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>DOTA 2 — <span>пики героев</span> на крупных турнирах</h1>
+    <div class="sub" id="sub">Статистика пиков, банов и винрейта по данным OpenDota</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <select id="league"><option>Загрузка турниров…</option></select>
+    <input id="search" type="search" placeholder="Поиск героя…" autocomplete="off">
+  </div>
+  <div class="stats" id="stats"></div>
+  <main>
+    <div id="msg" class="msg">Выберите турнир</div>
+    <table id="table" hidden>
+      <thead>
+        <tr>
+          <th class="rank">#</th>
+          <th data-sort="name">Герой</th>
+          <th data-sort="picks" class="num active">Пики</th>
+          <th data-sort="bans" class="num">Баны</th>
+          <th data-sort="contest" class="num hide-sm">Контест</th>
+          <th data-sort="wins" class="num hide-sm">Победы</th>
+          <th data-sort="wr">Винрейт</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+</div>
+
+<footer class="wrap">
+  Данные: <a href="https://www.opendota.com" target="_blank" rel="noopener">OpenDota API</a>.
+  Учитываются только матчи 2026 года на актуальном патче, турниры уровня premium и professional.
+  Контест = доля матчей, где герой был выбран или забанен.
+</footer>
+
+<script>
+const API = 'https://api.opendota.com/api';
+const CDN = 'https://cdn.cloudflare.steamstatic.com';
+
+const el = {
+  league: document.getElementById('league'),
+  search: document.getElementById('search'),
+  stats: document.getElementById('stats'),
+  msg: document.getElementById('msg'),
+  table: document.getElementById('table'),
+  rows: document.getElementById('rows'),
+};
+
+const SEASON_START = "extract(epoch from date '2026-01-01')";
+
+let heroes = {};
+let leagues = [];
+let patch = '';
+let current = [];
+let sortKey = 'picks';
+let sortDir = -1;
+const cache = new Map();
+
+function sql(query) {
+  return fetch(`${API}/explorer?sql=${encodeURIComponent(query)}`)
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+    .then(d => d.rows || []);
+}
+
+function showMsg(text, isError) {
+  el.msg.textContent = text;
+  el.msg.className = 'msg' + (isError ? ' err' : '');
+  el.msg.hidden = false;
+  el.table.hidden = true;
+}
+
+async function init() {
+  try {
+    const [heroList, patchRows] = await Promise.all([
+      fetch(`${API}/heroStats`).then(r => r.json()),
+      sql(`SELECT mp.patch, count(*) AS n
+           FROM match_patch mp JOIN matches m ON m.match_id = mp.match_id
+           WHERE m.start_time >= extract(epoch from now() - interval '30 days')
+           GROUP BY 1 ORDER BY n DESC LIMIT 1`),
+    ]);
+
+    heroes = Object.fromEntries(heroList.map(h => [h.id, h]));
+    patch = patchRows[0]?.patch;
+    if (!patch) throw new Error('не удалось определить актуальный патч');
+
+    leagues = await sql(`SELECT l.leagueid, l.name,
+             count(distinct m.match_id) AS matches,
+             min(m.start_time) AS first_match, max(m.start_time) AS last_match
+           FROM leagues l
+           JOIN matches m ON m.leagueid = l.leagueid
+           JOIN match_patch mp ON mp.match_id = m.match_id
+           WHERE mp.patch = '${patch}'
+             AND m.start_time >= ${SEASON_START}
+             AND l.tier IN ('premium', 'professional')
+           GROUP BY l.leagueid, l.name
+           ORDER BY last_match DESC`);
+
+    if (!leagues.length) return showMsg('Турниры на патче ' + patch + ' не найдены', true);
+
+    const totalMatches = leagues.reduce((s, l) => s + Number(l.matches), 0);
+    const from = Math.min(...leagues.map(l => Number(l.first_match)));
+    const to = Math.max(...leagues.map(l => Number(l.last_match)));
+    document.getElementById('sub').textContent =
+      `Патч ${patch} · ${fmtDate(from)} — ${fmtDate(to)} · ${leagues.length} турниров, ${totalMatches} матчей`;
+
+    el.league.innerHTML =
+      `<option value="all">Все турниры — патч ${patch}</option>` +
+      leagues.map(l =>
+        `<option value="${l.leagueid}">${l.name} (${l.matches} матчей)</option>`).join('');
+
+    loadLeague('all');
+  } catch (e) {
+    showMsg('Не удалось загрузить данные: ' + e.message, true);
+  }
+}
+
+function fmtDate(ts) {
+  return new Date(ts * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+async function loadLeague(id) {
+  const isAll = id === 'all';
+  const league = leagues.find(l => String(l.leagueid) === String(id));
+  showMsg('Загрузка статистики…');
+  el.stats.innerHTML = '';
+
+  try {
+    let rows = cache.get(String(id));
+    if (!rows) {
+      rows = await sql(`SELECT pb.hero_id,
+             sum(CASE WHEN pb.is_pick THEN 1 ELSE 0 END) AS picks,
+             sum(CASE WHEN NOT pb.is_pick THEN 1 ELSE 0 END) AS bans,
+             sum(CASE WHEN pb.is_pick AND ((pb.team = 0 AND m.radiant_win)
+                       OR (pb.team = 1 AND NOT m.radiant_win)) THEN 1 ELSE 0 END) AS wins
+           FROM picks_bans pb
+           JOIN matches m ON m.match_id = pb.match_id
+           JOIN match_patch mp ON mp.match_id = m.match_id
+           JOIN leagues l ON l.leagueid = m.leagueid
+           WHERE mp.patch = '${patch}'
+             AND m.start_time >= ${SEASON_START}
+             AND ${isAll ? `l.tier IN ('premium', 'professional')` : `m.leagueid = ${Number(id)}`}
+           GROUP BY pb.hero_id`);
+      cache.set(String(id), rows);
+    }
+
+    const total = isAll
+      ? leagues.reduce((s, l) => s + Number(l.matches), 0)
+      : Number(league.matches) || 1;
+    current = rows.map(r => {
+      const picks = Number(r.picks), bans = Number(r.bans), wins = Number(r.wins);
+      return {
+        id: r.hero_id,
+        name: heroes[r.hero_id]?.localized_name || `Hero ${r.hero_id}`,
+        img: heroes[r.hero_id]?.img ? CDN + heroes[r.hero_id].img : '',
+        picks, bans, wins,
+        contest: (picks + bans) / total * 100,
+        wr: picks ? wins / picks * 100 : 0,
+      };
+    });
+
+    const picked = current.filter(h => h.picks > 0).length;
+    el.stats.innerHTML = `
+      <div>Матчей: <b>${total}</b></div>
+      <div>Уникальных героев в пиках: <b>${picked}</b></div>
+      <div>Всего пиков: <b>${current.reduce((s, h) => s + h.picks, 0)}</b></div>
+      <div>Всего банов: <b>${current.reduce((s, h) => s + h.bans, 0)}</b></div>`;
+
+    render();
+  } catch (e) {
+    showMsg('Не удалось загрузить статистику: ' + e.message, true);
+  }
+}
+
+function render() {
+  const q = el.search.value.trim().toLowerCase();
+  const list = current
+    .filter(h => !q || h.name.toLowerCase().includes(q))
+    .sort((a, b) => {
+      const v = sortKey === 'name'
+        ? a.name.localeCompare(b.name) * -1
+        : a[sortKey] - b[sortKey];
+      return v * sortDir || b.picks - a.picks;
+    });
+
+  if (!list.length) return showMsg('Ничего не найдено');
+
+  const max = Math.max(...current.map(h => h.picks), 1);
+  el.rows.innerHTML = list.map((h, i) => `
+    <tr>
+      <td class="rank">${i + 1}</td>
+      <td>
+        <div class="hero">
+          <img src="${h.img}" alt="" loading="lazy">
+          <span>${h.name}</span>
+        </div>
+      </td>
+      <td class="num">
+        <div class="bar"><i style="width:${h.picks / max * 100}%"></i><span>${h.picks}</span></div>
+      </td>
+      <td class="num">${h.bans}</td>
+      <td class="num hide-sm">${h.contest.toFixed(0)}%</td>
+      <td class="num hide-sm">${h.wins}</td>
+      <td class="${h.wr >= 55 ? 'wr-hi' : h.wr <= 45 ? 'wr-lo' : ''}">
+        ${h.picks ? h.wr.toFixed(1) + '%' : '—'}
+      </td>
+    </tr>`).join('');
+
+  el.msg.hidden = true;
+  el.table.hidden = false;
+}
+
+document.querySelectorAll('th[data-sort]').forEach(th => {
+  th.onclick = () => {
+    const key = th.dataset.sort;
+    sortDir = key === sortKey ? -sortDir : -1;
+    sortKey = key;
+    document.querySelectorAll('th').forEach(t => t.classList.remove('active'));
+    th.classList.add('active');
+    render();
+  };
+});
+
+el.league.onchange = () => loadLeague(el.league.value);
+el.search.oninput = render;
+
+init();
+</script>
+</body>
+</html>
