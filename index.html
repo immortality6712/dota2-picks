@@ -112,6 +112,17 @@
   .wr-lo { color: #d9634f; }
   .dim { color: var(--muted); }
   .ellip { max-width: 380px; overflow: hidden; text-overflow: ellipsis; }
+  .item { display: flex; align-items: center; gap: 10px; }
+  .item img {
+    width: 44px; height: 44px;
+    object-fit: contain;
+    border-radius: 3px;
+    background: var(--panel2);
+    flex: none;
+  }
+  .item small { display: block; color: var(--muted); font-size: 11px; }
+  .price { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .price small { display: block; color: var(--muted); font-size: 11px; }
   .scroll.plain { border: none; border-radius: 0; }
 
   .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
@@ -176,11 +187,13 @@
     <button data-tab="ti">The International 2026</button>
     <button data-tab="hero">Герой по турнирам</button>
     <button data-tab="matrix">Матрица</button>
+    <button data-tab="prices">Цены Steam</button>
   </nav>
 
   <div class="controls">
     <select id="league" hidden></select>
     <select id="hero" hidden></select>
+    <select id="group" hidden></select>
     <input id="search" type="search" autocomplete="off">
   </div>
 
@@ -195,6 +208,8 @@
   Данные: <a href="https://www.opendota.com" target="_blank" rel="noopener">OpenDota API</a>.
   Учитываются только матчи 2026 года на актуальном патче, турниры уровня premium и professional.
   Контест = доля матчей, где герой был выбран или забанен.
+  Цены — <a href="https://steamcommunity.com/market/search?appid=570" target="_blank" rel="noopener">Steam Community Market</a>,
+  обновляются раз в сутки.
 </footer>
 
 <script>
@@ -206,6 +221,7 @@ const TIERS = "l.tier IN ('premium', 'professional')";
 const el = {
   league: document.getElementById('league'),
   hero: document.getElementById('hero'),
+  group: document.getElementById('group'),
   search: document.getElementById('search'),
   stats: document.getElementById('stats'),
   msg: document.getElementById('msg'),
@@ -225,7 +241,11 @@ const sort = {
   tournaments: { key: 'picks', dir: -1 },
   ti: { key: 'picks', dir: -1 },
   hero: { key: 'picks', dir: -1 },
+  prices: { key: 'usd', dir: -1 },
 };
+
+let prices = null;
+let pricesError = '';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmtDate = ts => new Date(ts * 1000)
@@ -402,7 +422,7 @@ function sortList(list, state) {
   const { key, dir } = state;
   return list.sort((a, b) => {
     const v = typeof a[key] === 'string' ? a[key].localeCompare(b[key]) * -1 : a[key] - b[key];
-    return v * dir || b.picks - a.picks;
+    return v * dir || (b.picks || 0) - (a.picks || 0);
   });
 }
 
@@ -571,6 +591,127 @@ function renderMatrix() {
   el.msg.hidden = true;
 }
 
+const ECON = 'https://community.fastly.steamstatic.com/economy/image';
+const CURRENCY_COLS = [
+  { key: 'usd', label: 'США, $' },
+  { key: 'rub', label: 'Россия, ₽' },
+];
+
+const usd = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function priceNum(s) {
+  if (!s) return 0;
+  const t = s.replace(/[^\d.,]/g, '');
+  const dec = t.match(/[.,](\d{2})$/);
+  const whole = (dec ? t.slice(0, -3) : t).replace(/[.,]/g, '');
+  return Number(whole + (dec ? '.' + dec[1] : '')) || 0;
+}
+
+async function loadPrices() {
+  try {
+    const r = await fetch('prices.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    prices = {
+      updated: data.updated,
+      groups: data.groups || [],
+      items: data.items.map(it => {
+        const row = {
+          name: it.name, listings: it.listings || 0, icon: it.icon,
+          type: it.type || '', groups: it.groups || [],
+        };
+        for (const c of CURRENCY_COLS) {
+          const p = it.prices?.[c.key];
+          row[c.key] = priceNum(p?.low);
+          row[c.key + 'Text'] = p?.low || '';
+          row[c.key + 'Median'] = p?.median || '';
+        }
+        return row;
+      }),
+    };
+  } catch (e) {
+    pricesError = e.message;
+  }
+}
+
+function syncGroupSelect() {
+  if (el.group.options.length) return;
+  const count = key => prices.items.filter(i => i.groups.includes(key)).length;
+  el.group.innerHTML = `<option value="all">Все предметы (${prices.items.length})</option>` +
+    prices.groups.map(g => `<option value="${g.key}">${esc(g.title)} (${count(g.key)})</option>`).join('');
+  el.group.value = prices.groups[0]?.key || 'all';
+}
+
+function renderPrices() {
+  if (pricesError) {
+    el.stats.innerHTML = '';
+    return showMsg(`Не удалось загрузить цены: ${pricesError}`, true);
+  }
+  if (!prices) {
+    el.stats.innerHTML = '';
+    showMsg('Загрузка цен…');
+    loadPrices().then(() => { if (tab === 'prices') render(); });
+    return;
+  }
+
+  syncGroupSelect();
+  const group = el.group.value;
+  const q = el.search.value.trim().toLowerCase();
+  const all = prices.items.filter(i => group === 'all' || i.groups.includes(group));
+
+  const combo = group === 'terrorblade' || group === 'gems';
+  let arcanaMin = 0;
+  if (combo) {
+    const variants = prices.items.filter(i => i.groups.includes('terrorblade') && !i.groups.includes('gems') && i.usd > 0);
+    arcanaMin = variants.length ? Math.min(...variants.map(i => i.usd)) : 0;
+    for (const i of all) i.combo = i.groups.includes('gems') ? arcanaMin + i.usd : i.usd;
+  }
+
+  const list = sortList(all.filter(i => !q || i.name.toLowerCase().includes(q)), sort.prices);
+
+  const dt = new Date(prices.updated);
+  el.stats.innerHTML = `
+    <div>Предметов: <b>${all.length}</b></div>
+    <div>Дороже $500: <b>${all.filter(i => i.usd >= 500).length}</b></div>
+    <div>Всего лотов: <b>${all.reduce((s, i) => s + i.listings, 0)}</b></div>
+    <div>Обновлено: <b>${isNaN(dt) ? '—' : dt.toLocaleString('ru-RU')}</b></div>`;
+
+  if (!list.length) return showMsg('Ничего не найдено');
+
+  const cols = [
+    { key: 'name', label: 'Предмет' },
+    { key: 'listings', label: 'Лотов', cls: 'num' },
+    ...CURRENCY_COLS.map(c => ({ key: c.key, label: c.label, cls: 'price' })),
+    ...(combo ? [{ key: 'combo', label: 'Аркана + гем, $', cls: 'price' }] : []),
+  ];
+
+  el.view.innerHTML = `<div class="scroll plain"><table><thead>${header(cols, sort.prices)}</thead><tbody>` +
+    list.map((it, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td>
+          <div class="item">
+            <img src="${ECON}/${esc(it.icon)}/62fx62f" alt="" loading="lazy">
+            <div><div class="ellip">${esc(it.name)}</div>${it.type ? `<small>${esc(it.type)}</small>` : ''}</div>
+          </div>
+        </td>
+        <td class="num">${it.listings || '—'}</td>
+        ${CURRENCY_COLS.map(c => `
+          <td class="price">${it[c.key + 'Text'] ? esc(it[c.key + 'Text']) : '<span class="dim">нет данных</span>'}
+            ${it[c.key + 'Median'] ? `<small>медиана ${esc(it[c.key + 'Median'])}</small>` : ''}</td>`).join('')}
+        ${combo ? `<td class="price">${it.groups.includes('gems')
+          ? `$${usd(it.combo)}<small>гем + аркана $${usd(arcanaMin)}</small>`
+          : '<span class="dim">сама аркана</span>'}</td>` : ''}
+      </tr>`).join('') + '</tbody></table></div>' +
+    `<div class="note">Цены Steam Community Market, минимальная цена продажи с учётом комиссии.
+      Обновляются автоматически раз в сутки. Steam задаёт курсы сам, поэтому регионы расходятся не только на курс валют.
+      ${combo ? `«Аркана + гем» — сумма двух отдельных лотов: самой дешёвой арканы ($${usd(arcanaMin)}) и гема.
+        Steam не отдаёт состав конкретных лотов, поэтому «аркана уже с гемом внутри» одной покупкой здесь не считается.` : ''}
+      Список гемов, подходящих к аркане Terrorblade, взят из
+      <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3336022190" target="_blank" rel="noopener">гайда в Steam</a>.</div>`;
+  el.msg.hidden = true;
+}
+
 function tiBanner() {
   if (tab !== 'ti') return '';
   const main = tiLeagues.find(l => !/qualifier/i.test(l.name));
@@ -583,12 +724,15 @@ function render() {
   const byLeague = tab === 'tournaments' || tab === 'ti';
   el.league.hidden = !byLeague;
   el.hero.hidden = tab !== 'hero';
-  el.search.placeholder = tab === 'hero' ? 'Поиск турнира…' : 'Поиск героя…';
+  el.group.hidden = tab !== 'prices';
+  el.search.placeholder = tab === 'hero' ? 'Поиск турнира…'
+    : tab === 'prices' ? 'Поиск предмета…' : 'Поиск героя…';
 
   if (byLeague) {
     syncLeagueSelect();
     renderTournaments();
   } else if (tab === 'hero') renderHero();
+  else if (tab === 'prices') renderPrices();
   else renderMatrix();
 }
 
@@ -612,6 +756,13 @@ el.view.onclick = e => {
 
 el.league.onchange = render;
 el.hero.onchange = render;
+el.group.onchange = () => {
+  const g = el.group.value;
+  sort.prices = g === 'terrorblade' || g === 'gems'
+    ? { key: 'combo', dir: 1 }
+    : { key: 'usd', dir: -1 };
+  render();
+};
 el.search.oninput = render;
 
 init();

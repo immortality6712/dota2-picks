@@ -12,7 +12,8 @@ import urllib.request
 from datetime import datetime, timezone
 
 APPID = 570
-CURRENCIES = {"usd": 1, "rub": 5, "cny": 23}
+# Доллары приходят из поиска пачкой, поштучно спрашиваем только рубли.
+CURRENCIES = {"rub": 5}
 UA = "dota2-picks price bot (github.com/immortality6712/dota2-picks)"
 OUT = pathlib.Path(__file__).resolve().parent.parent / "prices.json"
 
@@ -107,6 +108,8 @@ def search(group):
                 "listings": r["sell_listings"],
                 "icon": asset.get("icon_url", ""),
                 "type": asset.get("type", ""),
+                # Доллары выдача отдаёт сразу — это экономит запрос priceoverview на предмет.
+                "usd_low": r.get("sell_price_text"),
             }
             if keep(item):
                 found.append(item)
@@ -140,6 +143,26 @@ def load_previous():
     return {i["name"]: i.get("prices", {}) for i in data.get("items", [])}, data.get("updated")
 
 
+def write(items):
+    """Пишем после каждого предмета: обрыв на середине не должен стоить всего прогона."""
+    OUT.write_text(
+        json.dumps(
+            {
+                "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "groups": [{"key": g["key"], "title": g["title"]} for g in GROUPS],
+                "items": sorted(
+                    (i for i in items.values() if i.get("prices")),
+                    key=lambda i: -(i["listings"] or 0),
+                ),
+            },
+            ensure_ascii=False,
+            indent=1,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
 def main():
     previous, prev_updated = load_previous()
     reuse_hours = float(os.environ.get("REUSE_HOURS", 0))
@@ -160,13 +183,19 @@ def main():
             items.setdefault(item["name"], {**item, "groups": []})["groups"].extend(keys)
         time.sleep(5)
 
+    for item in items.values():
+        item["prices"] = {"usd": {"low": item.pop("usd_low", None)}}
+
+    misses = 0
     for n, item in enumerate(items.values(), 1):
+        write(items)
+        if misses >= 3:
+            break
         old = previous.get(item["name"], {})
-        if fresh and len(old) == len(CURRENCIES):
-            item["prices"] = old
+        if fresh and all(c in old for c in CURRENCIES):
+            item["prices"].update({c: old[c] for c in CURRENCIES})
             print(f"{n}/{len(items)} {item['name']} — из прошлого запуска", file=sys.stderr)
             continue
-        item["prices"] = {}
         try:
             for code, currency in CURRENCIES.items():
                 p = price(item["name"], currency)
@@ -174,30 +203,19 @@ def main():
                     item["prices"][code] = p
                 time.sleep(5)
         except Exception as e:
-            item["prices"] = old
-            item["stale"] = True
+            misses += 1
+            for code in CURRENCIES:
+                if code in old:
+                    item["prices"][code] = old[code]
+                    item["stale"] = True
             print(f"{n}/{len(items)} {item['name']} — Steam оборвал ({e}), беру прошлые цены", file=sys.stderr)
             continue
+        misses = 0
         print(f"{n}/{len(items)} {item['name']}", file=sys.stderr)
 
-    priced = sum(1 for i in items.values() if i["prices"])
-    if priced < len(items) / 2:
-        sys.exit(f"цены собраны только для {priced} из {len(items)} — не перезаписываю prices.json")
-
-    OUT.write_text(
-        json.dumps(
-            {
-                "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                "groups": [{"key": g["key"], "title": g["title"]} for g in GROUPS],
-                "items": sorted(items.values(), key=lambda i: -(i["listings"] or 0)),
-            },
-            ensure_ascii=False,
-            indent=1,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    print(f"wrote {OUT}", file=sys.stderr)
+    write(items)
+    priced = sum(1 for i in items.values() if i.get("prices"))
+    print(f"wrote {OUT}: {priced}/{len(items)} с ценами", file=sys.stderr)
 
 
 if __name__ == "__main__":
