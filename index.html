@@ -622,9 +622,12 @@ async function loadPrices() {
         };
         for (const c of CURRENCY_COLS) {
           const p = it.prices?.[c.key];
-          row[c.key] = priceNum(p?.low);
-          row[c.key + 'Text'] = p?.low || '';
-          row[c.key + 'Median'] = p?.median || '';
+          const approx = p?.approx;
+          row[c.key] = typeof p?.low === 'number' ? p.low : priceNum(p?.low);
+          row[c.key + 'Text'] = approx
+            ? '≈ ' + row[c.key].toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' руб.'
+            : (p?.low || '');
+          row[c.key + 'Median'] = approx ? 'пересчёт по курсу Steam' : (p?.median ? 'медиана ' + p.median : '');
         }
         return row;
       }),
@@ -698,7 +701,7 @@ function renderPrices() {
         <td class="num">${it.listings || '—'}</td>
         ${CURRENCY_COLS.map(c => `
           <td class="price">${it[c.key + 'Text'] ? esc(it[c.key + 'Text']) : '<span class="dim">нет данных</span>'}
-            ${it[c.key + 'Median'] ? `<small>медиана ${esc(it[c.key + 'Median'])}</small>` : ''}</td>`).join('')}
+            ${it[c.key + 'Median'] ? `<small>${esc(it[c.key + 'Median'])}</small>` : ''}</td>`).join('')}
         ${combo ? `<td class="price">${it.groups.includes('gems')
           ? `$${usd(it.combo)}<small>гем + аркана $${usd(arcanaMin)}</small>`
           : '<span class="dim">сама аркана</span>'}</td>` : ''}

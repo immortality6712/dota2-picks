@@ -4,6 +4,7 @@
 import json
 import os
 import pathlib
+import re
 import sys
 import time
 import urllib.error
@@ -124,7 +125,8 @@ def price(name, currency):
     url = "https://steamcommunity.com/market/priceoverview/?" + urllib.parse.urlencode(
         {"appid": APPID, "currency": currency, "market_hash_name": name}
     )
-    data = get(url)
+    # Под жёстким лимитом долгие повторы бесполезны: дешевле пропустить и вернуться позже.
+    data = get(url, attempts=int(os.environ.get("ATTEMPTS", 7)))
     if not data.get("success"):
         return None
     return {
@@ -132,6 +134,33 @@ def price(name, currency):
         "median": data.get("median_price"),
         "volume": data.get("volume"),
     }
+
+
+def to_number(s):
+    """'31 311,51 руб.' и '$1,894.85' -> float."""
+    if not s:
+        return None
+    # rstrip убирает точку из «руб.», иначе она сойдёт за десятичный разделитель.
+    t = "".join(c for c in s if c.isdigit() or c in ".,").rstrip(".,")
+    dec = re.search(r"[.,](\d{1,2})$", t)
+    whole = (t[: dec.start()] if dec else t).replace(".", "").replace(",", "")
+    if not whole.isdigit():
+        return None
+    return float(whole + ("." + dec.group(1) if dec else ""))
+
+
+def steam_rate(items, code):
+    """Курс Steam из реальных пар цен: медиана отношений устойчива к разовым выбросам."""
+    ratios = []
+    for i in items:
+        p = i.get("prices", {})
+        usd, other = to_number(p.get("usd", {}).get("low")), to_number(p.get(code, {}).get("low"))
+        if usd and other:
+            ratios.append(other / usd)
+    if len(ratios) < 2:
+        return None
+    ratios.sort()
+    return ratios[len(ratios) // 2]
 
 
 def load_previous():
@@ -186,10 +215,16 @@ def main():
     for item in items.values():
         item["prices"] = {"usd": {"low": item.pop("usd_low", None)}}
 
+    # Лимит Steam часто обрывает проход на середине, поэтому дорогие Crimson идут первыми.
+    order = [g["key"] for g in GROUPS]
+    queue = sorted(items.values(), key=lambda i: min(order.index(k) for k in i["groups"]))
+
+    gap = float(os.environ.get("SLEEP", 5))
+    miss_limit = int(os.environ.get("MISS_LIMIT", 3))
     misses = 0
-    for n, item in enumerate(items.values(), 1):
+    for n, item in enumerate(queue, 1):
         write(items)
-        if misses >= 3:
+        if misses >= miss_limit:
             break
         old = previous.get(item["name"], {})
         if fresh and all(c in old for c in CURRENCIES):
@@ -201,7 +236,7 @@ def main():
                 p = price(item["name"], currency)
                 if p:
                     item["prices"][code] = p
-                time.sleep(5)
+                time.sleep(gap)
         except Exception as e:
             misses += 1
             for code in CURRENCIES:
@@ -209,13 +244,30 @@ def main():
                     item["prices"][code] = old[code]
                     item["stale"] = True
             print(f"{n}/{len(items)} {item['name']} — Steam оборвал ({e}), беру прошлые цены", file=sys.stderr)
+            time.sleep(gap)
             continue
         misses = 0
         print(f"{n}/{len(items)} {item['name']}", file=sys.stderr)
 
+    for code in CURRENCIES:
+        rate = steam_rate(items.values(), code)
+        if not rate:
+            print(f"{code}: курс не вывести, пересчёта не будет", file=sys.stderr)
+            continue
+        filled = 0
+        for item in items.values():
+            if item["prices"].get(code):
+                continue
+            usd = to_number(item["prices"].get("usd", {}).get("low"))
+            if not usd:
+                continue
+            item["prices"][code] = {"low": round(usd * rate, 2), "approx": True}
+            filled += 1
+        print(f"{code}: курс Steam {rate:.2f}, пересчитано {filled}", file=sys.stderr)
+
     write(items)
-    priced = sum(1 for i in items.values() if i.get("prices"))
-    print(f"wrote {OUT}: {priced}/{len(items)} с ценами", file=sys.stderr)
+    real = sum(1 for i in items.values() if not i["prices"].get("rub", {}).get("approx"))
+    print(f"wrote {OUT}: {len(items)} предметов, живых рублёвых цен {real}", file=sys.stderr)
 
 
 if __name__ == "__main__":
