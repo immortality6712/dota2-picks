@@ -28,20 +28,30 @@
     border-bottom: 1px solid var(--line);
     background: linear-gradient(180deg, #1b1410, var(--bg));
   }
-  .wrap { max-width: 1100px; margin: 0 auto; }
-  h1 {
-    margin: 0 0 4px;
-    font-size: 26px;
-    letter-spacing: .5px;
-  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: .5px; }
   h1 span { color: var(--red); }
   .sub { color: var(--muted); font-size: 14px; }
+
+  .tabs { display: flex; gap: 4px; padding: 14px 20px 0; }
+  .tabs button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font: inherit;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .tabs button:hover { color: var(--text); }
+  .tabs button.on { color: var(--gold); border-bottom-color: var(--gold); }
+
   .controls {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
-    padding: 18px 20px;
+    padding: 14px 20px;
   }
   select, input {
     background: var(--panel2);
@@ -55,6 +65,8 @@
   select:focus, input:focus { border-color: var(--gold); }
   select { min-width: 320px; }
   input { width: 200px; }
+  [hidden] { display: none !important; }
+
   .stats {
     display: flex;
     gap: 22px;
@@ -65,6 +77,7 @@
   }
   .stats b { color: var(--gold); font-size: 15px; }
   main { padding: 0 20px 60px; }
+
   table { width: 100%; border-collapse: collapse; }
   th {
     text-align: left;
@@ -74,60 +87,73 @@
     color: var(--muted);
     padding: 10px 8px;
     border-bottom: 1px solid var(--line);
-    cursor: pointer;
-    user-select: none;
     white-space: nowrap;
   }
-  th:hover { color: var(--gold); }
-  th.active { color: var(--gold); }
-  td {
-    padding: 7px 8px;
-    border-bottom: 1px solid #20242b;
-    white-space: nowrap;
-  }
-  tr:hover td { background: var(--panel); }
+  th[data-sort] { cursor: pointer; user-select: none; }
+  th[data-sort]:hover, th.active { color: var(--gold); }
+  td { padding: 7px 8px; border-bottom: 1px solid #20242b; white-space: nowrap; }
+  tbody tr:hover td { background: var(--panel); }
   .rank { color: var(--muted); width: 34px; }
   .hero { display: flex; align-items: center; gap: 10px; }
   .hero img {
-    width: 52px;
-    height: 29px;
+    width: 52px; height: 29px;
     object-fit: cover;
     border-radius: 3px;
     background: var(--panel2);
   }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .bar {
-    position: relative;
-    background: var(--panel2);
-    border-radius: 3px;
-    height: 18px;
-    min-width: 90px;
-  }
-  .bar i {
-    position: absolute;
-    inset: 0 auto 0 0;
-    background: var(--red);
-    border-radius: 3px;
-    opacity: .55;
-  }
+  .bar { position: relative; background: var(--panel2); border-radius: 3px; height: 18px; min-width: 90px; }
+  .bar i { position: absolute; inset: 0 auto 0 0; background: var(--red); border-radius: 3px; opacity: .55; }
   .bar span {
-    position: relative;
-    display: block;
-    text-align: center;
-    font-size: 12px;
-    line-height: 18px;
-    font-variant-numeric: tabular-nums;
+    position: relative; display: block; text-align: center;
+    font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums;
   }
   .wr-hi { color: var(--green); }
   .wr-lo { color: #d9634f; }
+  .dim { color: var(--muted); }
+  .ellip { max-width: 380px; overflow: hidden; text-overflow: ellipsis; }
+  .scroll.plain { border: none; border-radius: 0; }
+
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+  .matrix { border-collapse: separate; border-spacing: 0; }
+  .matrix th, .matrix td { border-bottom: 1px solid #20242b; }
+  .matrix thead th {
+    position: sticky; top: 0;
+    background: var(--bg);
+    font-size: 11px;
+    padding: 8px 6px;
+    vertical-align: bottom;
+  }
+  .matrix thead th.cell {
+    text-align: center;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .matrix .name {
+    position: sticky; left: 0;
+    background: var(--bg);
+    z-index: 2;
+    min-width: 170px;
+    border-right: 1px solid var(--line);
+  }
+  .matrix thead .name { z-index: 3; }
+  .matrix tbody tr:hover .name { background: var(--panel); }
+  .matrix td.cell {
+    text-align: center;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    min-width: 46px;
+    padding: 4px 3px;
+  }
+  .matrix td.cell small { display: block; font-size: 10px; opacity: .55; }
+  .matrix td.thin { opacity: .35; }
+  .matrix td.empty { color: #3a4048; }
+  .matrix .col-total { border-left: 1px solid var(--line); font-weight: 600; }
+
   .msg { padding: 40px 20px; text-align: center; color: var(--muted); }
   .msg.err { color: #d9634f; }
-  footer {
-    padding: 18px 20px 40px;
-    color: var(--muted);
-    font-size: 12px;
-    border-top: 1px solid var(--line);
-  }
+  .note { padding: 10px 0 0; color: var(--muted); font-size: 12px; }
+  footer { padding: 18px 20px 40px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
   a { color: var(--gold); }
   @media (max-width: 640px) {
     select, input { min-width: 0; width: 100%; }
@@ -140,32 +166,28 @@
 <header>
   <div class="wrap">
     <h1>DOTA 2 — <span>пики героев</span> на крупных турнирах</h1>
-    <div class="sub" id="sub">Статистика пиков, банов и винрейта по данным OpenDota</div>
+    <div class="sub" id="sub">Загрузка…</div>
   </div>
 </header>
 
 <div class="wrap">
+  <nav class="tabs">
+    <button data-tab="tournaments" class="on">Турниры</button>
+    <button data-tab="ti">The International 2026</button>
+    <button data-tab="hero">Герой по турнирам</button>
+    <button data-tab="matrix">Матрица</button>
+  </nav>
+
   <div class="controls">
-    <select id="league"><option>Загрузка турниров…</option></select>
-    <input id="search" type="search" placeholder="Поиск героя…" autocomplete="off">
+    <select id="league" hidden></select>
+    <select id="hero" hidden></select>
+    <input id="search" type="search" autocomplete="off">
   </div>
+
   <div class="stats" id="stats"></div>
   <main>
-    <div id="msg" class="msg">Выберите турнир</div>
-    <table id="table" hidden>
-      <thead>
-        <tr>
-          <th class="rank">#</th>
-          <th data-sort="name">Герой</th>
-          <th data-sort="picks" class="num active">Пики</th>
-          <th data-sort="bans" class="num">Баны</th>
-          <th data-sort="contest" class="num hide-sm">Контест</th>
-          <th data-sort="wins" class="num hide-sm">Победы</th>
-          <th data-sort="wr">Винрейт</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+    <div id="msg" class="msg">Загрузка данных…</div>
+    <div id="view"></div>
   </main>
 </div>
 
@@ -178,25 +200,53 @@
 <script>
 const API = 'https://api.opendota.com/api';
 const CDN = 'https://cdn.cloudflare.steamstatic.com';
+const SEASON_START = "extract(epoch from date '2026-01-01')";
+const TIERS = "l.tier IN ('premium', 'professional')";
 
 const el = {
   league: document.getElementById('league'),
+  hero: document.getElementById('hero'),
   search: document.getElementById('search'),
   stats: document.getElementById('stats'),
   msg: document.getElementById('msg'),
-  table: document.getElementById('table'),
-  rows: document.getElementById('rows'),
+  view: document.getElementById('view'),
+  sub: document.getElementById('sub'),
 };
-
-const SEASON_START = "extract(epoch from date '2026-01-01')";
 
 let heroes = {};
 let leagues = [];
+let tiLeagues = [];
+let leagueById = {};
+let rows = [];
 let patch = '';
-let current = [];
-let sortKey = 'picks';
-let sortDir = -1;
-const cache = new Map();
+let totalMatches = 0;
+let tab = 'tournaments';
+const sort = {
+  tournaments: { key: 'picks', dir: -1 },
+  ti: { key: 'picks', dir: -1 },
+  hero: { key: 'picks', dir: -1 },
+};
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtDate = ts => new Date(ts * 1000)
+  .toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+const shorten = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
+
+const ABBR = [
+  [/The International/gi, 'TI'],
+  [/Esports World Cup/gi, 'EWC'],
+  [/DreamLeague/gi, 'DL'],
+  [/Regional Qualifiers?/gi, 'кв.'],
+  [/Qualifiers?/gi, 'кв.'],
+  [/Season\s*/gi, 'S'],
+  [/Division/gi, 'Div'],
+  [/\s20\d\d/g, ''],
+];
+
+function shortLeague(name) {
+  const s = ABBR.reduce((acc, [re, to]) => acc.replace(re, to), name);
+  return shorten(s.replace(/\s+/g, ' ').trim(), 17);
+}
 
 function sql(query) {
   return fetch(`${API}/explorer?sql=${encodeURIComponent(query)}`)
@@ -208,7 +258,16 @@ function showMsg(text, isError) {
   el.msg.textContent = text;
   el.msg.className = 'msg' + (isError ? ' err' : '');
   el.msg.hidden = false;
-  el.table.hidden = true;
+  el.view.innerHTML = '';
+}
+
+function wrColor(wr) {
+  const h = Math.max(0, Math.min(130, (wr - 35) / 30 * 130));
+  return `hsl(${h}, 50%, 26%)`;
+}
+
+function wrClass(wr) {
+  return wr >= 55 ? 'wr-hi' : wr <= 45 ? 'wr-lo' : '';
 }
 
 async function init() {
@@ -225,144 +284,334 @@ async function init() {
     patch = patchRows[0]?.patch;
     if (!patch) throw new Error('не удалось определить актуальный патч');
 
-    leagues = await sql(`SELECT l.leagueid, l.name,
-             count(distinct m.match_id) AS matches,
-             min(m.start_time) AS first_match, max(m.start_time) AS last_match
+    const where = `WHERE mp.patch = '${patch}'
+                     AND m.start_time >= ${SEASON_START} AND ${TIERS}`;
+
+    const [leagueRows, pickRows] = await Promise.all([
+      sql(`SELECT l.leagueid, l.name,
+                  count(distinct m.match_id) AS matches,
+                  min(m.start_time) AS first_match, max(m.start_time) AS last_match
            FROM leagues l
            JOIN matches m ON m.leagueid = l.leagueid
            JOIN match_patch mp ON mp.match_id = m.match_id
-           WHERE mp.patch = '${patch}'
-             AND m.start_time >= ${SEASON_START}
-             AND l.tier IN ('premium', 'professional')
+           ${where}
            GROUP BY l.leagueid, l.name
-           ORDER BY last_match DESC`);
+           ORDER BY last_match DESC`),
+      sql(`SELECT m.leagueid, pb.hero_id,
+                  sum(CASE WHEN pb.is_pick THEN 1 ELSE 0 END) AS picks,
+                  sum(CASE WHEN NOT pb.is_pick THEN 1 ELSE 0 END) AS bans,
+                  sum(CASE WHEN pb.is_pick AND ((pb.team = 0 AND m.radiant_win)
+                            OR (pb.team = 1 AND NOT m.radiant_win)) THEN 1 ELSE 0 END) AS wins
+           FROM picks_bans pb
+           JOIN matches m ON m.match_id = pb.match_id
+           JOIN match_patch mp ON mp.match_id = m.match_id
+           JOIN leagues l ON l.leagueid = m.leagueid
+           ${where}
+           GROUP BY 1, 2`),
+    ]);
 
-    if (!leagues.length) return showMsg('Турниры на патче ' + patch + ' не найдены', true);
+    if (!leagueRows.length) throw new Error('турниры на патче ' + patch + ' не найдены');
 
-    const totalMatches = leagues.reduce((s, l) => s + Number(l.matches), 0);
-    const from = Math.min(...leagues.map(l => Number(l.first_match)));
-    const to = Math.max(...leagues.map(l => Number(l.last_match)));
-    document.getElementById('sub').textContent =
-      `Патч ${patch} · ${fmtDate(from)} — ${fmtDate(to)} · ${leagues.length} турниров, ${totalMatches} матчей`;
+    leagues = leagueRows.map(l => ({
+      id: String(l.leagueid),
+      name: l.name,
+      matches: Number(l.matches),
+      first: Number(l.first_match),
+      last: Number(l.last_match),
+    }));
+    leagueById = Object.fromEntries(leagues.map(l => [l.id, l]));
+    totalMatches = leagues.reduce((s, l) => s + l.matches, 0);
 
-    el.league.innerHTML =
-      `<option value="all">Все турниры — патч ${patch}</option>` +
-      leagues.map(l =>
-        `<option value="${l.leagueid}">${l.name} (${l.matches} матчей)</option>`).join('');
+    rows = pickRows.map(r => ({
+      league: String(r.leagueid),
+      hero: Number(r.hero_id),
+      picks: Number(r.picks),
+      bans: Number(r.bans),
+      wins: Number(r.wins),
+    }));
 
-    loadLeague('all');
+    el.sub.textContent = `Патч ${patch} · ${fmtDate(Math.min(...leagues.map(l => l.first)))}`
+      + ` — ${fmtDate(Math.max(...leagues.map(l => l.last)))}`
+      + ` · ${leagues.length} турниров, ${totalMatches} матчей`;
+
+    tiLeagues = leagues.filter(l => /international 2026/i.test(l.name));
+
+    const byPicks = aggregateHeroes(idsOf(leagues)).sort((a, b) => b.picks - a.picks);
+    el.hero.innerHTML = byPicks
+      .map(h => `<option value="${h.hero}">${esc(h.name)} — ${h.picks} пиков</option>`).join('');
+
+    render();
   } catch (e) {
     showMsg('Не удалось загрузить данные: ' + e.message, true);
   }
 }
 
-function fmtDate(ts) {
-  return new Date(ts * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+const idsOf = list => new Set(list.map(l => l.id));
+
+function scopeList() {
+  return tab === 'ti' ? tiLeagues : leagues;
 }
 
-async function loadLeague(id) {
-  const isAll = id === 'all';
-  const league = leagues.find(l => String(l.leagueid) === String(id));
-  showMsg('Загрузка статистики…');
-  el.stats.innerHTML = '';
+function currentScope() {
+  const list = scopeList();
+  const v = el.league.value;
+  return v && v !== 'all' ? new Set([v]) : idsOf(list);
+}
 
-  try {
-    let rows = cache.get(String(id));
-    if (!rows) {
-      rows = await sql(`SELECT pb.hero_id,
-             sum(CASE WHEN pb.is_pick THEN 1 ELSE 0 END) AS picks,
-             sum(CASE WHEN NOT pb.is_pick THEN 1 ELSE 0 END) AS bans,
-             sum(CASE WHEN pb.is_pick AND ((pb.team = 0 AND m.radiant_win)
-                       OR (pb.team = 1 AND NOT m.radiant_win)) THEN 1 ELSE 0 END) AS wins
-           FROM picks_bans pb
-           JOIN matches m ON m.match_id = pb.match_id
-           JOIN match_patch mp ON mp.match_id = m.match_id
-           JOIN leagues l ON l.leagueid = m.leagueid
-           WHERE mp.patch = '${patch}'
-             AND m.start_time >= ${SEASON_START}
-             AND ${isAll ? `l.tier IN ('premium', 'professional')` : `m.leagueid = ${Number(id)}`}
-           GROUP BY pb.hero_id`);
-      cache.set(String(id), rows);
-    }
+function syncLeagueSelect() {
+  if (el.league.dataset.mode === tab) return;
+  const list = scopeList();
+  const total = list.reduce((s, l) => s + l.matches, 0);
+  const label = tab === 'ti'
+    ? `Все стадии TI 2026 — ${total} матчей`
+    : `Все турниры — патч ${patch}`;
+  el.league.innerHTML = `<option value="all">${label}</option>` +
+    list.map(l => `<option value="${l.id}">${esc(l.name)} (${l.matches} матчей)</option>`).join('');
+  el.league.dataset.mode = tab;
+}
 
-    const total = isAll
-      ? leagues.reduce((s, l) => s + Number(l.matches), 0)
-      : Number(league.matches) || 1;
-    current = rows.map(r => {
-      const picks = Number(r.picks), bans = Number(r.bans), wins = Number(r.wins);
-      return {
-        id: r.hero_id,
-        name: heroes[r.hero_id]?.localized_name || `Hero ${r.hero_id}`,
-        img: heroes[r.hero_id]?.img ? CDN + heroes[r.hero_id].img : '',
-        picks, bans, wins,
-        contest: (picks + bans) / total * 100,
-        wr: picks ? wins / picks * 100 : 0,
-      };
-    });
+function heroName(id) {
+  return heroes[id]?.localized_name || `Hero ${id}`;
+}
 
-    const picked = current.filter(h => h.picks > 0).length;
-    el.stats.innerHTML = `
-      <div>Матчей: <b>${total}</b></div>
-      <div>Уникальных героев в пиках: <b>${picked}</b></div>
-      <div>Всего пиков: <b>${current.reduce((s, h) => s + h.picks, 0)}</b></div>
-      <div>Всего банов: <b>${current.reduce((s, h) => s + h.bans, 0)}</b></div>`;
+function heroImg(id) {
+  return heroes[id]?.img ? CDN + heroes[id].img : '';
+}
 
-    render();
-  } catch (e) {
-    showMsg('Не удалось загрузить статистику: ' + e.message, true);
+function aggregateHeroes(ids) {
+  const acc = new Map();
+  let total = 0;
+  for (const id of ids) total += leagueById[id].matches;
+  for (const r of rows) {
+    if (!ids.has(r.league)) continue;
+    const cur = acc.get(r.hero) || { hero: r.hero, picks: 0, bans: 0, wins: 0 };
+    cur.picks += r.picks;
+    cur.bans += r.bans;
+    cur.wins += r.wins;
+    acc.set(r.hero, cur);
   }
+  return [...acc.values()].map(h => ({
+    ...h,
+    name: heroName(h.hero),
+    contest: (h.picks + h.bans) / total * 100,
+    wr: h.picks ? h.wins / h.picks * 100 : 0,
+  }));
 }
 
-function render() {
+function sortList(list, state) {
+  const { key, dir } = state;
+  return list.sort((a, b) => {
+    const v = typeof a[key] === 'string' ? a[key].localeCompare(b[key]) * -1 : a[key] - b[key];
+    return v * dir || b.picks - a.picks;
+  });
+}
+
+function header(cols, state) {
+  return '<tr><th class="rank">#</th>' + cols.map(c =>
+    `<th data-sort="${c.key}" class="${c.cls || ''} ${state.key === c.key ? 'active' : ''}">${c.label}</th>`
+  ).join('') + '</tr>';
+}
+
+function renderTournaments() {
+  if (tab === 'ti' && !tiLeagues.length) {
+    el.stats.innerHTML = '';
+    return showMsg(`Матчей The International 2026 на патче ${patch} пока нет`);
+  }
+
+  const ids = currentScope();
   const q = el.search.value.trim().toLowerCase();
-  const list = current
-    .filter(h => !q || h.name.toLowerCase().includes(q))
-    .sort((a, b) => {
-      const v = sortKey === 'name'
-        ? a.name.localeCompare(b.name) * -1
-        : a[sortKey] - b[sortKey];
-      return v * sortDir || b.picks - a.picks;
-    });
+  const all = aggregateHeroes(ids);
+  const list = sortList(all.filter(h => !q || h.name.toLowerCase().includes(q)), sort[tab]);
+
+  const total = [...ids].reduce((s, id) => s + leagueById[id].matches, 0);
+  el.stats.innerHTML = `
+    <div>Матчей: <b>${total}</b></div>
+    <div>Уникальных героев в пиках: <b>${all.filter(h => h.picks > 0).length}</b></div>
+    <div>Всего пиков: <b>${all.reduce((s, h) => s + h.picks, 0)}</b></div>
+    <div>Всего банов: <b>${all.reduce((s, h) => s + h.bans, 0)}</b></div>`;
 
   if (!list.length) return showMsg('Ничего не найдено');
 
-  const max = Math.max(...current.map(h => h.picks), 1);
-  el.rows.innerHTML = list.map((h, i) => `
-    <tr>
-      <td class="rank">${i + 1}</td>
-      <td>
-        <div class="hero">
-          <img src="${h.img}" alt="" loading="lazy">
-          <span>${h.name}</span>
-        </div>
-      </td>
-      <td class="num">
-        <div class="bar"><i style="width:${h.picks / max * 100}%"></i><span>${h.picks}</span></div>
-      </td>
-      <td class="num">${h.bans}</td>
-      <td class="num hide-sm">${h.contest.toFixed(0)}%</td>
-      <td class="num hide-sm">${h.wins}</td>
-      <td class="${h.wr >= 55 ? 'wr-hi' : h.wr <= 45 ? 'wr-lo' : ''}">
-        ${h.picks ? h.wr.toFixed(1) + '%' : '—'}
-      </td>
-    </tr>`).join('');
+  const max = Math.max(...all.map(h => h.picks), 1);
+  const cols = [
+    { key: 'name', label: 'Герой' },
+    { key: 'picks', label: 'Пики', cls: 'num' },
+    { key: 'bans', label: 'Баны', cls: 'num' },
+    { key: 'contest', label: 'Контест', cls: 'num hide-sm' },
+    { key: 'wins', label: 'Победы', cls: 'num hide-sm' },
+    { key: 'wr', label: 'Винрейт' },
+  ];
 
+  el.view.innerHTML = tiBanner() + `<table><thead>${header(cols, sort[tab])}</thead><tbody>` +
+    list.map((h, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td><div class="hero"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div></td>
+        <td class="num"><div class="bar"><i style="width:${h.picks / max * 100}%"></i><span>${h.picks}</span></div></td>
+        <td class="num">${h.bans}</td>
+        <td class="num hide-sm">${h.contest.toFixed(0)}%</td>
+        <td class="num hide-sm">${h.wins}</td>
+        <td class="${wrClass(h.wr)}">${h.picks ? h.wr.toFixed(1) + '%' : '—'}</td>
+      </tr>`).join('') + '</tbody></table>';
   el.msg.hidden = true;
-  el.table.hidden = false;
 }
 
-document.querySelectorAll('th[data-sort]').forEach(th => {
-  th.onclick = () => {
-    const key = th.dataset.sort;
-    sortDir = key === sortKey ? -sortDir : -1;
-    sortKey = key;
-    document.querySelectorAll('th').forEach(t => t.classList.remove('active'));
-    th.classList.add('active');
-    render();
-  };
-});
+function renderHero() {
+  const id = Number(el.hero.value);
+  const q = el.search.value.trim().toLowerCase();
 
-el.league.onchange = () => loadLeague(el.league.value);
+  const all = rows.filter(r => r.hero === id).map(r => {
+    const l = leagueById[r.league];
+    return {
+      name: l.name,
+      last: l.last,
+      matches: l.matches,
+      picks: r.picks,
+      bans: r.bans,
+      wins: r.wins,
+      contest: (r.picks + r.bans) / l.matches * 100,
+      wr: r.picks ? r.wins / r.picks * 100 : 0,
+    };
+  });
+
+  const totals = all.reduce((s, r) => ({
+    picks: s.picks + r.picks, bans: s.bans + r.bans, wins: s.wins + r.wins,
+  }), { picks: 0, bans: 0, wins: 0 });
+
+  el.stats.innerHTML = `
+    <div>Турниров с пиками: <b>${all.filter(r => r.picks > 0).length}</b></div>
+    <div>Всего пиков: <b>${totals.picks}</b></div>
+    <div>Всего банов: <b>${totals.bans}</b></div>
+    <div>Общий винрейт: <b>${totals.picks ? (totals.wins / totals.picks * 100).toFixed(1) + '%' : '—'}</b></div>`;
+
+  const list = sortList(all.filter(r => !q || r.name.toLowerCase().includes(q)), sort.hero);
+  if (!list.length) return showMsg('Нет данных по этому герою');
+
+  const max = Math.max(...all.map(r => r.picks), 1);
+  const cols = [
+    { key: 'name', label: 'Турнир' },
+    { key: 'matches', label: 'Матчей', cls: 'num hide-sm' },
+    { key: 'picks', label: 'Пики', cls: 'num' },
+    { key: 'bans', label: 'Баны', cls: 'num' },
+    { key: 'contest', label: 'Контест', cls: 'num hide-sm' },
+    { key: 'wins', label: 'Победы', cls: 'num hide-sm' },
+    { key: 'wr', label: 'Винрейт' },
+  ];
+
+  el.view.innerHTML = `
+    <div class="hero" style="gap:14px;padding:4px 0 14px">
+      <img src="${heroImg(id)}" alt="" style="width:88px;height:50px">
+      <div style="font-size:20px">${esc(heroName(id))}</div>
+    </div>
+    <div class="scroll plain"><table><thead>${header(cols, sort.hero)}</thead><tbody>` +
+    list.map((r, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td><div class="ellip" title="${esc(r.name)}">${esc(r.name)}</div></td>
+        <td class="num hide-sm dim">${r.matches}</td>
+        <td class="num"><div class="bar"><i style="width:${r.picks / max * 100}%"></i><span>${r.picks}</span></div></td>
+        <td class="num">${r.bans}</td>
+        <td class="num hide-sm">${r.contest.toFixed(0)}%</td>
+        <td class="num hide-sm">${r.wins}</td>
+        <td class="${wrClass(r.wr)}">${r.picks ? r.wr.toFixed(1) + '%' : '—'}</td>
+      </tr>`).join('') + '</tbody></table></div>';
+  el.msg.hidden = true;
+}
+
+const MATRIX_HEROES = 20;
+const MATRIX_LEAGUES = 10;
+
+function renderMatrix() {
+  const q = el.search.value.trim().toLowerCase();
+  const ranked = aggregateHeroes(idsOf(leagues)).sort((a, b) => b.picks - a.picks);
+  const totals = q
+    ? ranked.filter(h => h.name.toLowerCase().includes(q))
+    : ranked.slice(0, MATRIX_HEROES);
+
+  const cols = [...leagues].sort((a, b) => b.matches - a.matches).slice(0, MATRIX_LEAGUES);
+
+  el.stats.innerHTML = `
+    <div>Героев в таблице: <b>${totals.length}</b>${q ? '' : ` — топ-${MATRIX_HEROES} по пикам`}</div>
+    <div>Турниров: <b>${cols.length}</b> — крупнейших по числу матчей</div>
+    <div>Ищите героя, чтобы посмотреть тех, кто вне топа</div>`;
+
+  if (!totals.length) return showMsg('Ничего не найдено');
+
+  const byKey = new Map(rows.map(r => [r.hero + ':' + r.league, r]));
+
+  const head = `<tr>
+      <th class="name">Герой</th>
+      <th class="cell col-total">Всего</th>
+      ${cols.map(l => `<th class="cell" title="${esc(l.name)} · ${l.matches} матчей">${esc(shortLeague(l.name))}</th>`).join('')}
+    </tr>`;
+
+  const body = totals.map(h => `
+    <tr>
+      <td class="name">
+        <div class="hero"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div>
+      </td>
+      <td class="cell col-total" style="background:${wrColor(h.wr)}">
+        ${h.wr.toFixed(0)}%<small>${h.picks}</small>
+      </td>
+      ${cols.map(l => {
+        const r = byKey.get(h.hero + ':' + l.id);
+        if (!r || !r.picks) return '<td class="cell empty">·</td>';
+        const wr = r.wins / r.picks * 100;
+        return `<td class="cell ${r.picks < 5 ? 'thin' : ''}" style="background:${wrColor(wr)}"
+                    title="${esc(h.name)} — ${esc(l.name)}: ${r.wins} из ${r.picks}">
+                  ${wr.toFixed(0)}%<small>${r.picks}</small>
+                </td>`;
+      }).join('')}
+    </tr>`).join('');
+
+  el.view.innerHTML = `<div class="scroll"><table class="matrix">
+      <thead>${head}</thead><tbody>${body}</tbody></table></div>
+    <div class="note">В ячейке — винрейт, ниже мелким — число пиков. Точка означает, что героя ни разу не взяли.
+      Бледные ячейки — меньше 5 пиков, выборка ненадёжная. Наведите на заголовок, чтобы увидеть полное название турнира.</div>`;
+  el.msg.hidden = true;
+}
+
+function tiBanner() {
+  if (tab !== 'ti') return '';
+  const main = tiLeagues.find(l => !/qualifier/i.test(l.name));
+  if (main) return '';
+  return `<div class="note" style="padding:0 0 14px">Главный турнир ещё не начался — показаны
+    региональные квалификации TI 2026. Основная сетка появится здесь автоматически, как только пройдут первые матчи.</div>`;
+}
+
+function render() {
+  const byLeague = tab === 'tournaments' || tab === 'ti';
+  el.league.hidden = !byLeague;
+  el.hero.hidden = tab !== 'hero';
+  el.search.placeholder = tab === 'hero' ? 'Поиск турнира…' : 'Поиск героя…';
+
+  if (byLeague) {
+    syncLeagueSelect();
+    renderTournaments();
+  } else if (tab === 'hero') renderHero();
+  else renderMatrix();
+}
+
+document.querySelector('.tabs').onclick = e => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn || btn.dataset.tab === tab) return;
+  tab = btn.dataset.tab;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b === btn));
+  el.search.value = '';
+  render();
+};
+
+el.view.onclick = e => {
+  const th = e.target.closest('th[data-sort]');
+  if (!th || !sort[tab]) return;
+  const state = sort[tab];
+  state.dir = th.dataset.sort === state.key ? -state.dir : -1;
+  state.key = th.dataset.sort;
+  render();
+};
+
+el.league.onchange = render;
+el.hero.onchange = render;
 el.search.oninput = render;
 
 init();
