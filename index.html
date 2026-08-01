@@ -615,6 +615,7 @@ async function loadPrices() {
     prices = {
       updated: data.updated,
       groups: data.groups || [],
+      rate: data.rate || {},
       items: data.items.map(it => {
         const row = {
           name: it.name, listings: it.listings || 0, icon: it.icon,
@@ -707,7 +708,9 @@ function renderPrices() {
           : '<span class="dim">сама аркана</span>'}</td>` : ''}
       </tr>`).join('') + '</tbody></table></div>' +
     `<div class="note">Цены Steam Community Market, минимальная цена продажи с учётом комиссии.
-      Обновляются автоматически раз в сутки. Steam задаёт курсы сам, поэтому регионы расходятся не только на курс валют.
+      Обновляются автоматически раз в сутки.
+      ${prices.rate?.rub ? `Цены со знаком «≈» Steam не отдал напрямую — они пересчитаны из долларов
+        по курсу ${prices.rate.rub.toLocaleString('ru-RU')} ₽ за $1, выведенному из тех цен, которые он отдал.` : ''}
       ${combo ? `«Аркана + гем» — сумма двух отдельных лотов: самой дешёвой арканы ($${usd(arcanaMin)}) и гема.
         Steam не отдаёт состав конкретных лотов, поэтому «аркана уже с гемом внутри» одной покупкой здесь не считается.` : ''}
       Список гемов, подходящих к аркане Terrorblade, взят из

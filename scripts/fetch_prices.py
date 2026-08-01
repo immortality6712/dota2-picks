@@ -154,6 +154,8 @@ def steam_rate(items, code):
     ratios = []
     for i in items:
         p = i.get("prices", {})
+        if p.get(code, {}).get("approx"):
+            continue  # иначе прошлый пересчёт сам себя подтвердит и курс застынет
         usd, other = to_number(p.get("usd", {}).get("low")), to_number(p.get(code, {}).get("low"))
         if usd and other:
             ratios.append(other / usd)
