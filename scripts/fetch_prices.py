@@ -110,6 +110,8 @@ RE_GEM = re.compile(
     r'font-size: 18px[^>]*?>([^<]{2,40})<\\*/span><br><span[^>]*font-size: 12px[^>]*>\s*Prismatic Gem'
 )
 RE_CURRENCY = re.compile(r'\\+"eCurrency\\+":(\d+)')
+# Цвет гема Steam пишет прямо в описании лота — совпадает с цветами из гайда.
+RE_GEM_COLOR = re.compile(r'color: rgb\((\d+), (\d+), (\d+)\)')
 
 
 def sockets(name, pages):
@@ -130,7 +132,12 @@ def sockets(name, pages):
         for c in chunks:
             price, fee, gem = RE_PRICE.search(c), RE_FEE.search(c), RE_GEM.search(c)
             if price and fee and gem:
-                found.append({"gem": gem.group(1), "usd": (int(price.group(1)) + int(fee.group(1))) / 100})
+                color = RE_GEM_COLOR.search(c)
+                found.append({
+                    "gem": gem.group(1),
+                    "usd": (int(price.group(1)) + int(fee.group(1))) / 100,
+                    "color": "#%02x%02x%02x" % tuple(int(x) for x in color.groups()) if color else "",
+                })
         if len(chunks) < 20:
             break
         time.sleep(5)
@@ -281,7 +288,9 @@ def collect_sockets(items):
         for f in found:
             cur = best.get(f["gem"])
             if not cur or f["usd"] < cur["usd"]:
-                best[f["gem"]] = {"gem": f["gem"], "usd": f["usd"], "arcana": item["name"]}
+                best[f["gem"]] = {
+                    "gem": f["gem"], "usd": f["usd"], "arcana": item["name"], "color": f["color"],
+                }
         print(f"состав лотов {item['name']}: {len(found)} лотов, гемов {len(best)}", file=sys.stderr)
         time.sleep(5)
     return sorted(best.values(), key=lambda x: x["usd"])
@@ -365,8 +374,8 @@ def main():
                 dropped += 1
             item["prices"][code] = {"low": round(usd * rate, 2), "approx": True}
             filled += 1
-        if filled:
-            rates[code] = round(rate, 4)
+        # Курс нужен всегда: по нему страница считает рубли для лотов с гемом.
+        rates[code] = round(rate, 4)
         print(f"{code}: курс Steam {rate:.2f}, пересчитано {filled} (из них протухших {dropped})", file=sys.stderr)
 
     write(items, rates, collect_sockets(items))

@@ -121,6 +121,12 @@
     flex: none;
   }
   .item small { display: block; color: var(--muted); font-size: 11px; }
+  .gem { position: relative; flex: none; line-height: 0; }
+  .gem i {
+    position: absolute; right: -3px; bottom: -3px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
   .price { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .price small { display: block; color: var(--muted); font-size: 11px; }
   .scroll.plain { border: none; border-radius: 0; }
@@ -621,7 +627,9 @@ async function loadPrices() {
       rate: data.rate || {},
       sockets: (data.sockets || []).map(s => ({
         name: s.gem, usd: s.usd, arcana: s.arcana, listings: 0,
-        usdText: '$' + usd(s.usd),
+        usdText: '$' + usd(s.usd), color: s.color || '',
+        // Страница лотов считает в одной валюте, рубли для неё Steam не отдаёт.
+        rub: data.rate?.rub ? s.usd * data.rate.rub : 0,
       })),
       items: data.items.map(it => {
         const row = {
@@ -636,6 +644,7 @@ async function loadPrices() {
             ? '≈ ' + row[c.key].toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' руб.'
             : (p?.low || '');
           row[c.key + 'Median'] = approx ? 'пересчёт по курсу Steam' : (p?.median ? 'медиана ' + p.median : '');
+          row[c.key + 'Approx'] = !!approx;
         }
         return row;
       }),
@@ -673,8 +682,8 @@ function renderSocketsTab() {
 }
 
 function renderSockets(q) {
-  // Иконку гема берём из общего списка предметов — там он лежит как «Prismatic: Имя».
-  const icons = new Map(prices.items.map(i => [i.name.replace(/^Prismatic:\s*/, ''), i.icon]));
+  // Показываем ту аркану, в которой гем сидит, и помечаем её цветом самого гема.
+  const icons = new Map(prices.items.map(i => [i.name, i.icon]));
   const list = sortList(prices.sockets.filter(s => !q || s.name.toLowerCase().includes(q)), sort.sockets);
 
   const dt = new Date(prices.updated);
@@ -689,6 +698,7 @@ function renderSockets(q) {
     { key: 'name', label: 'Гем внутри' },
     { key: 'arcana', label: 'Вариант арканы' },
     { key: 'usd', label: 'Лот целиком, $', cls: 'price' },
+    ...(prices.rate?.rub ? [{ key: 'rub', label: 'Лот целиком, ₽', cls: 'price' }] : []),
   ];
 
   el.view.innerHTML = `<div class="scroll plain"><table><thead>${header(cols, sort.sockets)}</thead><tbody>` +
@@ -697,14 +707,20 @@ function renderSockets(q) {
         <td class="rank">${i + 1}</td>
         <td>
           <div class="item">
-            ${icons.get(s.name) ? `<img src="${ECON}/${esc(icons.get(s.name))}/62fx62f" alt="" loading="lazy">` : ''}
+            ${icons.get(s.arcana) ? `<span class="gem">
+              <img src="${ECON}/${esc(icons.get(s.arcana))}/62fx62f" alt="" loading="lazy">
+              ${/^#[0-9a-f]{6}$/i.test(s.color) ? `<i style="background:${s.color}"></i>` : ''}
+            </span>` : ''}
             <div class="ellip">${esc(s.name)}</div>
           </div>
         </td>
         <td><span class="dim">${esc(s.arcana)}</span></td>
         <td class="price">${esc(s.usdText)}</td>
+        ${prices.rate?.rub ? `<td class="price">≈ ${s.rub.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} руб.</td>` : ''}
       </tr>`).join('') + '</tbody></table></div>' +
     `<div class="note">Здесь одна покупка, а не две: гем уже вставлен в аркану, и цена — за лот целиком.
+      ${prices.rate?.rub ? `Рубли Steam для страницы лотов не отдаёт — они пересчитаны из долларов
+        по курсу ${prices.rate.rub.toLocaleString('ru-RU')} ₽ за $1, поэтому со знаком «≈».` : ''}
       Steam отдаёт по 20 лотов за раз, поэтому просматриваются самые дешёвые из них —
       редкий гем может не попасть в список, даже если такой лот существует.
       Список гемов, подходящих к аркане Terrorblade, взят из
@@ -777,8 +793,9 @@ function renderPrices() {
       </tr>`).join('') + '</tbody></table></div>' +
     `<div class="note">Цены Steam Community Market, минимальная цена продажи с учётом комиссии.
       Обновляются автоматически раз в сутки.
-      ${prices.rate?.rub ? `Цены со знаком «≈» Steam не отдал напрямую — они пересчитаны из долларов
-        по курсу ${prices.rate.rub.toLocaleString('ru-RU')} ₽ за $1, выведенному из тех цен, которые он отдал.` : ''}
+      ${list.some(i => CURRENCY_COLS.some(c => i[c.key + 'Approx'])) ? `Цены со знаком «≈» Steam не отдал напрямую —
+        они пересчитаны из долларов по курсу ${prices.rate.rub.toLocaleString('ru-RU')} ₽ за $1,
+        выведенному из тех цен, которые он отдал.` : ''}
       ${combo ? `«Аркана + гем» — сумма двух отдельных лотов: самой дешёвой арканы ($${usd(arcanaMin)}) и гема.
         Steam не отдаёт состав конкретных лотов, поэтому «аркана уже с гемом внутри» одной покупкой здесь не считается.` : ''}
       Список гемов, подходящих к аркане Terrorblade, взят из
