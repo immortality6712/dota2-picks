@@ -174,13 +174,15 @@ def load_previous():
     return {i["name"]: i.get("prices", {}) for i in data.get("items", [])}, data.get("updated")
 
 
-def write(items):
+def write(items, rates=None):
     """Пишем после каждого предмета: обрыв на середине не должен стоить всего прогона."""
     OUT.write_text(
         json.dumps(
             {
                 "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 "groups": [{"key": g["key"], "title": g["title"]} for g in GROUPS],
+                # Курс нужен странице, чтобы честно подписать пересчитанные цены.
+                "rate": rates or {},
                 "items": sorted(
                     (i for i in items.values() if i.get("prices")),
                     key=lambda i: -(i["listings"] or 0),
@@ -251,6 +253,7 @@ def main():
         misses = 0
         print(f"{n}/{len(items)} {item['name']}", file=sys.stderr)
 
+    rates = {}
     for code in CURRENCIES:
         rate = steam_rate(items.values(), code)
         if not rate:
@@ -265,9 +268,11 @@ def main():
                 continue
             item["prices"][code] = {"low": round(usd * rate, 2), "approx": True}
             filled += 1
+        if filled:
+            rates[code] = round(rate, 4)
         print(f"{code}: курс Steam {rate:.2f}, пересчитано {filled}", file=sys.stderr)
 
-    write(items)
+    write(items, rates)
     real = sum(1 for i in items.values() if not i["prices"].get("rub", {}).get("approx"))
     print(f"wrote {OUT}: {len(items)} предметов, живых рублёвых цен {real}", file=sys.stderr)
 
