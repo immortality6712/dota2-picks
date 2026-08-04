@@ -269,10 +269,13 @@ def collect_sockets(items):
             continue
         # Подстраховка на случай, если Steam сменит разметку: самый дешёвый лот
         # со страницы обязан сойтись с ценой из поиска.
-        cheapest = min((f["usd"] for f in found), default=None)
+        cheap = min(found, key=lambda f: f["usd"], default=None)
+        cheapest = cheap["usd"] if cheap else None
         if not low or not cheapest or abs(cheapest / low - 1) > 0.25:
             print(f"состав лотов {item['name']}: {cheapest} не сходится с {low}, пропускаю", file=sys.stderr)
             continue
+        # Цена в строке — это самый дешёвый лот, значит и гем показываем его.
+        item["socket"] = cheap["gem"]
         for f in found:
             cur = best.get(f["gem"])
             if not cur or f["usd"] < cur["usd"]:

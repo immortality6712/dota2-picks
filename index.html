@@ -624,7 +624,7 @@ async function loadPrices() {
       items: data.items.map(it => {
         const row = {
           name: it.name, listings: it.listings || 0, icon: it.icon,
-          type: it.type || '', groups: it.groups || [],
+          type: it.type || '', groups: it.groups || [], socket: it.socket || '',
         };
         for (const c of CURRENCY_COLS) {
           const p = it.prices?.[c.key];
@@ -743,7 +743,9 @@ function renderPrices() {
         <td>
           <div class="item">
             <img src="${ECON}/${esc(it.icon)}/62fx62f" alt="" loading="lazy">
-            <div><div class="ellip">${esc(it.name)}</div>${it.type ? `<small>${esc(it.type)}</small>` : ''}</div>
+            <div><div class="ellip">${esc(it.name)}</div>
+              ${it.type ? `<small>${esc(it.type)}</small>` : ''}
+              ${it.socket ? `<small>в дешёвом лоте: ${esc(it.socket)}</small>` : ''}</div>
           </div>
         </td>
         <td class="num">${it.listings || '—'}</td>
