@@ -617,6 +617,10 @@ async function loadPrices() {
       updated: data.updated,
       groups: data.groups || [],
       rate: data.rate || {},
+      sockets: (data.sockets || []).map(s => ({
+        name: s.gem, usd: s.usd, arcana: s.arcana, listings: 0,
+        usdText: '$' + usd(s.usd),
+      })),
       items: data.items.map(it => {
         const row = {
           name: it.name, listings: it.listings || 0, icon: it.icon,
@@ -643,8 +647,49 @@ function syncGroupSelect() {
   if (el.group.options.length) return;
   const count = key => prices.items.filter(i => i.groups.includes(key)).length;
   el.group.innerHTML = `<option value="all">Все предметы (${prices.items.length})</option>` +
-    prices.groups.map(g => `<option value="${g.key}">${esc(g.title)} (${count(g.key)})</option>`).join('');
+    prices.groups.map(g => `<option value="${g.key}">${esc(g.title)} (${count(g.key)})</option>`).join('') +
+    (prices.sockets.length ? `<option value="sockets">Аркана с гемом внутри (${prices.sockets.length})</option>` : '');
   el.group.value = prices.groups[0]?.key || 'all';
+}
+
+function renderSockets(q) {
+  // Иконку гема берём из общего списка предметов — там он лежит как «Prismatic: Имя».
+  const icons = new Map(prices.items.map(i => [i.name.replace(/^Prismatic:\s*/, ''), i.icon]));
+  const list = sortList(prices.sockets.filter(s => !q || s.name.toLowerCase().includes(q)), sort.prices);
+
+  const dt = new Date(prices.updated);
+  el.stats.innerHTML = `
+    <div>Гемов: <b>${prices.sockets.length}</b></div>
+    <div>Дешевле $50: <b>${prices.sockets.filter(s => s.usd < 50).length}</b></div>
+    <div>Обновлено: <b>${isNaN(dt) ? '—' : dt.toLocaleString('ru-RU')}</b></div>`;
+
+  if (!list.length) return showMsg('Ничего не найдено');
+
+  const cols = [
+    { key: 'name', label: 'Гем внутри' },
+    { key: 'arcana', label: 'Вариант арканы' },
+    { key: 'usd', label: 'Лот целиком, $', cls: 'price' },
+  ];
+
+  el.view.innerHTML = `<div class="scroll plain"><table><thead>${header(cols, sort.prices)}</thead><tbody>` +
+    list.map((s, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td>
+          <div class="item">
+            ${icons.get(s.name) ? `<img src="${ECON}/${esc(icons.get(s.name))}/62fx62f" alt="" loading="lazy">` : ''}
+            <div class="ellip">${esc(s.name)}</div>
+          </div>
+        </td>
+        <td><span class="dim">${esc(s.arcana)}</span></td>
+        <td class="price">${esc(s.usdText)}</td>
+      </tr>`).join('') + '</tbody></table></div>' +
+    `<div class="note">Здесь одна покупка, а не две: гем уже вставлен в аркану, и цена — за лот целиком.
+      Steam отдаёт по 20 лотов за раз, поэтому просматриваются самые дешёвые из них —
+      редкий гем может не попасть в список, даже если такой лот существует.
+      Список гемов, подходящих к аркане Terrorblade, взят из
+      <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3336022190" target="_blank" rel="noopener">гайда в Steam</a>.</div>`;
+  el.msg.hidden = true;
 }
 
 function renderPrices() {
@@ -662,6 +707,7 @@ function renderPrices() {
   syncGroupSelect();
   const group = el.group.value;
   const q = el.search.value.trim().toLowerCase();
+  if (group === 'sockets') return renderSockets(q);
   const all = prices.items.filter(i => group === 'all' || i.groups.includes(group));
 
   const combo = group === 'terrorblade' || group === 'gems';
@@ -765,8 +811,8 @@ el.league.onchange = render;
 el.hero.onchange = render;
 el.group.onchange = () => {
   const g = el.group.value;
-  sort.prices = g === 'terrorblade' || g === 'gems'
-    ? { key: 'combo', dir: 1 }
+  sort.prices = g === 'sockets' ? { key: 'usd', dir: 1 }
+    : g === 'terrorblade' || g === 'gems' ? { key: 'combo', dir: 1 }
     : { key: 'usd', dir: -1 };
   render();
 };

@@ -83,6 +83,60 @@ def get(url, attempts=7):
     raise RuntimeError("unreachable")
 
 
+def get_text(url, attempts=3):
+    """Страница лотов отдаётся HTML-ом, а не JSON, поэтому загрузка отдельная."""
+    delay = 15
+    for i in range(attempts):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503) or i == attempts - 1:
+                raise
+        except (urllib.error.URLError, TimeoutError):
+            if i == attempts - 1:
+                raise
+        time.sleep(delay)
+        delay = min(delay * 2, 120)
+    raise RuntimeError("unreachable")
+
+
+# В данных страницы кавычки экранированы по нескольку раз, отсюда \\+ в шаблонах.
+RE_LISTING = re.compile(r'\\+"listingid\\+":')
+RE_PRICE = re.compile(r'\\+"unPricePerUnit\\+":(\d+)')
+RE_FEE = re.compile(r'\\+"unFeePerUnit\\+":(\d+)')
+RE_GEM = re.compile(
+    r'font-size: 18px[^>]*?>([^<]{2,40})<\\*/span><br><span[^>]*font-size: 12px[^>]*>\s*Prismatic Gem'
+)
+RE_CURRENCY = re.compile(r'\\+"eCurrency\\+":(\d+)')
+
+
+def sockets(name, pages):
+    """Что за гем вставлен в каждый лот арканы и почём этот лот целиком."""
+    found = []
+    for page in range(pages):
+        url = "https://steamcommunity.com/market/listings/570/" + urllib.parse.quote(name) + "?" + \
+            urllib.parse.urlencode({"l": "english", "start": page * 20})
+        html = get_text(url)
+        # Страница считает в валюте своего региона и параметр валюты игнорирует.
+        # Брать чужую валюту как доллары нельзя, а пересчитывать тут нечем.
+        codes = set(RE_CURRENCY.findall(html))
+        if codes - {"1"}:
+            raise RuntimeError(f"страница отдаёт валюту {sorted(codes)}, а не доллары")
+        chunks = RE_LISTING.split(html)[1:]
+        if not chunks:
+            break
+        for c in chunks:
+            price, fee, gem = RE_PRICE.search(c), RE_FEE.search(c), RE_GEM.search(c)
+            if price and fee and gem:
+                found.append({"gem": gem.group(1), "usd": (int(price.group(1)) + int(fee.group(1))) / 100})
+        if len(chunks) < 20:
+            break
+        time.sleep(5)
+    return found
+
+
 def search(group):
     params = {
         "appid": APPID,
@@ -174,7 +228,7 @@ def load_previous():
     return {i["name"]: i.get("prices", {}) for i in data.get("items", [])}, data.get("updated")
 
 
-def write(items, rates=None):
+def write(items, rates=None, socket_list=None):
     """Пишем после каждого предмета: обрыв на середине не должен стоить всего прогона."""
     OUT.write_text(
         json.dumps(
@@ -183,6 +237,8 @@ def write(items, rates=None):
                 "groups": [{"key": g["key"], "title": g["title"]} for g in GROUPS],
                 # Курс нужен странице, чтобы честно подписать пересчитанные цены.
                 "rate": rates or {},
+                # Аркана с уже вставленным гемом — одна покупка, а не две.
+                "sockets": socket_list or [],
                 "items": sorted(
                     (i for i in items.values() if i.get("prices")),
                     key=lambda i: -(i["listings"] or 0),
@@ -194,6 +250,36 @@ def write(items, rates=None):
         + "\n",
         encoding="utf-8",
     )
+
+
+def collect_sockets(items):
+    """Самая дешёвая аркана с каждым гемом внутри. Не критично: не вышло — идём дальше."""
+    pages = int(os.environ.get("SOCKET_PAGES", 5))
+    if not pages:
+        return []
+    best = {}
+    for item in items.values():
+        if "terrorblade" not in item["groups"] or "gems" in item["groups"]:
+            continue
+        low = to_number(item["prices"].get("usd", {}).get("low"))
+        try:
+            found = sockets(item["name"], pages)
+        except Exception as e:
+            print(f"состав лотов {item['name']}: не вышло ({e})", file=sys.stderr)
+            continue
+        # Подстраховка на случай, если Steam сменит разметку: самый дешёвый лот
+        # со страницы обязан сойтись с ценой из поиска.
+        cheapest = min((f["usd"] for f in found), default=None)
+        if not low or not cheapest or abs(cheapest / low - 1) > 0.25:
+            print(f"состав лотов {item['name']}: {cheapest} не сходится с {low}, пропускаю", file=sys.stderr)
+            continue
+        for f in found:
+            cur = best.get(f["gem"])
+            if not cur or f["usd"] < cur["usd"]:
+                best[f["gem"]] = {"gem": f["gem"], "usd": f["usd"], "arcana": item["name"]}
+        print(f"состав лотов {item['name']}: {len(found)} лотов, гемов {len(best)}", file=sys.stderr)
+        time.sleep(5)
+    return sorted(best.values(), key=lambda x: x["usd"])
 
 
 def main():
@@ -278,7 +364,7 @@ def main():
             rates[code] = round(rate, 4)
         print(f"{code}: курс Steam {rate:.2f}, пересчитано {filled} (из них протухших {dropped})", file=sys.stderr)
 
-    write(items, rates)
+    write(items, rates, collect_sockets(items))
     real = sum(1 for i in items.values() if not i["prices"].get("rub", {}).get("approx"))
     print(f"wrote {OUT}: {len(items)} предметов, живых рублёвых цен {real}", file=sys.stderr)
 
