@@ -14,7 +14,9 @@
    "title": "Гемы к аркане"
   }
  ],
- "rate": {},
+ "rate": {
+  "rub": 80.2773
+ },
  "items": [
   {
    "name": "Fractal Horns of Inner Abysm",
@@ -1109,9 +1111,8 @@
      "low": "$236.21"
     },
     "rub": {
-     "low": "22076,84 руб.",
-     "median": null,
-     "volume": null
+     "low": 18962.3,
+     "approx": true
     }
    }
   },
@@ -2116,9 +2117,8 @@
      "low": "$88.22"
     },
     "rub": {
-     "low": "3151,63 руб.",
-     "median": null,
-     "volume": null
+     "low": 7082.06,
+     "approx": true
     }
    }
   },

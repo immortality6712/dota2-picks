@@ -259,18 +259,24 @@ def main():
         if not rate:
             print(f"{code}: курс не вывести, пересчёта не будет", file=sys.stderr)
             continue
-        filled = 0
+        filled = dropped = 0
         for item in items.values():
-            if item["prices"].get(code):
-                continue
             usd = to_number(item["prices"].get("usd", {}).get("low"))
             if not usd:
                 continue
+            have = to_number(item["prices"].get(code, {}).get("low"))
+            if have:
+                # Доллары приходят из поиска, а priceoverview Steam отдаёт из кеша и для
+                # редких предметов не обновляет. Разъехались больше чем на десятую —
+                # значит цена протухла, и такой лот на площадке уже не купить.
+                if abs(have / (usd * rate) - 1) <= 0.1:
+                    continue
+                dropped += 1
             item["prices"][code] = {"low": round(usd * rate, 2), "approx": True}
             filled += 1
         if filled:
             rates[code] = round(rate, 4)
-        print(f"{code}: курс Steam {rate:.2f}, пересчитано {filled}", file=sys.stderr)
+        print(f"{code}: курс Steam {rate:.2f}, пересчитано {filled} (из них протухших {dropped})", file=sys.stderr)
 
     write(items, rates)
     real = sum(1 for i in items.values() if not i["prices"].get("rub", {}).get("approx"))
