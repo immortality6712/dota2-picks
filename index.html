@@ -601,7 +601,8 @@ const usd = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFr
 
 function priceNum(s) {
   if (!s) return 0;
-  const t = s.replace(/[^\d.,]/g, '');
+  // Хвост обрезаем: точка из «руб.» иначе сойдёт за десятичный разделитель.
+  const t = s.replace(/[^\d.,]/g, '').replace(/[.,]+$/, '');
   const dec = t.match(/[.,](\d{2})$/);
   const whole = (dec ? t.slice(0, -3) : t).replace(/[.,]/g, '');
   return Number(whole + (dec ? '.' + dec[1] : '')) || 0;
