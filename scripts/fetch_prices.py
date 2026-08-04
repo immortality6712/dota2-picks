@@ -191,9 +191,11 @@ def price(name, currency):
 
 
 def to_number(s):
-    """'31 311,51 руб.' и '$1,894.85' -> float."""
+    """'31 311,51 руб.' и '$1,894.85' -> float. Пересчитанные цены уже числа."""
     if not s:
         return None
+    if isinstance(s, (int, float)):
+        return float(s)
     # rstrip убирает точку из «руб.», иначе она сойдёт за десятичный разделитель.
     t = "".join(c for c in s if c.isdigit() or c in ".,").rstrip(".,")
     dec = re.search(r"[.,](\d{1,2})$", t)
