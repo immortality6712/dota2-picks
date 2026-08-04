@@ -2,7 +2,9 @@ name: Update Steam prices
 
 on:
   schedule:
-    - cron: "17 4 * * *"
+    # Дважды в сутки. GitHub запускает cron с задержкой в несколько часов,
+    # поэтому точное время плавает — важен сам интервал.
+    - cron: "17 4,16 * * *"
   workflow_dispatch:
 
 permissions:
@@ -24,7 +26,8 @@ jobs:
           SLEEP: 20
           ATTEMPTS: 2
           MISS_LIMIT: 99
-          REUSE_HOURS: 20
+          # Меньше интервала между прогонами, иначе второй переиспользует цены первого.
+          REUSE_HOURS: 6
       - name: Commit if changed
         if: always()
         run: |
