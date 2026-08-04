@@ -43,7 +43,7 @@ GROUPS = [
         "key": "crimson",
         "title": "Crimson Witness",
         "params": {"query": '"Crimson Witness"'},
-        "limit": 50,
+        "limit": 100,  # запас: берём все, что есть на площадке, их около 70
         "keep": lambda i: "Crimson Witness" in i["name"],
     },
     {
