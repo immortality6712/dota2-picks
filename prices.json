@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-28T17:16:11+00:00",
+ "updated": "2026-08-29T11:45:26+00:00",
  "groups": [
   {
    "key": "crimson",
@@ -15,26 +15,32 @@
   }
  ],
  "rate": {
-  "rub": 86.3815
+  "rub": 86.3162
  },
  "sockets": [
   {
    "gem": "Reflection's Shade",
-   "usd": 38.6,
+   "usd": 39.93,
    "arcana": "Fractal Horns of Inner Abysm",
    "color": "#ff3c28"
   },
   {
-   "gem": "Dredge Earth",
-   "usd": 49.77,
+   "gem": "Explosive Burst",
+   "usd": 49.11,
    "arcana": "Fractal Horns of Inner Abysm",
-   "color": "#bdb76b"
+   "color": "#ffaf00"
   },
   {
    "gem": "Brusque Britches Beige",
-   "usd": 50.08,
+   "usd": 50.1,
    "arcana": "Fractal Horns of Inner Abysm",
    "color": "#f0e68c"
+  },
+  {
+   "gem": "Dredge Earth",
+   "usd": 50.55,
+   "arcana": "Fractal Horns of Inner Abysm",
+   "color": "#bdb76b"
   },
   {
    "gem": "Unhallowed Ground",
@@ -43,106 +49,100 @@
    "color": "#808000"
   },
   {
-   "gem": "Explosive Burst",
-   "usd": 60.19,
-   "arcana": "Fractal Horns of Inner Abysm",
-   "color": "#ffaf00"
-  },
-  {
    "gem": "Orange",
-   "usd": 64.26,
+   "usd": 64.35,
    "arcana": "Inscribed Fractal Horns of Inner Abysm",
    "color": "#d07733"
   },
   {
-   "gem": "Miasmatic Grey",
-   "usd": 64.31,
-   "arcana": "Fractal Horns of Inner Abysm",
-   "color": "#c0c0c0"
-  },
-  {
    "gem": "Plague Grey",
-   "usd": 65.0,
+   "usd": 64.4,
    "arcana": "Fractal Horns of Inner Abysm",
    "color": "#626e5b"
   },
   {
    "gem": "Diretide Orange",
-   "usd": 69.24,
+   "usd": 69.26,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#f79d00"
   },
   {
+   "gem": "Miasmatic Grey",
+   "usd": 69.51,
+   "arcana": "Fractal Horns of Inner Abysm",
+   "color": "#c0c0c0"
+  },
+  {
    "gem": "Tnim S'nnam",
-   "usd": 69.47,
-   "arcana": "Inscribed Fractal Horns of Inner Abysm",
+   "usd": 70.0,
+   "arcana": "Fractal Horns of Inner Abysm",
    "color": "#bcddb3"
   },
   {
    "gem": "Gold",
-   "usd": 73.65,
-   "arcana": "Inscribed Fractal Horns of Inner Abysm",
+   "usd": 70.74,
+   "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#cfab31"
   },
   {
    "gem": "Crystalline Blue",
-   "usd": 75.25,
+   "usd": 75.3,
    "arcana": "Fractal Horns of Inner Abysm",
    "color": "#1a3d85"
   },
   {
    "gem": "Ships in the Night",
-   "usd": 82.19,
+   "usd": 80.0,
    "arcana": "Fractal Horns of Inner Abysm",
    "color": "#191970"
   },
   {
+   "gem": "Dungeon Doom",
+   "usd": 85.23,
+   "arcana": "Fractal Horns of Inner Abysm",
+   "color": "#7b68ee"
+  },
+  {
    "gem": "Champion's Blue",
-   "usd": 97.9,
+   "usd": 98.06,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#507dfe"
   },
   {
    "gem": "Earth Green",
-   "usd": 102.89,
+   "usd": 102.97,
    "arcana": "Autographed Fractal Horns of Inner Abysm",
    "color": "#5ac355"
   },
   {
-   "gem": "Dungeon Doom",
-   "usd": 103.04,
-   "arcana": "Autographed Fractal Horns of Inner Abysm",
-   "color": "#7b68ee"
-  },
-  {
    "gem": "Verdant Green",
-   "usd": 107.46,
+   "usd": 107.64,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#51b350"
   },
   {
    "gem": "Champion's Green",
-   "usd": 115.76,
+   "usd": 107.67,
    "arcana": "Inscribed Fractal Horns of Inner Abysm",
    "color": "#15a515"
   },
   {
+   "gem": "Vermillion Renewal",
+   "usd": 127.44,
+   "arcana": "Autographed Fractal Horns of Inner Abysm",
+   "color": "#ca0123"
+  },
+  {
    "gem": "Ember Flame",
-   "usd": 130.8,
+   "usd": 130.87,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#ffc604"
   },
   {
    "gem": "Summer Warmth",
-   "usd": 132.13,
+   "usd": 132.18,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#ffeebc"
-  },
-  {
-   "gem": "Placid Blue",
-   "usd": 134.24,
-   "arcana": "Inscribed Fractal Horns of Inner Abysm",
-   "color": "#94cad0"
   },
   {
    "gem": "Bright Green",
@@ -157,68 +157,74 @@
    "color": "#4ab78d"
   },
   {
-   "gem": "Rubiline",
-   "usd": 174.08,
-   "arcana": "Corrupted Fractal Horns of Inner Abysm",
-   "color": "#d11fa1"
-  },
-  {
-   "gem": "Vermillion Renewal",
-   "usd": 177.14,
-   "arcana": "Exalted Fractal Horns of Inner Abysm",
-   "color": "#ca0123"
-  },
-  {
    "gem": "Blossom Red",
-   "usd": 196.8,
+   "usd": 196.95,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#d76092"
   },
   {
    "gem": "Bright Purple",
-   "usd": 199.7,
+   "usd": 199.84,
    "arcana": "Inscribed Fractal Horns of Inner Abysm",
    "color": "#8232ed"
   },
   {
+   "gem": "Placid Blue",
+   "usd": 200.79,
+   "arcana": "Inscribed Fractal Horns of Inner Abysm",
+   "color": "#94cad0"
+  },
+  {
    "gem": "Plushy Shag",
-   "usd": 203.27,
+   "usd": 203.36,
    "arcana": "Autographed Fractal Horns of Inner Abysm",
    "color": "#ffc1dc"
   },
   {
    "gem": "Champion's Purple",
-   "usd": 227.78,
+   "usd": 228.12,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#7f48c3"
   },
   {
    "gem": "Creator's Light",
-   "usd": 231.53,
+   "usd": 231.7,
    "arcana": "Inscribed Fractal Horns of Inner Abysm",
    "color": "#dcf2ff"
   },
   {
+   "gem": "Rubiline",
+   "usd": 279.02,
+   "arcana": "Exalted Fractal Horns of Inner Abysm",
+   "color": "#d11fa1"
+  },
+  {
    "gem": "Cursed Black",
-   "usd": 266.26,
-   "arcana": "Autographed Fractal Horns of Inner Abysm",
+   "usd": 282.0,
+   "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#060606"
   },
   {
+   "gem": "Glacial Flow",
+   "usd": 466.32,
+   "arcana": "Autographed Fractal Horns of Inner Abysm",
+   "color": "#32abdc"
+  },
+  {
    "gem": "Purple",
-   "usd": 1481.54,
+   "usd": 1476.48,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#8232cf"
   },
   {
    "gem": "Legacy (157, 102, 42)",
-   "usd": 1524.58,
+   "usd": 1525.22,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#9d662a"
   },
   {
    "gem": "Legacy (186, 22, 7)",
-   "usd": 1856.01,
+   "usd": 1856.81,
    "arcana": "Exalted Fractal Horns of Inner Abysm",
    "color": "#ba1607"
   }
@@ -226,7 +232,7 @@
  "items": [
   {
    "name": "Fractal Horns of Inner Abysm",
-   "listings": 185,
+   "listings": 180,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGI2zyUS1Q7nAxtizOmmV6Vdx8cj1-FrmTxzOipPy7y1J7f6vbKEjdqWRWDHIk7wv57A7Gy_iwk1_4j6Gwt-ocimWPQF2CMByELIMukO_m8qnab2kEPA3ZA",
    "type": "Arcana Demon Horns",
    "groups": [
@@ -234,19 +240,19 @@
    ],
    "prices": {
     "usd": {
-     "low": "$39.94"
+     "low": "$39.96"
     },
     "rub": {
-     "low": "3335 руб.",
-     "median": "4460,02 руб.",
-     "volume": "85"
+     "low": "3450 руб.",
+     "median": "3292,79 руб.",
+     "volume": "66"
     }
    },
    "socket": "Reflection's Shade"
   },
   {
    "name": "Treasure of the Crimson Witness 2026",
-   "listings": 108,
+   "listings": 145,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJG51EejH-Ld_JjxZy2o8URw9ZTh-FzYQg_4k4Xv82wOvfP_a_Vpc_LEXTXAwuh1sbM7HnHhxBtz5j_QnI7_JHqUaAAmW8FzW6dU5YcawtnV",
    "type": "Immortal Treasure chest",
    "groups": [
@@ -254,18 +260,18 @@
    ],
    "prices": {
     "usd": {
-     "low": "$207.51"
+     "low": "$185.05"
     },
     "rub": {
-     "low": "18178,77 руб.",
-     "median": "18387,38 руб.",
-     "volume": "274"
+     "low": "15975,20 руб.",
+     "median": "16435,58 руб.",
+     "volume": "250"
     }
    }
   },
   {
    "name": "Treasure of the Crimson Witness 2024",
-   "listings": 67,
+   "listings": 66,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJG51EejH-Ld_JjxZy-o8URw9ZTh-FzYQg_4k4Xv82xa7fH7P6c6JqiRDT6RlLok6eJtTXzkwEpx4W3SzYugcXPFbgAnX5RxW6dU5YepxmgF",
    "type": "Immortal Treasure chest",
    "groups": [
@@ -273,18 +279,18 @@
    ],
    "prices": {
     "usd": {
-     "low": "$155.66"
+     "low": "$156.08"
     },
     "rub": {
-     "low": "13447,14 руб.",
-     "median": "13373,63 руб.",
-     "volume": "10"
+     "low": "13472,78 руб.",
+     "median": "13415,07 руб.",
+     "volume": "4"
     }
    }
   },
   {
    "name": "Exalted Fractal Horns of Inner Abysm",
-   "listings": 49,
+   "listings": 53,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGI2zyUS1Q7nAxtizOmmV6Vdx8cj1-FrmTxzOipPy7y1J7f6vbKEjdqWRWDHIk7wv57A7Gy_iwk1_4j6Gwt-ocimWPQF2CMByELIMukO_m8qnab2kEPA3ZA",
    "type": "Arcana Demon Horns",
    "groups": [
@@ -292,19 +298,19 @@
    ],
    "prices": {
     "usd": {
-     "low": "$48.78"
+     "low": "$44.86"
     },
     "rub": {
-     "low": "4213,89 руб.",
-     "median": "160323,03 руб.",
-     "volume": "1"
+     "low": "3871,88 руб.",
+     "median": "3791,82 руб.",
+     "volume": "2"
     }
    },
    "socket": "Reflection's Shade"
   },
   {
    "name": "Treasure of the Crimson Witness 2025",
-   "listings": 43,
+   "listings": 44,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJG51EejH-LdkZrzYESU919454j61U7uVRP0jYWurSMCuKv8MfNvI_aXDGHEmLYk5bBrFnvnxx5z5G7Wwtz9eSrBawB0XowwG7DlxbkZ9Q",
    "type": "Immortal Treasure chest",
    "groups": [
@@ -312,38 +318,18 @@
    ],
    "prices": {
     "usd": {
-     "low": "$189.00"
+     "low": "$188.56"
     },
     "rub": {
-     "low": "16327,12 руб.",
-     "median": "15979,53 руб.",
-     "volume": "4"
+     "low": "16276,75 руб.",
+     "median": "15272,57 руб.",
+     "volume": "5"
     }
    }
   },
   {
-   "name": "Inscribed Fractal Horns of Inner Abysm",
-   "listings": 43,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGI2zyUS1Q7nAxtizOmmV6Vdx8cj1-FrmTxzOipPy7y1J7f6vbKEjdqWRWDHIk7wv57A7Gy_iwk1_4j6Gwt-ocimWPQF2CMByELIMukO_m8qnab2kEPA3ZA",
-   "type": "Arcana Demon Horns",
-   "groups": [
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$39.82"
-    },
-    "rub": {
-     "low": "3440 руб.",
-     "median": "5164,59 руб.",
-     "volume": "12"
-    }
-   },
-   "socket": "Reflection's Shade"
-  },
-  {
    "name": "Treasure of the Crimson Witness 2023",
-   "listings": 39,
+   "listings": 37,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJG51EejH-Ld_JjxZyio8URw9ZTh-FzYQg_4k4Xv82wD7qr6Ov0-I_PCDWWUl-p16LFtTXm1zRx-tz6DnI79ci3GOFIjCJUhW6dU5a5T7pnt",
    "type": "Immortal Treasure chest",
    "groups": [
@@ -351,37 +337,18 @@
    ],
    "prices": {
     "usd": {
-     "low": "$173.08"
+     "low": "$173.14"
     },
     "rub": {
-     "low": "14950,73 руб.",
-     "median": "14900,64 руб.",
-     "volume": "6"
+     "low": "14945,87 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
   {
-   "name": "Treasure of the Crimson Witness 2019",
-   "listings": 32,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJG51EejH-LdmvWoOHaY90J0-Ljg-FzmUgjjm6m0syED66r6afQ6cPbFXjHIkup0tOA7Hiu2lEkj4DzVw4yoeXKXblV2AsFuBbldI-XUoPs",
-   "type": "Immortal Priceless Treasure",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$145.51"
-    },
-    "rub": {
-     "low": "12558,77 руб.",
-     "median": "12191,75 руб.",
-     "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Autographed Fractal Horns of Inner Abysm",
-   "listings": 26,
+   "name": "Inscribed Fractal Horns of Inner Abysm",
+   "listings": 36,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGI2zyUS1Q7nAxtizOmmV6Vdx8cj1-FrmTxzOipPy7y1J7f6vbKEjdqWRWDHIk7wv57A7Gy_iwk1_4j6Gwt-ocimWPQF2CMByELIMukO_m8qnab2kEPA3ZA",
    "type": "Arcana Demon Horns",
    "groups": [
@@ -389,11 +356,50 @@
    ],
    "prices": {
     "usd": {
-     "low": "$40.96"
+     "low": "$41.26"
     },
     "rub": {
-     "low": "3537,45 руб.",
-     "median": "4833,04 руб.",
+     "low": "3561,72 руб.",
+     "median": "3771,97 руб.",
+     "volume": "18"
+    }
+   },
+   "socket": "Reflection's Shade"
+  },
+  {
+   "name": "Treasure of the Crimson Witness 2019",
+   "listings": 33,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJG51EejH-LdmvWoOHaY90J0-Ljg-FzmUgjjm6m0syED66r6afQ6cPbFXjHIkup0tOA7Hiu2lEkj4DzVw4yoeXKXblV2AsFuBbldI-XUoPs",
+   "type": "Immortal Priceless Treasure",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$145.16"
+    },
+    "rub": {
+     "low": "12529,16 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Autographed Fractal Horns of Inner Abysm",
+   "listings": 28,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGI2zyUS1Q7nAxtizOmmV6Vdx8cj1-FrmTxzOipPy7y1J7f6vbKEjdqWRWDHIk7wv57A7Gy_iwk1_4j6Gwt-ocimWPQF2CMByELIMukO_m8qnab2kEPA3ZA",
+   "type": "Arcana Demon Horns",
+   "groups": [
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$40.97"
+    },
+    "rub": {
+     "low": "3536,28 руб.",
+     "median": "5897,61 руб.",
      "volume": "6"
     }
    },
@@ -401,7 +407,7 @@
   },
   {
    "name": "Prismatic: Tnim S'nnam",
-   "listings": 19,
+   "listings": 24,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
    "groups": [
@@ -410,17 +416,37 @@
    ],
    "prices": {
     "usd": {
-     "low": "$37.75"
+     "low": "$36.95"
     },
     "rub": {
-     "low": "3261,25 руб.",
-     "median": "3288,41 руб.",
-     "volume": "5"
+     "low": "3190,28 руб.",
+     "median": "3215,95 руб.",
+     "volume": "4"
     }
    }
   },
   {
    "name": "Prismatic: Brusque Britches Beige",
+   "listings": 21,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$24.23"
+    },
+    "rub": {
+     "low": "2091,58 руб.",
+     "median": "2009,18 руб.",
+     "volume": "7"
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Dungeon Doom",
    "listings": 19,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -430,17 +456,17 @@
    ],
    "prices": {
     "usd": {
-     "low": "$24.53"
+     "low": "$68.33"
     },
     "rub": {
-     "low": "2119,03 руб.",
-     "median": "2086,96 руб.",
-     "volume": "6"
+     "low": "5897,68 руб.",
+     "median": "5976,01 руб.",
+     "volume": "3"
     }
    }
   },
   {
-   "name": "Prismatic: Dredge Earth",
+   "name": "Prismatic: Unhallowed Ground",
    "listings": 18,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -450,36 +476,18 @@
    ],
    "prices": {
     "usd": {
-     "low": "$19.68"
+     "low": "$20.84"
     },
     "rub": {
-     "low": 1699.99,
-     "approx": true
-    }
-   }
-  },
-  {
-   "name": "Concord Dominion of the Crimson Witness",
-   "listings": 17,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bcwsS1Onao6Vd794LmpUnvQBPlkZvf8SNV7Pe8V7Bkd8-aA2qf0_p3vN56RyammRkioXKVko73NSTKAVpxVMElB4hO6xfXy4m6aKimtlmxyNMaiHCq22hI8Cg94-0BVKYhqfGB3V3JOLBs4sUHI6z2Sh2LWRVZv_szEY7kn4YSW09XR375LIqAvsE",
-   "type": "Immortal Shoulders",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$202.43"
-    },
-    "rub": {
-     "low": "17486,17 руб.",
-     "median": "16003,75 руб.",
-     "volume": "3"
+     "low": "1799 руб.",
+     "median": "1800,01 руб.",
+     "volume": "6"
     }
    }
   },
   {
    "name": "Treasure of the Crimson Witness 2022",
-   "listings": 16,
+   "listings": 17,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJG51EejH_TE_JjxZymo8URw9ZTh-FzYQg_4k4Xv82wK7aSqPPI8JfLBD2XHlb0m4LQ7TCzrlEsm4WzVzdz_cnKRblUmWcQkW6dU5V9FcVaN",
    "type": "Immortal Treasure chest",
    "groups": [
@@ -487,12 +495,51 @@
    ],
    "prices": {
     "usd": {
-     "low": "$430.81"
+     "low": "$428.33"
     },
     "rub": {
-     "low": "37213,46 руб.",
+     "low": "36971,61 руб.",
      "median": null,
      "volume": null
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Dredge Earth",
+   "listings": 17,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$22.85"
+    },
+    "rub": {
+     "low": "1897,50 руб.",
+     "median": "1982,17 руб.",
+     "volume": "6"
+    }
+   }
+  },
+  {
+   "name": "Merry Wanderer's Brush of the Crimson Witness",
+   "listings": 16,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bBwMHuOH6F909K44b67lz1RA_ioZTy6DFT0OavYagiLfWBHH6v1u94tOR7Sjugqh81pi6NpZv4KCeWcAIpXpZyQuMO5hPrwYXhML_n4AbYiYlNmyv2h3lB7Sdt6uhUUvF0qaTJz1aWuOkqo4k",
+   "type": "Immortal Tail",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$258.34"
+    },
+    "rub": {
+     "low": "22298,51 руб.",
+     "median": "21000,06 руб.",
+     "volume": "5"
     }
    }
   },
@@ -506,11 +553,30 @@
    ],
    "prices": {
     "usd": {
-     "low": "$205.09"
+     "low": "$206.02"
     },
     "rub": {
-     "low": "17716,01 руб.",
-     "median": "17813,89 руб.",
+     "low": "17783,33 руб.",
+     "median": "17808,50 руб.",
+     "volume": "3"
+    }
+   }
+  },
+  {
+   "name": "Concord Dominion of the Crimson Witness",
+   "listings": 15,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bcwsS1Onao6Vd794LmpUnvQBPlkZvf8SNV7Pe8V7Bkd8-aA2qf0_p3vN56RyammRkioXKVko73NSTKAVpxVMElB4hO6xfXy4m6aKimtlmxyNMaiHCq22hI8Cg94-0BVKYhqfGB3V3JOLBs4sUHI6z2Sh2LWRVZv_szEY7kn4YSW09XR375LIqAvsE",
+   "type": "Immortal Shoulders",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$190.00"
+    },
+    "rub": {
+     "low": "16400,09 руб.",
+     "median": "17527,40 руб.",
      "volume": "4"
     }
    }
@@ -525,12 +591,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$104.30"
+     "low": "$103.57"
     },
     "rub": {
-     "low": "9009,05 руб.",
-     "median": null,
-     "volume": null
+     "low": "8940,51 руб.",
+     "median": "7937,38 руб.",
+     "volume": "1"
     }
    }
   },
@@ -544,51 +610,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$441.79"
+     "low": "$441.11"
     },
     "rub": {
-     "low": "38163,28 руб.",
-     "median": "37745,90 руб.",
+     "low": "38075,43 руб.",
+     "median": "37717,26 руб.",
      "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Hell-Spar Anathema of the Crimson Witness",
-   "listings": 14,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_rdzMTuOXKY62lh_d_L60vqDhH4kZjf6SsD0PO8ZZtsLOTCQDTAkrYmtOJvS3njzRwjsGuAwoyhIHPBbVQiX8QmR7MJtRTqlNTuY778p1uJqvYrRqM",
-   "type": "Immortal arms",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$223.42"
-    },
-    "rub": {
-     "low": "19299,58 руб.",
-     "median": "19085,18 руб.",
-     "volume": "2"
-    }
-   }
-  },
-  {
-   "name": "Prismatic: Unhallowed Ground",
-   "listings": 14,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$23.57"
-    },
-    "rub": {
-     "low": "2035,99 руб.",
-     "median": "1819,42 руб.",
-     "volume": "5"
     }
    }
   },
@@ -602,18 +629,75 @@
    ],
    "prices": {
     "usd": {
-     "low": "$182.90"
+     "low": "$184.00"
     },
     "rub": {
-     "low": "15799,17 руб.",
-     "median": null,
-     "volume": null
+     "low": "15881,96 руб.",
+     "median": "15787,01 руб.",
+     "volume": "1"
     }
    }
   },
   {
-   "name": "Prismatic: Dungeon Doom",
+   "name": "Primal Paean of the Crimson Witness",
    "listings": 13,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_TRwtm1OHqE8VNnu4X51U3uFiL4k5vv7zZa4829YKt4LPSWHCiSzNFiubZWRiS-mg8zsjG6iYf2NCfDO0QhFJclTOJYshS-xt2xYuq3sgbf3ogQziT_jStB6iY_6rwKUqF0rPeB3lrfcepqEmWqVXY",
+   "type": "Immortal Shoulders",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$173.54"
+    },
+    "rub": {
+     "low": "14978,88 руб.",
+     "median": "14500,19 руб.",
+     "volume": "9"
+    }
+   }
+  },
+  {
+   "name": "Hell-Spar Anathema of the Crimson Witness",
+   "listings": 12,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_rdzMTuOXKY62lh_d_L60vqDhH4kZjf6SsD0PO8ZZtsLOTCQDTAkrYmtOJvS3njzRwjsGuAwoyhIHPBbVQiX8QmR7MJtRTqlNTuY778p1uJqvYrRqM",
+   "type": "Immortal arms",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$221.15"
+    },
+    "rub": {
+     "low": "19088,55 руб.",
+     "median": "19078,44 руб.",
+     "volume": "4"
+    }
+   }
+  },
+  {
+   "name": "Aspect of Oscilla of the Crimson Witness",
+   "listings": 12,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Xdz8-vNn6FqkV8-IL66Vz1fgn4z8bf9C9W4OC6aahSM_iaC2uUjv1_vORnTCyhqgku4m26k4L0LjnTP1pPScopELtesw64ldfnMOvitVHd2oITzST83X5O7Xxjt-0ABfYl_azeiF2VNuBr5sYGOr_5Gj6laS-s",
+   "type": "Immortal shield",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$213.39"
+    },
+    "rub": {
+     "low": "18419,98 руб.",
+     "median": "19420,87 руб.",
+     "volume": "4"
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Ships in the Night",
+   "listings": 12,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
    "groups": [
@@ -622,18 +706,56 @@
    ],
    "prices": {
     "usd": {
-     "low": "$67.74"
+     "low": "$62.96"
     },
     "rub": {
-     "low": "5851,90 руб.",
-     "median": "5840,49 руб.",
-     "volume": "7"
+     "low": "5431,46 руб.",
+     "median": "5405,92 руб.",
+     "volume": "3"
+    }
+   }
+  },
+  {
+   "name": "Sylvan Vedette of the Crimson Witness",
+   "listings": 11,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Hdzc6zIHWZ4EQ644767kvmTxr0jKn09Hpk5v-jZ7Z5IfysHW-f1OJytfN6AD66mxk1sjOCn53GNSKfAV99V80yAbZW3VPgzZG7Y7-gpATAjYlMmyv-h3hNvSls57tUAKst_fKC2wGSZLU6sMNVIqynGU7cWklevbciGt7y1IbiwA",
+   "type": "Immortal shoulder",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$383.14"
+    },
+    "rub": {
+     "low": "33071,74 руб.",
+     "median": "28313,03 руб.",
+     "volume": "19"
+    }
+   }
+  },
+  {
+   "name": "Full-Bore Bonanza of the Crimson Witness",
+   "listings": 11,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-XaytqkJzSE619l8ZXL6Vj3RCL4k5vv7zZa4729Zq19JeKsDWaAxNF_vexmXT2ymU9ptziBn46tJSrDbVB0A5ZxRbEMsxm7k9O0M-_r7gXa2I5GnHj5jy5AuDErvbghvqGMBQ",
+   "type": "Immortal Wearable",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$191.56"
+    },
+    "rub": {
+     "low": "16663,13 руб.",
+     "median": "15979,18 руб.",
+     "volume": "11"
     }
    }
   },
   {
    "name": "God's Mercy of the Crimson Witness",
-   "listings": 11,
+   "listings": 10,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_vV0dnuOHqF9mlz9Yv4uAnYSBD8kYT0_C5k_Pqnbahpb_2SHHSvx-96vLM5cCC-mBI1pzyJpZzxKC7LOgc-DZskQrULtkO_xtLgZOm25AyM348UzSithi1K73ptseZQWKMh_a2G2haBb-PzgmhryQ",
    "type": "Immortal shield",
    "groups": [
@@ -641,56 +763,18 @@
    ],
    "prices": {
     "usd": {
-     "low": "$473.99"
+     "low": "$473.73"
     },
     "rub": {
-     "low": "40944,64 руб.",
-     "median": "40961,63 руб.",
-     "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Merry Wanderer's Brush of the Crimson Witness",
-   "listings": 11,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bBwMHuOH6F909K44b67lz1RA_ioZTy6DFT0OavYagiLfWBHH6v1u94tOR7Sjugqh81pi6NpZv4KCeWcAIpXpZyQuMO5hPrwYXhML_n4AbYiYlNmyv2h3lB7Sdt6uhUUvF0qaTJz1aWuOkqo4k",
-   "type": "Immortal Tail",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$327.31"
-    },
-    "rub": {
-     "low": "28273,09 руб.",
-     "median": "29250,61 руб.",
-     "volume": "4"
-    }
-   }
-  },
-  {
-   "name": "Primal Paean of the Crimson Witness",
-   "listings": 11,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_TRwtm1OHqE8VNnu4X51U3uFiL4k5vv7zZa4829YKt4LPSWHCiSzNFiubZWRiS-mg8zsjG6iYf2NCfDO0QhFJclTOJYshS-xt2xYuq3sgbf3ogQziT_jStB6iY_6rwKUqF0rPeB3lrfcepqEmWqVXY",
-   "type": "Immortal Shoulders",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$203.27"
-    },
-    "rub": {
-     "low": "17559,20 руб.",
-     "median": "19502,29 руб.",
-     "volume": "7"
+     "low": "40890,60 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
   {
    "name": "Corrupted Fractal Horns of Inner Abysm",
-   "listings": 11,
+   "listings": 10,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGI2zyUS1Q7nAxtizOmmV6Vdx8cj1-FrmTxzOipPy7y1J7f6vbKEjdqWRWDHIk7wv57A7Gy_iwk1_4j6Gwt-ocimWPQF2CMByELIMukO_m8qnab2kEPA3ZA",
    "type": "Arcana Demon Horns",
    "groups": [
@@ -698,19 +782,39 @@
    ],
    "prices": {
     "usd": {
-     "low": "$57.98"
+     "low": "$57.77"
     },
     "rub": {
-     "low": "5007,76 руб.",
-     "median": "5000,57 руб.",
+     "low": "4986,86 руб.",
+     "median": "15026,41 руб.",
      "volume": "1"
     }
    },
    "socket": "Reflection's Shade"
   },
   {
-   "name": "Monarch of the Sapphire Glen of the Crimson Witness",
+   "name": "Prismatic: Miasmatic Grey",
    "listings": 10,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$60.69"
+    },
+    "rub": {
+     "low": "5240 руб.",
+     "median": "5421,77 руб.",
+     "volume": "4"
+    }
+   }
+  },
+  {
+   "name": "Monarch of the Sapphire Glen of the Crimson Witness",
+   "listings": 9,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_DB0cOuOzSZ9Wlh_d7L41TqTg_ln5rf_yNY5L2geJt5KamsB2qdzvxise1WTSiwnkxp4TvVnNmreCrFOlRyW5RxR7YKsxftm93jZeK25AzZj9oUmCn2ii9B6DErvbgePlRIcg",
    "type": "Immortal back",
    "groups": [
@@ -718,10 +822,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$203.12"
+     "low": "$197.61"
     },
     "rub": {
-     "low": "17545 руб.",
+     "low": "17056,87 руб.",
      "median": null,
      "volume": null
     }
@@ -729,7 +833,7 @@
   },
   {
    "name": "The Strings of Suradan of the Crimson Witness",
-   "listings": 10,
+   "listings": 9,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_7bzM62PHWcql56-4PLuAm1EyL4k5vv7zZa4825baV9L_7cBmifxdEk4LM7cCC-mBI1pzyJpZj8IDvIMAc-A8BzQuZb5EKxkdXiYe227gzX2t5EniT-in5Muio66-4GUvEm-KKFiRaBb-OpHwuARQ",
    "type": "Immortal Wearable",
    "groups": [
@@ -737,18 +841,18 @@
    ],
    "prices": {
     "usd": {
-     "low": "$195.36"
+     "low": "$195.50"
     },
     "rub": {
-     "low": "16876,07 руб.",
-     "median": null,
-     "volume": null
+     "low": "16874,56 руб.",
+     "median": "16400,58 руб.",
+     "volume": "2"
     }
    }
   },
   {
    "name": "Shadow of the Dark Age of the Crimson Witness",
-   "listings": 10,
+   "listings": 9,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_jdxMK1Jm-W6V1w5sj6-WbzSEyhoZ_t8C1J-_OiV6V_LePcAHSv1ecn4N5gQiS8hwkmvwKEiILqc2XCZwJ0XsdzQ-BcsRawm4bgM763tALXiI5Fyn2s3X8f6n5i5r0KUPdw5OSJ2AOYGVyr",
    "type": "Immortal arms",
    "groups": [
@@ -756,29 +860,30 @@
    ],
    "prices": {
     "usd": {
-     "low": "$167.10"
+     "low": "$166.84"
     },
     "rub": {
-     "low": "14434 руб.",
-     "median": "14378,19 руб.",
+     "low": "14401,95 руб.",
+     "median": "14422,96 руб.",
      "volume": "1"
     }
    }
   },
   {
-   "name": "Inscribed Blastforge Exhaler of the Crimson Witness",
+   "name": "Prismatic: Champion's Blue",
    "listings": 9,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_TGytm1OX6V5FV-u4Xm40rzTRjzn5XrwitW4v28fKVhH_iWAmqV1aF0ouh6WyW2lxwkuAKMl4L2Mz_GMml4X84tEKMLrBK9x9LiP-jg5gHc34tFz3mojS1BvCdp5-ZQWaF0rKaEiAGVZLc145MdZKHw3krY9xY",
-   "type": "Immortal Goo",
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
    "groups": [
-    "crimson"
+    "gems",
+    "terrorblade"
    ],
    "prices": {
     "usd": {
-     "low": "$393.18"
+     "low": "$73.09"
     },
     "rub": {
-     "low": "33963,44 руб.",
+     "low": "6309,89 руб.",
      "median": null,
      "volume": null
     }
@@ -786,6 +891,45 @@
   },
   {
    "name": "Prismatic: Explosive Burst",
+   "listings": 9,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$26.82"
+    },
+    "rub": {
+     "low": "2315,13 руб.",
+     "median": "2221,78 руб.",
+     "volume": "1"
+    }
+   }
+  },
+  {
+   "name": "Inscribed Blastforge Exhaler of the Crimson Witness",
+   "listings": 8,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_TGytm1OX6V5FV-u4Xm40rzTRjzn5XrwitW4v28fKVhH_iWAmqV1aF0ouh6WyW2lxwkuAKMl4L2Mz_GMml4X84tEKMLrBK9x9LiP-jg5gHc34tFz3mojS1BvCdp5-ZQWaF0rKaEiAGVZLc145MdZKHw3krY9xY",
+   "type": "Immortal Goo",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$392.97"
+    },
+    "rub": {
+     "low": "33918,98 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Champion's Green",
    "listings": 8,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -795,11 +939,31 @@
    ],
    "prices": {
     "usd": {
-     "low": "$27.09"
+     "low": "$88.37"
     },
     "rub": {
-     "low": "2341,22 руб.",
-     "median": "2223,47 руб.",
+     "low": "7628 руб.",
+     "median": "7627,57 руб.",
+     "volume": "1"
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Reflection's Shade",
+   "listings": 8,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$15.06"
+    },
+    "rub": {
+     "low": "1300 руб.",
+     "median": "441,43 руб.",
      "volume": "2"
     }
    }
@@ -814,10 +978,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,340.04"
+     "low": "$1,338.54"
     },
     "rub": {
-     "low": "115753,10 руб.",
+     "low": "115536,28 руб.",
      "median": null,
      "volume": null
     }
@@ -833,17 +997,17 @@
    ],
    "prices": {
     "usd": {
-     "low": "$265.00"
+     "low": "$264.50"
     },
     "rub": {
-     "low": "22891,34 руб.",
+     "low": "22830,30 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Prismatic: Champion's Green",
+   "name": "Prismatic: Rubiline",
    "listings": 7,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -853,107 +1017,29 @@
    ],
    "prices": {
     "usd": {
-     "low": "$88.38"
+     "low": "$208.52"
     },
     "rub": {
-     "low": "7634,58 руб.",
-     "median": "7633,36 руб.",
+     "low": "17999 руб.",
+     "median": "17978,79 руб.",
      "volume": "1"
     }
    }
   },
   {
-   "name": "Prismatic: Champion's Blue",
-   "listings": 7,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$73.79"
-    },
-    "rub": {
-     "low": "6360,57 руб.",
-     "median": "3471,64 руб.",
-     "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Prismatic: Ships in the Night",
-   "listings": 7,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$60.30"
-    },
-    "rub": {
-     "low": "5208,88 руб.",
-     "median": "5216,52 руб.",
-     "volume": "5"
-    }
-   }
-  },
-  {
-   "name": "Prismatic: Reflection's Shade",
-   "listings": 7,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$14.46"
-    },
-    "rub": {
-     "low": 1249.08,
-     "approx": true
-    }
-   }
-  },
-  {
-   "name": "Sylvan Vedette of the Crimson Witness",
+   "name": "Malefic Drake's Hood of the Crimson Witness",
    "listings": 6,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Hdzc6zIHWZ4EQ644767kvmTxr0jKn09Hpk5v-jZ7Z5IfysHW-f1OJytfN6AD66mxk1sjOCn53GNSKfAV99V80yAbZW3VPgzZG7Y7-gpATAjYlMmyv-h3hNvSls57tUAKst_fKC2wGSZLU6sMNVIqynGU7cWklevbciGt7y1IbiwA",
-   "type": "Immortal shoulder",
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Dd08-zem2e9VNny47551b1VRz9oZ7l_CZk-_v5J7JkMPWBMW6dzOFkpOBlcCG2lBkYpzTSy8Gqc3iSbAMoCsd1Q-BfukG9xN3lYr605VOL3d9Nyir9hnxP7C5ot-sLT-N7rW-rJVd9",
+   "type": "Immortal head",
    "groups": [
     "crimson"
    ],
    "prices": {
     "usd": {
-     "low": "$425.41"
+     "low": "$333.55"
     },
     "rub": {
-     "low": "34223,57 руб.",
-     "median": "27529 руб.",
-     "volume": "10"
-    }
-   }
-  },
-  {
-   "name": "Genuine Silent Wake of the Crimson Witness",
-   "listings": 6,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_LGzN3uIXLB2l94-Yjm_ljrfh7wjpOv8CdI572qeqt6H-SaWFiZzON5ovVoQxawlA0i4XPXy9yrJ3ifblckDMEjF7II5xW_l4fkMurktQOIiIpDmXmoiSMY5npr_a9cBiPzpzvg",
-   "type": "Immortal Cape",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$408.03"
-    },
-    "rub": {
-     "low": "35245,70 руб.",
+     "low": "28790,20 руб.",
      "median": null,
      "volume": null
     }
@@ -969,12 +1055,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$274.45"
+     "low": "$305.04"
     },
     "rub": {
-     "low": "23706,98 руб.",
-     "median": null,
-     "volume": null
+     "low": "26330,07 руб.",
+     "median": "23675,83 руб.",
+     "volume": "1"
     }
    }
   },
@@ -988,69 +1074,50 @@
    ],
    "prices": {
     "usd": {
-     "low": "$262.29"
+     "low": "$262.73"
     },
     "rub": {
-     "low": "22656,92 руб.",
+     "low": "22678,29 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Aspect of Oscilla of the Crimson Witness",
+   "name": "Insight of Forlorn Precipice of the Crimson Witness",
    "listings": 6,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Xdz8-vNn6FqkV8-IL66Vz1fgn4z8bf9C9W4OC6aahSM_iaC2uUjv1_vORnTCyhqgku4m26k4L0LjnTP1pPScopELtesw64ldfnMOvitVHd2oITzST83X5O7Xxjt-0ABfYl_azeiF2VNuBr5sYGOr_5Gj6laS-s",
-   "type": "Immortal shield",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$231.27"
-    },
-    "rub": {
-     "low": "19976,80 руб.",
-     "median": "35000,03 руб.",
-     "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Full-Bore Bonanza of the Crimson Witness",
-   "listings": 6,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-XaytqkJzSE619l8ZXL6Vj3RCL4k5vv7zZa4729Zq19JeKsDWaAxNF_vexmXT2ymU9ptziBn46tJSrDbVB0A5ZxRbEMsxm7k9O0M-_r7gXa2I5GnHj5jy5AuDErvbghvqGMBQ",
-   "type": "Immortal Wearable",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$220.22"
-    },
-    "rub": {
-     "low": "19022,46 руб.",
-     "median": "17211,99 руб.",
-     "volume": "4"
-    }
-   }
-  },
-  {
-   "name": "Emerald Subjugation of the Crimson Witness",
-   "listings": 6,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Pax8-zOXSF4Rlg-Limugu2fhT8k5ny6SNXoOeiV_Y9cqGsB2qdzvxise04AXDil0t-sWvTzYqvJHKVaAMlCJN2TLRfsBPtwdKzN7u04FHfiNlCm3_gznQeTip5P58",
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_LV0cGeJn6S9xlx57imugu1fhT8k5ny6SNX0PqraaAiJOOsXDfCk9F_vexmXT2ymSIvtjyBy8H9eSnFPwQoWMEjTLVb40G9kIflYbnmtVTdjogXnnr22C0c6nlu6ucDT-N7rfsv1QaL",
    "type": "Immortal head",
    "groups": [
     "crimson"
    ],
    "prices": {
     "usd": {
-     "low": "$213.11"
+     "low": "$205.06"
     },
     "rub": {
-     "low": "18409,01 руб.",
-     "median": "18256,60 руб.",
-     "volume": "1"
+     "low": "17700 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Awaleb's Trundleweed of the Crimson Witness",
+   "listings": 6,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Hd18mpMXSU8Vlnu5Dw1U3uEE3Ol5vt8jBP7v6Rf6FsMP-dQXCU_vp_4bFWRiS-mg8zsjG6jYr4MSTJbBggA5YkROVZtRDux4bjMOmztlbfio1DxSr7jX9L7nls4ekLUvd2-KOFkUifZsDlcO4A",
+   "type": "Immortal Wearable",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$196.94"
+    },
+    "rub": {
+     "low": "16999 руб.",
+     "median": "17172,36 руб.",
+     "volume": "2"
     }
    }
   },
@@ -1067,8 +1134,8 @@
      "low": "$170.71"
     },
     "rub": {
-     "low": "14746,65 руб.",
-     "median": "14299,94 руб.",
+     "low": "14735,47 руб.",
+     "median": "13377,72 руб.",
      "volume": "1"
     }
    }
@@ -1083,12 +1150,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$165.48"
+     "low": "$165.29"
     },
     "rub": {
-     "low": "14294,35 руб.",
-     "median": "13918,38 руб.",
-     "volume": "2"
+     "low": "14267,56 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -1102,12 +1169,32 @@
    ],
    "prices": {
     "usd": {
-     "low": "$151.49"
+     "low": "$151.31"
     },
     "rub": {
-     "low": "13085,89 руб.",
-     "median": "12727,61 руб.",
+     "low": "13061,37 руб.",
+     "median": "12717,95 руб.",
      "volume": "2"
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Bright Purple",
+   "listings": 6,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$173.80"
+    },
+    "rub": {
+     "low": "15002 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -1122,29 +1209,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$76.60"
+     "low": "$76.48"
     },
     "rub": {
-     "low": "6616,75 руб.",
-     "median": null,
-     "volume": null
-    }
-   }
-  },
-  {
-   "name": "Eyes of Ardenok of the Crimson Witness",
-   "listings": 5,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_vVxMSgIXqC9xl49YD6_0rYVRSgzqnp8C9U_eavZJtlJfGXQWqRxuBjo959RnjjqhQqvjKXjo71HiPCP1IhFJJzE7UP5Bm_xoDlP--xtQXeg4xDyCj4jipKvCc65rsKB_dx-a2B2wnfcepq_ELGzRo",
-   "type": "Immortal head",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$503.24"
-    },
-    "rub": {
-     "low": "43469,34 руб.",
+     "low": "6601,69 руб.",
      "median": null,
      "volume": null
     }
@@ -1160,10 +1228,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$407.83"
+     "low": "$407.21"
     },
     "rub": {
-     "low": "35228,89 руб.",
+     "low": "35147,80 руб.",
      "median": null,
      "volume": null
     }
@@ -1179,10 +1247,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$405.23"
+     "low": "$404.39"
     },
     "rub": {
-     "low": "35005,54 руб.",
+     "low": "34904,65 руб.",
      "median": null,
      "volume": null
     }
@@ -1198,10 +1266,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$382.99"
+     "low": "$383.14"
     },
     "rub": {
-     "low": "33082,69 руб.",
+     "low": "33071,74 руб.",
      "median": null,
      "volume": null
     }
@@ -1217,7 +1285,7 @@
    ],
    "prices": {
     "usd": {
-     "low": "$346.01"
+     "low": "$346.28"
     },
     "rub": {
      "low": "29888,88 руб.",
@@ -1227,59 +1295,21 @@
    }
   },
   {
-   "name": "Malefic Drake's Hood of the Crimson Witness",
+   "name": "Emerald Subjugation of the Crimson Witness",
    "listings": 5,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Dd08-zem2e9VNny47551b1VRz9oZ7l_CZk-_v5J7JkMPWBMW6dzOFkpOBlcCG2lBkYpzTSy8Gqc3iSbAMoCsd1Q-BfukG9xN3lYr605VOL3d9Nyir9hnxP7C5ot-sLT-N7rW-rJVd9",
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Pax8-zOXSF4Rlg-Limugu2fhT8k5ny6SNXoOeiV_Y9cqGsB2qdzvxise04AXDil0t-sWvTzYqvJHKVaAMlCJN2TLRfsBPtwdKzN7u04FHfiNlCm3_gznQeTip5P58",
    "type": "Immortal head",
    "groups": [
     "crimson"
    ],
    "prices": {
     "usd": {
-     "low": "$344.05"
+     "low": "$213.48"
     },
     "rub": {
-     "low": "29720 руб.",
-     "median": "20466,03 руб.",
-     "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Awaleb's Trundleweed of the Crimson Witness",
-   "listings": 5,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Hd18mpMXSU8Vlnu5Dw1U3uEE3Ol5vt8jBP7v6Rf6FsMP-dQXCU_vp_4bFWRiS-mg8zsjG6jYr4MSTJbBggA5YkROVZtRDux4bjMOmztlbfio1DxSr7jX9L7nls4ekLUvd2-KOFkUifZsDlcO4A",
-   "type": "Immortal Wearable",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$198.86"
-    },
-    "rub": {
-     "low": "17177,58 руб.",
+     "low": "18426,37 руб.",
      "median": null,
      "volume": null
-    }
-   }
-  },
-  {
-   "name": "Orb of Deliverance of the Crimson Witness",
-   "listings": 5,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_Ld0Ni0JW-Y9xlx_ZTm_0nzTg_Oip-4witW4v28fKVhH-eWD3efz6FyufJ7Wjmnmg8YpzTdpYb0LCTVKld8ZdUlFKdV7BGmx4C2NOPk5wXajItNzS37iCsc7H0_57kEV6Im_KDR217IZLVp4MRQIOHnE0q2hPUXvQ",
-   "type": "Immortal weapon",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$172.45"
-    },
-    "rub": {
-     "low": "14897,42 руб.",
-     "median": "14632,92 руб.",
-     "volume": "2"
     }
    }
   },
@@ -1293,17 +1323,17 @@
    ],
    "prices": {
     "usd": {
-     "low": "$113.90"
+     "low": "$113.77"
     },
     "rub": {
-     "low": "9839,01 руб.",
-     "median": null,
-     "volume": null
+     "low": "9820,58 руб.",
+     "median": "9440,30 руб.",
+     "volume": "1"
     }
    }
   },
   {
-   "name": "Prismatic: Blossom Red",
+   "name": "Prismatic: Blue",
    "listings": 5,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -1313,32 +1343,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$129.00"
+     "low": "$98.63"
     },
     "rub": {
-     "low": "11144,68 руб.",
+     "low": "8514 руб.",
      "median": null,
      "volume": null
-    }
-   }
-  },
-  {
-   "name": "Prismatic: Miasmatic Grey",
-   "listings": 5,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$63.05"
-    },
-    "rub": {
-     "low": "5446,12 руб.",
-     "median": "5458,72 руб.",
-     "volume": "3"
     }
    }
   },
@@ -1352,12 +1362,31 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,397.61"
+     "low": "$1,398.20"
     },
     "rub": {
-     "low": "120725,94 руб.",
+     "low": "120685,92 руб.",
      "median": null,
      "volume": null
+    }
+   }
+  },
+  {
+   "name": "Genuine Silent Wake of the Crimson Witness",
+   "listings": 4,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_LGzN3uIXLB2l94-Yjm_ljrfh7wjpOv8CdI572qeqt6H-SaWFiZzON5ovVoQxawlA0i4XPXy9yrJ3ifblckDMEjF7II5xW_l4fkMurktQOIiIpDmXmoiSMY5npr_a9cBiPzpzvg",
+   "type": "Immortal Cape",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$419.90"
+    },
+    "rub": {
+     "low": "36244,37 руб.",
+     "median": "36234,61 руб.",
+     "volume": "2"
     }
    }
   },
@@ -1371,10 +1400,29 @@
    ],
    "prices": {
     "usd": {
-     "low": "$290.92"
+     "low": "$291.58"
     },
     "rub": {
-     "low": "25131,03 руб.",
+     "low": "25168,33 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Genuine Dam'arakan Muzzle of the Crimson Witness",
+   "listings": 4,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Xdz8-vNn6FqkJ8orj871XqRAm-k5Pz9W1P5qSRYKFhLfWHXynGkrcituJsSiiyxUgi5T6En9-qdn6UPAImCpt1TeNZ5Ba8loXhP7zr-UWA3Lv-x_9d",
+   "type": "Immortal helmet",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$288.54"
+    },
+    "rub": {
+     "low": "24905,46 руб.",
      "median": null,
      "volume": null
     }
@@ -1390,10 +1438,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$268.09"
+     "low": "$268.21"
     },
     "rub": {
-     "low": "23157,81 руб.",
+     "low": "23150,12 руб.",
      "median": null,
      "volume": null
     }
@@ -1412,7 +1460,7 @@
      "low": "$259.99"
     },
     "rub": {
-     "low": "22459,22 руб.",
+     "low": "22442,18 руб.",
      "median": null,
      "volume": null
     }
@@ -1431,27 +1479,27 @@
      "low": "$222.00"
     },
     "rub": {
-     "low": "19177,11 руб.",
+     "low": "19162,56 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Insight of Forlorn Precipice of the Crimson Witness",
+   "name": "Orb of Deliverance of the Crimson Witness",
    "listings": 4,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_LV0cGeJn6S9xlx57imugu1fhT8k5ny6SNX0PqraaAiJOOsXDfCk9F_vexmXT2ymSIvtjyBy8H9eSnFPwQoWMEjTLVb40G9kIflYbnmtVTdjogXnnr22C0c6nlu6ucDT-N7rfsv1QaL",
-   "type": "Immortal head",
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_Ld0Ni0JW-Y9xlx_ZTm_0nzTg_Oip-4witW4v28fKVhH-eWD3efz6FyufJ7Wjmnmg8YpzTdpYb0LCTVKld8ZdUlFKdV7BGmx4C2NOPk5wXajItNzS37iCsc7H0_57kEV6Im_KDR217IZLVp4MRQIOHnE0q2hPUXvQ",
+   "type": "Immortal weapon",
    "groups": [
     "crimson"
    ],
    "prices": {
     "usd": {
-     "low": "$206.22"
+     "low": "$172.28"
     },
     "rub": {
-     "low": "17813,66 руб.",
-     "median": "17708,94 руб.",
+     "low": "14869,52 руб.",
+     "median": "14879,33 руб.",
      "volume": "2"
     }
    }
@@ -1469,14 +1517,33 @@
      "low": "$170.00"
     },
     "rub": {
-     "low": "14685,07 руб.",
+     "low": "14673,92 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Prismatic: Rubiline",
+   "name": "Flutterstep of the Crimson Witness",
+   "listings": 4,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_PawMKgO2-F4EVmu4L66VHYE02jzKnp8C9U_eavZOtoLvObMTXAk7xJuexkQDunlBF2_WrRnterJy2fbwNzD5pyQeAJukLqk9zlN-2ztAzfjo1GxXioiHtL5y11o7FVYf3viok",
+   "type": "Immortal belt",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$147.36"
+    },
+    "rub": {
+     "low": "12720 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Blossom Red",
    "listings": 4,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -1486,11 +1553,11 @@
    ],
    "prices": {
     "usd": {
-     "low": "$208.39"
+     "low": "$134.93"
     },
     "rub": {
-     "low": "18000 руб.",
-     "median": "17992,44 руб.",
+     "low": "11647,06 руб.",
+     "median": "11136,23 руб.",
      "volume": "1"
     }
    }
@@ -1509,9 +1576,29 @@
      "low": "$88.00"
     },
     "rub": {
-     "low": "7602,30 руб.",
-     "median": "6553,43 руб.",
+     "low": "7596,53 руб.",
+     "median": "6548,46 руб.",
      "volume": "1"
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Summer Warmth",
+   "listings": 4,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$87.18"
+    },
+    "rub": {
+     "low": "7525 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -1526,12 +1613,31 @@
    ],
    "prices": {
     "usd": {
-     "low": "$55.68"
+     "low": "$52.91"
     },
     "rub": {
-     "low": "4809,76 руб.",
+     "low": "4488,63 руб.",
      "median": null,
      "volume": null
+    }
+   }
+  },
+  {
+   "name": "Eyes of Ardenok of the Crimson Witness",
+   "listings": 3,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_vVxMSgIXqC9xl49YD6_0rYVRSgzqnp8C9U_eavZJtlJfGXQWqRxuBjo959RnjjqhQqvjKXjo71HiPCP1IhFJJzE7UP5Bm_xoDlP--xtQXeg4xDyCj4jipKvCc65rsKB_dx-a2B2wnfcepq_ELGzRo",
+   "type": "Immortal head",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$629.98"
+    },
+    "rub": {
+     "low": "54376,39 руб.",
+     "median": "43466,48 руб.",
+     "volume": "1"
     }
    }
   },
@@ -1545,10 +1651,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$465.01"
+     "low": "$465.22"
     },
     "rub": {
-     "low": "40169 руб.",
+     "low": "40155,71 руб.",
      "median": null,
      "volume": null
     }
@@ -1564,12 +1670,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$395.46"
+     "low": "$448.00"
     },
     "rub": {
-     "low": "34160,35 руб.",
-     "median": null,
-     "volume": null
+     "low": "38670,55 руб.",
+     "median": "34134,51 руб.",
+     "volume": "1"
     }
    }
   },
@@ -1583,10 +1689,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$393.12"
+     "low": "$393.30"
     },
     "rub": {
-     "low": "33958,03 руб.",
+     "low": "33946,77 руб.",
      "median": null,
      "volume": null
     }
@@ -1602,87 +1708,29 @@
    ],
    "prices": {
     "usd": {
-     "low": "$333.79"
+     "low": "$333.92"
     },
     "rub": {
-     "low": "28832,80 руб.",
+     "low": "28823,23 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Genuine Dam'arakan Muzzle of the Crimson Witness",
+   "name": "Inscribed Twilight Schism of the Crimson Witness",
    "listings": 3,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-Xdz8-vNn6FqkJ8orj871XqRAm-k5Pz9W1P5qSRYKFhLfWHXynGkrcituJsSiiyxUgi5T6En9-qdn6UPAImCpt1TeNZ5Ba8loXhP7zr-UWA3Lv-x_9d",
-   "type": "Immortal helmet",
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_rBzcvuOW6Z5Glh_d7L41TqTg_ln5qv8TdV7s26Yf1SKf2eAXWEwOIk_uI_S3HllhlytW-HnIyoInPDOwAjX5N1FrVctBK-m4HlM-jksQzWioxbjXKpc-n8L7I",
+   "type": "Immortal Wearable",
    "groups": [
     "crimson"
    ],
    "prices": {
     "usd": {
-     "low": "$289.89"
+     "low": "$271.14"
     },
     "rub": {
-     "low": "25041,03 руб.",
-     "median": null,
-     "volume": null
-    }
-   }
-  },
-  {
-   "name": "Inscribed Hell-Spar Anathema of the Crimson Witness",
-   "listings": 3,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_rdzMTuOXKY62lh_d_L60vqDhH4kZjf6SsD0PO8ZZtsLOTCQDTAkrYmtOJvS3njzRwjsGuAwoyhIHPBbVQiX8QmR7MJtRTqlNTuY778p1uJqvYrRqM",
-   "type": "Immortal arms",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$233.61"
-    },
-    "rub": {
-     "low": "20180 руб.",
-     "median": null,
-     "volume": null
-    }
-   }
-  },
-  {
-   "name": "Flutterstep of the Crimson Witness",
-   "listings": 3,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_PawMKgO2-F4EVmu4L66VHYE02jzKnp8C9U_eavZOtoLvObMTXAk7xJuexkQDunlBF2_WrRnterJy2fbwNzD5pyQeAJukLqk9zlN-2ztAzfjo1GxXioiHtL5y11o7FVYf3viok",
-   "type": "Immortal belt",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$147.31"
-    },
-    "rub": {
-     "low": "12724,26 руб.",
-     "median": "11451,51 руб.",
-     "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Prismatic: Bright Purple",
-   "listings": 3,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$173.81"
-    },
-    "rub": {
-     "low": "15014,43 руб.",
+     "low": "23404,50 руб.",
      "median": null,
      "volume": null
     }
@@ -1702,9 +1750,49 @@
      "low": "$138.00"
     },
     "rub": {
-     "low": "11920,50 руб.",
+     "low": "11911,47 руб.",
      "median": null,
      "volume": null
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Ember Flame",
+   "listings": 3,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$132.38"
+    },
+    "rub": {
+     "low": "11427 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Crystalline Blue",
+   "listings": 3,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$53.95"
+    },
+    "rub": {
+     "low": "4657,29 руб.",
+     "median": "4782,51 руб.",
+     "volume": "1"
     }
    }
   },
@@ -1718,10 +1806,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,678.50"
+     "low": "$1,682.27"
     },
     "rub": {
-     "low": "144990,31 руб.",
+     "low": "145205,48 руб.",
      "median": null,
      "volume": null
     }
@@ -1737,10 +1825,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,610.32"
+     "low": "$1,611.45"
     },
     "rub": {
-     "low": "139101,17 руб.",
+     "low": "139092,23 руб.",
      "median": null,
      "volume": null
     }
@@ -1756,10 +1844,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,340.04"
+     "low": "$1,338.54"
     },
     "rub": {
-     "low": "115753,10 руб.",
+     "low": "115536,28 руб.",
      "median": null,
      "volume": null
     }
@@ -1775,11 +1863,11 @@
    ],
    "prices": {
     "usd": {
-     "low": "$562.78"
+     "low": "$711.77"
     },
     "rub": {
-     "low": "48613,91 руб.",
-     "median": "48314,18 руб.",
+     "low": "61436,83 руб.",
+     "median": "48502,10 руб.",
      "volume": "1"
     }
    }
@@ -1794,29 +1882,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$444.66"
+     "low": "$444.86"
     },
     "rub": {
-     "low": "38410,75 руб.",
-     "median": null,
-     "volume": null
-    }
-   }
-  },
-  {
-   "name": "Genuine Blistering Shade of the Crimson Witness",
-   "listings": 2,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-HGwsO1PUSc7Fhyu4X440rzRA_4kJHf7ipa6_fhZaF-KL-RAm6D1etkue9ucDq7lBki4nPQyN__In-UagIkCJF4TeADsRi4moHkZLnm5lCN2t9AziWtjn5I5yZr_a9cBuDJ5Fdd",
-   "type": "Immortal Bracers",
-   "groups": [
-    "crimson"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$397.00"
-    },
-    "rub": {
-     "low": "34293,30 руб.",
+     "low": "38398,01 руб.",
      "median": null,
      "volume": null
     }
@@ -1832,7 +1901,7 @@
    ],
    "prices": {
     "usd": {
-     "low": "$349.62"
+     "low": "$349.88"
     },
     "rub": {
      "low": "30200 руб.",
@@ -1854,26 +1923,26 @@
      "low": "$299.00"
     },
     "rub": {
-     "low": "25827,76 руб.",
+     "low": "25808,16 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Inscribed Twilight Schism of the Crimson Witness",
+   "name": "Inscribed Hell-Spar Anathema of the Crimson Witness",
    "listings": 2,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_rBzcvuOW6Z5Glh_d7L41TqTg_ln5qv8TdV7s26Yf1SKf2eAXWEwOIk_uI_S3HllhlytW-HnIyoInPDOwAjX5N1FrVctBK-m4HlM-jksQzWioxbjXKpc-n8L7I",
-   "type": "Immortal Wearable",
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_rdzMTuOXKY62lh_d_L60vqDhH4kZjf6SsD0PO8ZZtsLOTCQDTAkrYmtOJvS3njzRwjsGuAwoyhIHPBbVQiX8QmR7MJtRTqlNTuY778p1uJqvYrRqM",
+   "type": "Immortal arms",
    "groups": [
     "crimson"
    ],
    "prices": {
     "usd": {
-     "low": "$294.59"
+     "low": "$233.80"
     },
     "rub": {
-     "low": "25448,25 руб.",
+     "low": "20180 руб.",
      "median": null,
      "volume": null
     }
@@ -1889,10 +1958,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$132.04"
+     "low": "$132.27"
     },
     "rub": {
-     "low": "11405,74 руб.",
+     "low": "11416,48 руб.",
      "median": null,
      "volume": null
     }
@@ -1909,17 +1978,17 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,443.56"
+     "low": "$1,444.19"
     },
     "rub": {
-     "low": "124695,93 руб.",
+     "low": "124654,60 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Prismatic: Creator's Light",
+   "name": "Prismatic: Cursed Black",
    "listings": 2,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -1929,17 +1998,17 @@
    ],
    "prices": {
     "usd": {
-     "low": "$265.14"
+     "low": "$254.88"
     },
     "rub": {
-     "low": "22903,34 руб.",
-     "median": "22763,32 руб.",
-     "volume": "1"
+     "low": "22000 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
   {
-   "name": "Prismatic: Ember Flame",
+   "name": "Prismatic: Plushy Shag",
    "listings": 2,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -1949,12 +2018,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$132.38"
+     "low": "$231.70"
     },
     "rub": {
-     "low": "11435,74 руб.",
-     "median": "11373,72 руб.",
-     "volume": "1"
+     "low": "20000 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -1969,17 +2038,17 @@
    ],
    "prices": {
     "usd": {
-     "low": "$124.82"
+     "low": "$125.04"
     },
     "rub": {
-     "low": "10782,77 руб.",
+     "low": "10792,94 руб.",
      "median": null,
      "volume": null
     }
    }
   },
   {
-   "name": "Prismatic: Blue",
+   "name": "Prismatic: Vermillion Renewal",
    "listings": 2,
    "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
    "type": "Mythical Prismatic Gem",
@@ -1989,32 +2058,11 @@
    ],
    "prices": {
     "usd": {
-     "low": "$98.69"
+     "low": "$92.69"
     },
     "rub": {
-     "low": "8525,13 руб.",
-     "median": null,
-     "volume": null
-    }
-   }
-  },
-  {
-   "name": "Prismatic: Summer Warmth",
-   "listings": 2,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$87.05"
-    },
-    "rub": {
-     "low": "7518,90 руб.",
-     "median": null,
-     "volume": null
+     "low": 8000.65,
+     "approx": true
     }
    }
   },
@@ -2029,12 +2077,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$67.17"
+     "low": "$67.20"
     },
     "rub": {
-     "low": "5802,29 руб.",
-     "median": "5828,65 руб.",
-     "volume": "1"
+     "low": "5800,37 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -2049,12 +2097,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$65.27"
+     "low": "$65.38"
     },
     "rub": {
-     "low": "5638,61 руб.",
-     "median": "5113,36 руб.",
-     "volume": "2"
+     "low": "5643,93 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -2069,32 +2117,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$64.60"
+     "low": "$64.54"
     },
     "rub": {
-     "low": "5581,60 руб.",
-     "median": "5443,94 руб.",
-     "volume": "1"
-    }
-   }
-  },
-  {
-   "name": "Prismatic: Crystalline Blue",
-   "listings": 2,
-   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
-   "type": "Mythical Prismatic Gem",
-   "groups": [
-    "gems",
-    "terrorblade"
-   ],
-   "prices": {
-    "usd": {
-     "low": "$64.26"
-    },
-    "rub": {
-     "low": "5551,06 руб.",
-     "median": "4786,14 руб.",
-     "volume": "3"
+     "low": "5571,15 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -2108,10 +2136,29 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,655.83"
+     "low": "$1,653.98"
     },
     "rub": {
-     "low": "143031,49 руб.",
+     "low": "142763,57 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Bracers of Aeons of the Crimson Witness",
+   "listings": 1,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH_DVwM-tMGiE2kB6_YO76EvmQhjjjanv-x1a6v2ge-tvMvGQC3WD_uFwj-BsQCegxFN_sD-EzI78eSnCbQAiCpd1E7UKu0a8l9PnNrngtVDcjYxGzSWq2ixK8G81tJPGokk2",
+   "type": "Immortal Bracers",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$926.83"
+    },
+    "rub": {
+     "low": "80000 руб.",
      "median": null,
      "volume": null
     }
@@ -2130,8 +2177,8 @@
      "low": "$920.00"
     },
     "rub": {
-     "low": "79470,03 руб.",
-     "median": "74720,74 руб.",
+     "low": "79409,74 руб.",
+     "median": "74664,05 руб.",
      "volume": "1"
     }
    }
@@ -2146,10 +2193,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$658.96"
+     "low": "$659.24"
     },
     "rub": {
-     "low": "56921,06 руб.",
+     "low": "56902,20 руб.",
      "median": null,
      "volume": null
     }
@@ -2165,10 +2212,29 @@
    ],
    "prices": {
     "usd": {
-     "low": "$638.06"
+     "low": "$639.14"
     },
     "rub": {
-     "low": "55115,99 руб.",
+     "low": "55167,97 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Corrupted Avowance of the Crimson Witness",
+   "listings": 1,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-bcwsS1Onao5EVm9ZTn41eoURzOmJfs8XAL0PujZat_NPGfMXSYzvt6tOR7XGajlCIhsjGJyN_GKCbKMURkW84fBr9V90zsx5akNvTm4Azf3ogQyS78jy1NuH1jse5QV6Yk-KHf3VrIYrw64JgHI66uS0-MRlxR7_Vzhn2d",
+   "type": "Immortal shoulder",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$572.96"
+    },
+    "rub": {
+     "low": "49454,89 руб.",
      "median": null,
      "volume": null
     }
@@ -2184,12 +2250,31 @@
    ],
    "prices": {
     "usd": {
-     "low": "$439.91"
+     "low": "$440.25"
     },
     "rub": {
      "low": "38000 руб.",
      "median": null,
      "volume": null
+    }
+   }
+  },
+  {
+   "name": "Genuine Blistering Shade of the Crimson Witness",
+   "listings": 1,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGIyi3kajH-HGwsO1PUSc7Fhyu4X440rzRA_4kJHf7ipa6_fhZaF-KL-RAm6D1etkue9ucDq7lBki4nPQyN__In-UagIkCJF4TeADsRi4moHkZLnm5lCN2t9AziWtjn5I5yZr_a9cBuDJ5Fdd",
+   "type": "Immortal Bracers",
+   "groups": [
+    "crimson"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$399.40"
+    },
+    "rub": {
+     "low": "34474,75 руб.",
+     "median": "34267,30 руб.",
+     "volume": "1"
     }
    }
   },
@@ -2203,10 +2288,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$348.42"
+     "low": "$349.03"
     },
     "rub": {
-     "low": "30097,81 руб.",
+     "low": "30126,18 руб.",
      "median": null,
      "volume": null
     }
@@ -2222,10 +2307,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$292.13"
+     "low": "$291.80"
     },
     "rub": {
-     "low": "25234,17 руб.",
+     "low": "25186,91 руб.",
      "median": null,
      "volume": null
     }
@@ -2242,10 +2327,50 @@
    ],
    "prices": {
     "usd": {
-     "low": "$1,903.17"
+     "low": "$1,906.16"
     },
     "rub": {
-     "low": "164396,70 руб.",
+     "low": "164530,32 руб.",
+     "median": null,
+     "volume": null
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Purple",
+   "listings": 1,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$338.76"
+    },
+    "rub": {
+     "low": "29241 руб.",
+     "median": "17532,56 руб.",
+     "volume": "1"
+    }
+   }
+  },
+  {
+   "name": "Prismatic: Creator's Light",
+   "listings": 1,
+   "icon": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttydbPaERSR0Wqmu7LAocGJa52EC1ROWbxM-sCniY6Vlnut6tuwGwERyozMbmriZe6fOsO6c4IaGRWmTHluh057U-SnG3kx4m4jnLioH-EZRNU4I",
+   "type": "Mythical Prismatic Gem",
+   "groups": [
+    "gems",
+    "terrorblade"
+   ],
+   "prices": {
+    "usd": {
+     "low": "$265.25"
+    },
+    "rub": {
+     "low": "22895,75 руб.",
      "median": null,
      "volume": null
     }
@@ -2262,10 +2387,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$129.09"
+     "low": "$129.29"
     },
     "rub": {
-     "low": "11151,41 руб.",
+     "low": "11159,54 руб.",
      "median": null,
      "volume": null
     }
@@ -2285,7 +2410,7 @@
      "low": "$100.00"
     },
     "rub": {
-     "low": "8639,39 руб.",
+     "low": "8632,84 руб.",
      "median": null,
      "volume": null
     }
@@ -2302,12 +2427,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$93.99"
+     "low": "$94.20"
     },
     "rub": {
-     "low": "8119,12 руб.",
-     "median": "3888,06 руб.",
-     "volume": "1"
+     "low": "8131,16 руб.",
+     "median": null,
+     "volume": null
     }
    }
   },
@@ -2322,12 +2447,12 @@
    ],
    "prices": {
     "usd": {
-     "low": "$90.08"
+     "low": "$92.69"
     },
     "rub": {
-     "low": "7781,19 руб.",
-     "median": null,
-     "volume": null
+     "low": "8000 руб.",
+     "median": "7792,75 руб.",
+     "volume": "1"
     }
    }
   },
@@ -2342,10 +2467,10 @@
    ],
    "prices": {
     "usd": {
-     "low": "$82.93"
+     "low": "$82.96"
     },
     "rub": {
-     "low": "7163,74 руб.",
+     "low": "7161,41 руб.",
      "median": null,
      "volume": null
     }
