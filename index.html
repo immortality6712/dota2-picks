@@ -6,104 +6,133 @@
 <title>Dota 2 — пики героев на крупных турнирах</title>
 <style>
   :root {
-    --bg: #0e1013;
-    --panel: #171a1f;
-    --panel2: #1e222a;
-    --line: #2b3039;
-    --text: #e6e8ec;
-    --muted: #8b93a1;
-    --red: #c23c2a;
-    --gold: #d2a04a;
-    --green: #4caf7d;
+    --bg: #0b0b0c;
+    --panel: #141416;
+    --panel2: #17171a;
+    --line: #2a2a2e;
+    --text: #f2f2f0;
+    --muted: #8a8a90;
+    --red: #e63329;
+    --gold: #e63329;
+    --green: #3fb27f;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+    font: 15px/1.55 "Helvetica Neue", Helvetica, Inter, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   header {
-    padding: 28px 20px 20px;
-    border-bottom: 1px solid var(--line);
-    background: linear-gradient(180deg, #1b1410, var(--bg));
+    padding: 44px 20px 24px;
+    border-bottom: 2px solid var(--text);
   }
   .wrap { max-width: 1200px; margin: 0 auto; }
-  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: .5px; }
+  h1 {
+    margin: 0 0 10px;
+    font-size: clamp(28px, 5vw, 46px);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -.03em;
+    text-transform: uppercase;
+  }
   h1 span { color: var(--red); }
-  .sub { color: var(--muted); font-size: 14px; }
+  .sub {
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+  }
 
-  .tabs { display: flex; gap: 4px; padding: 14px 20px 0; }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+  }
   .tabs button {
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: 3px solid transparent;
     color: var(--muted);
     font: inherit;
-    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding: 16px 18px 13px;
+    margin-bottom: -1px;
     cursor: pointer;
   }
   .tabs button:hover { color: var(--text); }
-  .tabs button.on { color: var(--gold); border-bottom-color: var(--gold); }
+  .tabs button.on { color: var(--text); border-bottom-color: var(--red); }
 
   .controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
-    padding: 14px 20px;
+    padding: 22px 20px 0;
   }
   select, input {
-    background: var(--panel2);
+    background: transparent;
     color: var(--text);
     border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 9px 12px;
-    font-size: 14px;
+    border-radius: 0;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 13px;
     outline: none;
   }
-  select:focus, input:focus { border-color: var(--gold); }
+  select:focus, input:focus { border-color: var(--red); }
   select { min-width: 320px; }
-  input { width: 200px; }
+  input { width: 220px; }
   [hidden] { display: none !important; }
 
   .stats {
     display: flex;
-    gap: 22px;
+    gap: 12px 40px;
     flex-wrap: wrap;
-    padding: 0 20px 14px;
+    align-items: baseline;
+    padding: 26px 20px 18px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
   }
-  .stats b { color: var(--gold); font-size: 15px; }
-  main { padding: 0 20px 60px; }
+  .stats b { color: var(--text); font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  main { padding: 0 20px 80px; }
 
   table { width: 100%; border-collapse: collapse; }
   th {
     text-align: left;
-    font-size: 12px;
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .6px;
+    letter-spacing: .12em;
     color: var(--muted);
-    padding: 10px 8px;
-    border-bottom: 1px solid var(--line);
+    padding: 12px 8px;
+    border-bottom: 2px solid var(--text);
     white-space: nowrap;
   }
   th[data-sort] { cursor: pointer; user-select: none; }
-  th[data-sort]:hover, th.active { color: var(--gold); }
-  td { padding: 7px 8px; border-bottom: 1px solid #20242b; white-space: nowrap; }
+  th[data-sort]:hover { color: var(--text); }
+  th.active { color: var(--red); }
+  td { padding: 9px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
   tbody tr:hover td { background: var(--panel); }
-  .rank { color: var(--muted); width: 34px; }
-  .hero { display: flex; align-items: center; gap: 10px; }
+  .rank { color: var(--muted); width: 40px; font-variant-numeric: tabular-nums; }
+  .hero { display: flex; align-items: center; gap: 12px; }
   .hero img {
     width: 52px; height: 29px;
     object-fit: cover;
-    border-radius: 3px;
+    border-radius: 0;
     background: var(--panel2);
   }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .bar { position: relative; background: var(--panel2); border-radius: 3px; height: 18px; min-width: 90px; }
-  .bar i { position: absolute; inset: 0 auto 0 0; background: var(--red); border-radius: 3px; opacity: .55; }
+  .bar { position: relative; background: var(--panel2); border-radius: 0; height: 20px; min-width: 90px; }
+  .bar i { position: absolute; inset: 0 auto 0 0; background: var(--red); border-radius: 0; opacity: .8; }
   .bar span {
     position: relative; display: block; text-align: center;
     font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums;
@@ -116,11 +145,63 @@
   .item img {
     width: 44px; height: 44px;
     object-fit: contain;
-    border-radius: 3px;
+    border-radius: 0;
     background: var(--panel2);
     flex: none;
   }
   .item small { display: block; color: var(--muted); font-size: 11px; }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 22px; }
+  .acts button {
+    background: none; color: var(--text);
+    border: 1px solid var(--line);
+    font: inherit; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    padding: 10px 16px; cursor: pointer;
+  }
+  .acts button:hover { border-color: var(--red); color: var(--red); }
+  .acts button.on { border-color: var(--red); color: var(--red); }
+  .board { display: flex; flex-direction: column; gap: 26px; padding-top: 4px; }
+  .brow { display: flex; gap: 22px; flex-wrap: wrap; }
+  .bgroup { display: flex; flex-direction: column; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+  .bgroup > h3 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    border-top: 2px solid var(--text);
+    padding-top: 8px;
+  }
+  .bgroup > p { margin: 0 0 4px; color: var(--muted); font-size: 11px; max-width: 30ch; }
+  .slots { display: flex; gap: 8px; flex-wrap: wrap; }
+  .slot {
+    position: relative;
+    width: 132px; height: 150px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; padding: 10px; text-align: center;
+  }
+  .slot.filled { border-color: var(--red); }
+  .slot big {
+    font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+    color: var(--muted); line-height: 1;
+  }
+  .slot.filled big { color: var(--red); }
+  .slot img { width: 46px; height: 46px; object-fit: contain; }
+  .item-slot { width: 116px; height: 128px; gap: 6px; }
+  .item-slot img { width: 62px; height: 46px; }
+  .item-slot .nm { font-size: 11px; letter-spacing: .03em; white-space: normal; }
+  .slot .nm { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+              overflow: hidden; text-overflow: ellipsis; width: 100%; }
+  .slot .rec { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .slot select {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    min-width: 0;
+    opacity: 0; cursor: pointer; border: none;
+  }
   .gem { position: relative; flex: none; line-height: 0; }
   .gem i {
     position: absolute; right: -3px; bottom: -3px;
@@ -129,9 +210,9 @@
   }
   .price { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .price small { display: block; color: var(--muted); font-size: 11px; }
-  .scroll.plain { border: none; border-radius: 0; }
+  .scroll.plain { border: none; }
 
-  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 0; }
   .matrix { border-collapse: separate; border-spacing: 0; }
   .matrix th, .matrix td { border-bottom: 1px solid #20242b; }
   .matrix thead th {
@@ -167,14 +248,30 @@
   .matrix td.empty { color: #3a4048; }
   .matrix .col-total { border-left: 1px solid var(--line); font-weight: 600; }
 
-  .msg { padding: 40px 20px; text-align: center; color: var(--muted); }
-  .msg.err { color: #d9634f; }
-  .note { padding: 10px 0 0; color: var(--muted); font-size: 12px; }
-  footer { padding: 18px 20px 40px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
-  a { color: var(--gold); }
+  .msg { padding: 56px 20px; text-align: center; color: var(--muted); font-size: 13px;
+         text-transform: uppercase; letter-spacing: .12em; }
+  .msg.err { color: var(--red); }
+  .note {
+    padding: 18px 0 0;
+    margin-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+    max-width: 70ch;
+  }
+  footer {
+    padding: 26px 20px 56px;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 2px solid var(--text);
+    max-width: 80ch;
+  }
+  a { color: var(--red); text-decoration: none; border-bottom: 1px solid currentColor; }
+  a:hover { color: var(--text); }
   @media (max-width: 640px) {
     select, input { min-width: 0; width: 100%; }
     .hide-sm { display: none; }
+    .tabs button { padding: 13px 12px 10px; }
   }
 </style>
 </head>
@@ -195,6 +292,8 @@
     <button data-tab="matrix">Матрица</button>
     <button data-tab="prices">Цены Steam</button>
     <button data-tab="sockets">Аркана с гемом</button>
+    <button data-tab="predict">Прогнозы на Инт</button>
+    <button data-tab="builds">Сборки</button>
   </nav>
 
   <div class="controls">
@@ -251,6 +350,65 @@ const sort = {
   prices: { key: 'usd', dir: -1 },
   sockets: { key: 'usd', dir: 1 },
 };
+
+// Прогноз на групповой этап: слоты как в компендиуме, команды расставляет сам зритель.
+const PREDICT_ROWS = [
+  [
+    { key: 'w40', title: '4–0', note: 'Команда без поражений', n: 1 },
+    { key: 'w41', title: '4–1', note: 'Команды с четырьмя победами и одним поражением', n: 2 },
+    { key: 'up', title: 'Проходят дальше', note: 'Пять команд, прошедших раунд на выбывание', n: 5 },
+  ],
+  [
+    { key: 'out', title: 'Выбывают', note: 'Пять команд, проигравших раунд на выбывание', n: 5 },
+    { key: 'l14', title: '1–4', note: 'Команды с одной победой и четырьмя поражениями', n: 2 },
+    { key: 'l04', title: '0–4', note: 'Команда без побед', n: 1 },
+  ],
+];
+const PREDICT_KEY = 'ti-predict-2026';
+
+// Состав основного этапа задан списком: в данных OpenDota приглашённых команд нет,
+// а у части участников название там другое — поэтому псевдонимы.
+const TI_TEAMS = [
+  { name: 'Aurora Gaming', alias: ['aurora gaming'] },
+  { name: 'BetBoom Team', alias: ['boomboys', 'betboom team'] },
+  { name: 'Team Falcons', alias: ['team falcons'] },
+  { name: 'Team Liquid', alias: ['team liquid'] },
+  { name: '1win Team', alias: ['iron wing', '1win team'] },
+  { name: 'Xtreme Gaming', alias: ['xtreme gaming'] },
+  { name: 'Team Yandex', alias: ['team yandex'] },
+  { name: 'Team Resilience', alias: ['team resilience'] },
+  { name: 'Vici Gaming', alias: ['vici gaming'] },
+  { name: 'LGD Gaming', alias: ['lgd gaming'] },
+  { name: 'OG', alias: ['og'] },
+  { name: 'Team Spirit', alias: ['team spirit'] },
+  { name: 'PARIVISION', alias: ['team vision', 'parivision'] },
+  { name: 'L1GA TEAM', alias: ['huligani', 'l1ga team'] },
+  { name: 'Nigma Galaxy', alias: ['nigma galaxy'] },
+  { name: 'GamerLegion', alias: ['gamerlegion'] },
+];
+
+// Сборки: популярность предметов по стадиям игры, из профессиональных матчей OpenDota.
+const BUILD_PHASES = [
+  { key: 'start_game_items', title: 'Старт', note: 'Куплено до боя' },
+  { key: 'early_game_items', title: 'Ранняя игра', note: 'Первые минуты на линии' },
+  { key: 'mid_game_items', title: 'Середина', note: 'Основной костяк' },
+  { key: 'late_game_items', title: 'Поздняя игра', note: 'Что собирают в конце' },
+];
+const plural = (n, one, few, many) => {
+  const a = Math.abs(n) % 100, b = a % 10;
+  return a > 10 && a < 20 ? many : b > 1 && b < 5 ? few : b === 1 ? one : many;
+};
+
+let items = null;
+let builds = {};
+let tiBuilds = {};
+let buildSrc = 'all';
+let buildsError = '';
+
+let teams = null;
+let teamsError = '';
+let predict = {};
+try { predict = JSON.parse(localStorage.getItem(PREDICT_KEY)) || {}; } catch { predict = {}; }
 
 let prices = null;
 let pricesError = '';
@@ -663,6 +821,262 @@ function syncGroupSelect() {
   el.group.value = prices.groups[0]?.key || 'all';
 }
 
+async function loadItems() {
+  if (items) return;
+  const raw = await fetch(`${API}/constants/items`).then(r => r.json());
+  items = {};
+  for (const v of Object.values(raw)) items[v.id] = { name: v.dname || '', img: v.img || '' };
+}
+
+// Сборки именно с TI: у эндпоинта OpenDota разбивки по турнирам нет,
+// поэтому итоговый инвентарь считаем сами по матчам этих лиг.
+async function loadTiBuild(id) {
+  buildsError = '';
+  try {
+    await loadItems();
+    const where = `JOIN matches m ON m.match_id = pm.match_id
+                   JOIN leagues l ON l.leagueid = m.leagueid
+                   WHERE l.name ILIKE '%International 2026%' AND pm.hero_id = ${id}`;
+    const [rows, cnt] = await Promise.all([
+      sql(`SELECT item, count(*) AS n FROM (
+             SELECT unnest(ARRAY[pm.item_0, pm.item_1, pm.item_2, pm.item_3, pm.item_4, pm.item_5]) AS item
+             FROM player_matches pm ${where}
+           ) s WHERE item > 0 GROUP BY 1 ORDER BY n DESC LIMIT 12`),
+      sql(`SELECT count(*) AS n FROM player_matches pm ${where}`),
+    ]);
+    tiBuilds[id] = {
+      picks: +(cnt[0]?.n || 0),
+      list: rows.map(r => ({ id: r.item, n: +r.n, ...(items[r.item] || { name: '', img: '' }) }))
+                .filter(i => i.name),
+    };
+  } catch (e) {
+    buildsError = e.message;
+  }
+}
+
+async function loadBuild(id) {
+  buildsError = '';
+  try {
+    await loadItems();
+    const d = await fetch(`${API}/heroes/${id}/itemPopularity`).then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    });
+    builds[id] = BUILD_PHASES.map(p => ({
+      ...p,
+      list: Object.entries(d[p.key] || {})
+        .map(([iid, n]) => ({ id: iid, n: +n, ...(items[iid] || { name: '', img: '' }) }))
+        .filter(i => i.name)
+        .sort((a, b) => b.n - a.n)
+        .slice(0, 8),
+    }));
+  } catch (e) {
+    buildsError = e.message;
+  }
+}
+
+function buildTabs(active) {
+  return `<div class="acts">
+    <button data-src="all" class="${active === 'all' ? 'on' : ''}">Все про-матчи</button>
+    <button data-src="ti" class="${active === 'ti' ? 'on' : ''}">Только TI 2026</button>
+  </div>`;
+}
+
+function renderTiBuild(id) {
+  const b = tiBuilds[id];
+  el.stats.innerHTML = `
+    <div>Герой: <b>${esc(heroes[id]?.localized_name || '')}</b></div>
+    <div>Взят на TI: <b>${b.picks}</b> ${plural(b.picks, 'раз', 'раза', 'раз')}</div>`;
+
+  if (!b.list.length) {
+    el.view.innerHTML = buildTabs('ti');
+    return showMsg('На TI 2026 этого героя не брали');
+  }
+
+  el.view.innerHTML = buildTabs('ti') + '<div class="board"><div class="bgroup">' +
+    `<h3>Итоговый инвентарь</h3><p>Что оставалось в слотах к концу матча</p>` +
+    '<div class="slots">' + b.list.map(i => `
+      <div class="slot item-slot">
+        <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
+        <div class="nm">${esc(i.name)}</div>
+        <div class="rec">${i.n} ${plural(i.n, 'раз', 'раза', 'раз')}</div>
+      </div>`).join('') + '</div></div></div>' +
+    `<div class="note">Считается по матчам The International 2026 — это итоговый инвентарь,
+      а не порядок закупки: разбивки по стадиям для отдельного турнира OpenDota не даёт.
+      Герой сыгран ${b.picks} ${plural(b.picks, 'раз', 'раза', 'раз')}.
+      ${b.picks < 30 ? `Это мало: числа показывают тенденцию, а не закономерность —
+        для устойчивой картины переключитесь на все про-матчи.` : ''}</div>`;
+  el.msg.hidden = true;
+}
+
+function renderBuilds() {
+  const id = Number(el.hero.value);
+  if (buildsError) {
+    el.stats.innerHTML = '';
+    el.view.innerHTML = buildTabs(buildSrc);
+    return showMsg(`Не удалось загрузить сборки: ${buildsError}`, true);
+  }
+  const store = buildSrc === 'ti' ? tiBuilds : builds;
+  if (!store[id]) {
+    el.stats.innerHTML = '';
+    el.view.innerHTML = buildTabs(buildSrc);
+    showMsg('Загрузка сборок…');
+    (buildSrc === 'ti' ? loadTiBuild(id) : loadBuild(id))
+      .then(() => { if (tab === 'builds') render(); });
+    return;
+  }
+  if (buildSrc === 'ti') return renderTiBuild(id);
+
+  const phases = builds[id];
+  const total = phases.reduce((s, p) => s + p.list.reduce((x, i) => x + i.n, 0), 0);
+  el.stats.innerHTML = `
+    <div>Герой: <b>${esc(heroes[id]?.localized_name || '')}</b></div>
+    <div>Покупок в выборке: <b>${total.toLocaleString('ru-RU')}</b></div>`;
+
+  if (!phases.some(p => p.list.length)) return showMsg('По этому герою данных нет');
+
+  el.view.innerHTML = buildTabs('all') + '<div class="board">' + phases.map(p => `
+      <div class="bgroup">
+        <h3>${esc(p.title)}</h3>
+        <p>${esc(p.note)}</p>
+        <div class="slots">${p.list.map(i => `
+          <div class="slot item-slot">
+            <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
+            <div class="nm">${esc(i.name)}</div>
+            <div class="rec">${i.n.toLocaleString('ru-RU')} ${plural(i.n, 'покупка', 'покупки', 'покупок')}</div>
+          </div>`).join('') || '<span class="dim">нет данных</span>'}</div>
+      </div>`).join('') + '</div>' +
+    `<div class="note">Что профессионалы покупают на этого героя, по данным OpenDota.
+      Числа — сколько раз предмет встретился на этой стадии в матчах выборки, а не процент побед:
+      частое не значит лучшее. Это не готовая сборка на игру — порядок и выбор зависят от роли,
+      линии и того, что стоит у соперника.</div>`;
+  el.msg.hidden = true;
+}
+
+async function loadTeams() {
+  try {
+    const names = TI_TEAMS.flatMap(t => t.alias).map(a => `'${a}'`).join(', ');
+    const win = `sum(CASE WHEN (tm.radiant AND m.radiant_win) OR (NOT tm.radiant AND NOT m.radiant_win)
+                          THEN 1 ELSE 0 END)`;
+    const [cards, quals] = await Promise.all([
+      sql(`SELECT t.team_id, t.name, t.tag, max(t.logo_url) AS logo, count(tm.match_id) AS games
+           FROM teams t LEFT JOIN team_match tm ON tm.team_id = t.team_id
+           WHERE lower(trim(t.name)) IN (${names})
+           GROUP BY 1, 2, 3`),
+      sql(`SELECT tm.team_id, count(*) AS games, ${win} AS wins
+           FROM team_match tm
+           JOIN matches m ON m.match_id = tm.match_id
+           JOIN leagues l ON l.leagueid = m.leagueid
+           WHERE l.name ILIKE '%International 2026%'
+           GROUP BY 1`),
+    ]);
+
+    // Рейтинг Elo лежит не в Explorer, а в отдельной точке API — это «общая сила» за всю историю.
+    const rated = await fetch(`${API}/teams`).then(r => r.ok ? r.json() : []).catch(() => []);
+    const rating = new Map(rated.map(r => [String(r.team_id), r]));
+
+    const qual = new Map(quals.map(q => [String(q.team_id), q]));
+    teams = TI_TEAMS.map((t, i) => {
+      // Переименованная команда лежит в базе несколькими записями (HULIGANI и L1GA TEAM,
+      // старая LGD и свежая под квалификации). Отбор берём из той, что играла отбор,
+      // а рейтинг — из самой длинной истории: у свежей записи Elo начинается заново.
+      const cand = cards.filter(c => t.alias.includes(String(c.name).trim().toLowerCase()));
+      const hit = cand
+        .slice()
+        .sort((a, b) => (qual.has(String(b.team_id)) - qual.has(String(a.team_id))) || b.games - a.games)[0];
+      const main = cand.slice().sort((a, b) => b.games - a.games)[0];
+      const q = hit && qual.get(String(hit.team_id));
+      return {
+        id: hit ? String(hit.team_id) : 'x' + i,
+        name: t.name,
+        tag: hit ? (hit.tag || '').trim() : '',
+        logo: hit ? hit.logo || '' : '',
+        games: q ? +q.games : 0,
+        wins: q ? +q.wins : 0,
+        played: !!q,
+        rating: main && rating.has(String(main.team_id))
+          ? Math.round(rating.get(String(main.team_id)).rating) : null,
+        // Сколько матчей стоит за рейтингом: на короткой истории Elo ничего не значит.
+        rgames: main && rating.has(String(main.team_id))
+          ? rating.get(String(main.team_id)).wins + rating.get(String(main.team_id)).losses : 0,
+      };
+    });
+  } catch (e) {
+    teamsError = e.message;
+  }
+}
+
+function savePredict() {
+  try { localStorage.setItem(PREDICT_KEY, JSON.stringify(predict)); } catch {}
+}
+
+function renderPredict() {
+  if (teamsError) {
+    el.stats.innerHTML = '';
+    return showMsg(`Не удалось загрузить команды: ${teamsError}`, true);
+  }
+  if (!teams) {
+    el.stats.innerHTML = '';
+    showMsg('Загрузка команд…');
+    loadTeams().then(() => { if (tab === 'predict') render(); });
+    return;
+  }
+
+  const byId = new Map(teams.map(t => [t.id, t]));
+  const taken = new Set(Object.values(predict).filter(Boolean));
+  const filled = taken.size;
+  const total = PREDICT_ROWS.flat().reduce((s, g) => s + g.n, 0);
+
+  el.stats.innerHTML = `
+    <div>Заполнено: <b>${filled}</b> из ${total}</div>
+    <div>Команд на турнире: <b>${teams.length}</b></div>
+    <div>Из них через отбор: <b>${teams.filter(t => t.played).length}</b></div>`;
+
+  const slot = (g, i) => {
+    const id = `${g.key}${i}`;
+    const t = byId.get(predict[id]);
+    return `<div class="slot ${t ? 'filled' : ''}">
+      ${t && t.logo ? `<img src="${esc(t.logo)}" alt="" loading="lazy">` : '<big>?</big>'}
+      <div class="nm">${t ? esc(t.name) : 'Выберите<br>команду'}</div>
+      ${t ? `<div class="rec">${t.rating === null ? 'без рейтинга'
+          : `сила ${t.rating}${t.rgames < 100 ? ' ?' : ''}`}<br>
+        ${t.played ? `${t.wins}–${t.games - t.wins} в отборе` : 'без отбора'}</div>` : ''}
+      <select data-slot="${id}">
+        <option value="">— пусто —</option>
+        ${teams.map(o => `<option value="${o.id}"
+          ${o.id === predict[id] ? 'selected' : ''}
+          ${taken.has(o.id) && o.id !== predict[id] ? 'disabled' : ''}
+          >${esc(o.name)}${o.rating === null ? '' : ` · ${o.rating}`}</option>`).join('')}
+      </select>
+    </div>`;
+  };
+
+  el.view.innerHTML = `<div class="acts">
+      <button data-act="rating">Расставить по общей силе</button>
+      <button data-act="clear">Очистить</button>
+    </div>` + '<div class="board">' + PREDICT_ROWS.map(row =>
+    `<div class="brow">` + row.map(g => `
+      <div class="bgroup">
+        <h3>${esc(g.title)}</h3>
+        <p>${esc(g.note)}</p>
+        <div class="slots">${Array.from({ length: g.n }, (_, i) => slot(g, i)).join('')}</div>
+      </div>`).join('') + `</div>`).join('') + '</div>' +
+    `<div class="note">Групповой этап The International 2026, все ${teams.length} участников.
+      Расставьте команды по местам сами: выбор сохраняется в этом браузере,
+      одну команду нельзя поставить в два слота.
+      Запись вида «9–5 в отборе» — результат в региональной квалификации;
+      у приглашённых команд её нет, поэтому стоит «без отбора».
+      «Расставить по общей силе» — рейтинг Elo из OpenDota, накопленный за всю историю команды.
+      Знак «?» рядом с силой значит, что за рейтингом меньше сотни матчей: Elo привязан
+      к записи в базе, а при переименовании она заводится заново и начинает с нуля.
+      Такой рейтинг ничего не измеряет, поэтому при расстановке он подтягивается к среднему
+      по составу — короткая история означает «неизвестно», а не «слабо».
+      Это механический порядок, а не вероятность победы: основной этап ещё не сыгран,
+      и предсказать его исход нельзя. Оценок аналитиков здесь нет — такого источника данных
+      у сайта не подключено, а выдумывать их я не стану. Меняйте расстановку как хотите.</div>`;
+  el.msg.hidden = true;
+}
+
 function renderSocketsTab() {
   if (pricesError) {
     el.stats.innerHTML = '';
@@ -814,8 +1228,9 @@ function tiBanner() {
 function render() {
   const byLeague = tab === 'tournaments' || tab === 'ti';
   el.league.hidden = !byLeague;
-  el.hero.hidden = tab !== 'hero';
+  el.hero.hidden = tab !== 'hero' && tab !== 'builds';
   el.group.hidden = tab !== 'prices';
+  el.search.hidden = tab === 'predict' || tab === 'builds';
   el.search.placeholder = tab === 'hero' ? 'Поиск турнира…'
     : tab === 'prices' ? 'Поиск предмета…' : tab === 'sockets' ? 'Поиск гема…' : 'Поиск героя…';
 
@@ -825,6 +1240,8 @@ function render() {
   } else if (tab === 'hero') renderHero();
   else if (tab === 'prices') renderPrices();
   else if (tab === 'sockets') renderSocketsTab();
+  else if (tab === 'predict') renderPredict();
+  else if (tab === 'builds') renderBuilds();
   else renderMatrix();
 }
 
@@ -856,6 +1273,43 @@ el.group.onchange = () => {
   render();
 };
 el.search.oninput = render;
+
+el.view.addEventListener('click', e => {
+  const src = e.target.closest('.acts button[data-src]');
+  if (src) {
+    buildSrc = src.dataset.src;
+    buildsError = '';
+    return render();
+  }
+  const b = e.target.closest('.acts button');
+  if (!b || !teams) return;
+  if (b.dataset.act === 'clear') predict = {};
+  else {
+    // Порядок слотов — от лучшего места к худшему. Рейтинг на короткой истории
+    // не измеряет силу, поэтому подтягиваем его к среднему тем сильнее, чем меньше матчей:
+    // 24 матча — это «неизвестно», а не «слабо», и последнее место такой команде не место.
+    const slots = PREDICT_ROWS.flat().flatMap(g => Array.from({ length: g.n }, (_, i) => `${g.key}${i}`));
+    const rated = teams.filter(t => t.rating !== null);
+    const mean = rated.reduce((s, t) => s + t.rating, 0) / (rated.length || 1);
+    const K = 150;
+    const score = t => t.rating === null ? mean
+      : (t.rating * t.rgames + mean * K) / (t.rgames + K);
+    const order = [...teams].sort((a, b2) => score(b2) - score(a));
+    predict = {};
+    slots.forEach((s, i) => { if (order[i]) predict[s] = order[i].id; });
+  }
+  savePredict();
+  render();
+});
+
+el.view.onchange = e => {
+  const s = e.target.closest('select[data-slot]');
+  if (!s) return;
+  if (s.value) predict[s.dataset.slot] = s.value;
+  else delete predict[s.dataset.slot];
+  savePredict();
+  render();
+};
 
 init();
 </script>
