@@ -24,6 +24,8 @@ jobs:
           # Необязательно: ключ Stratz (stratz.com/api) даёт сборки по рангам и позициям.
           STRATZ_TOKEN: ${{ secrets.STRATZ_TOKEN }}
       - name: Commit if changed
+        # С других веток — только проверка сбора, в репозиторий ничего не пишем.
+        if: github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

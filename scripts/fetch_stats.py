@@ -9,6 +9,7 @@ data/builds.json — сборки по рангам и позициям: Stratz 
 import json
 import os
 import pathlib
+import re
 import sys
 import time
 import urllib.error
@@ -138,7 +139,8 @@ def collect_stats():
     try:
         pos_rows = sql(f"""WITH p AS (
                          SELECT pm.match_id, pm.hero_id, pm.lane_role, pm.gold_per_min,
-                                pm.player_slot < 128 AS radiant
+                                pm.player_slot < 128 AS radiant,
+                                (pm.player_slot < 128) = m.radiant_win AS win
                          FROM player_matches pm
                          JOIN matches m ON m.match_id = pm.match_id
                          JOIN match_patch mp ON mp.match_id = m.match_id
@@ -152,19 +154,26 @@ def collect_stats():
                                    WHEN lane_role = 1 THEN 5
                                    WHEN lane_role = 3 AND rn = 1 THEN 3
                                    ELSE 4 END AS pos,
-                              count(*) AS n
+                              count(*) AS n,
+                              sum(CASE WHEN win THEN 1 ELSE 0 END) AS w
                        FROM r GROUP BY 1, 2""")
     except RuntimeError as e:
         log(f"  positions: {e}")
         pos_rows = []
-    pos = {}
+    pos, pos_w = {}, {}
     for r in pos_rows:
-        pos.setdefault(str(r["hero_id"]), [0] * 5)[int(r["pos"]) - 1] += int(r["n"])
+        h, i = str(r["hero_id"]), int(r["pos"]) - 1
+        pos.setdefault(h, [0] * 5)[i] += int(r["n"])
+        pos_w.setdefault(h, [0] * 5)[i] += int(r.get("w") or 0)
     log(f"positions for {len(pos)} heroes")
+
+    matchups = collect_matchups(where)
 
     return {
         "patch": patch,
         "pos": pos,
+        "pos_w": pos_w,
+        "matchups": matchups,
         "heroes": heroes,
         "leagues": [[int(l["leagueid"]), l["name"], int(l["matches"]),
                      int(l["first_match"]), int(l["last_match"])] for l in leagues],
@@ -173,6 +182,59 @@ def collect_stats():
         "ti": ti,
         "pro": pro,
     }
+
+
+MATCHUP_MIN = 5   # меньше матчей на пару — не показываем
+MATCHUP_K = 10    # сглаживание винрейта к среднему героя
+MATCHUP_TOP = 6
+
+
+def collect_matchups(where):
+    """Союзники и противники героя в про-матчах патча: с кем и против кого он выигрывает чаще обычного."""
+    # Пары считаем здесь, а не в SQL: самообъединение player_matches не укладывается
+    # в лимит времени Explorer, а плоский список героев по матчам отдаётся быстро.
+    try:
+        rows = sql(f"""SELECT pm.match_id, pm.hero_id, pm.player_slot < 128 AS radiant,
+                              CASE WHEN (pm.player_slot < 128) = m.radiant_win THEN 1 ELSE 0 END AS win
+                       FROM player_matches pm
+                       JOIN matches m ON m.match_id = pm.match_id
+                       JOIN match_patch mp ON mp.match_id = m.match_id
+                       JOIN leagues l ON l.leagueid = m.leagueid
+                       {where}""")
+    except RuntimeError as e:
+        log(f"  matchups: {e}")
+        return {}
+    by_match = {}
+    for r in rows:
+        by_match.setdefault(r["match_id"], []).append(
+            (int(r["hero_id"]), r["radiant"] in (True, "true", 1, "t"), int(r["win"])))
+    acc = {}
+    for team in by_match.values():
+        for h, side, win in team:
+            for o, oside, _ in team:
+                if o == h:
+                    continue
+                key = (h, o, side == oside)
+                cur = acc.setdefault(key, [0, 0])
+                cur[0] += 1
+                cur[1] += win
+    pairs = {}
+    for (h, o, ally), (n, w) in acc.items():
+        pairs.setdefault(str(h), {"with": [], "vs": []})["with" if ally else "vs"].append([o, n, w])
+    out = {}
+    for h, kinds in pairs.items():
+        # Общий винрейт героя: против каждого соперника он играет ровно пять раз за матч.
+        n = sum(x[1] for x in kinds["vs"])
+        base = sum(x[2] for x in kinds["vs"]) / n if n else 0.5
+        out[h] = {}
+        for kind, lst in kinds.items():
+            ok = [x for x in lst if x[1] >= MATCHUP_MIN]
+            # Сглаживаем к винрейту героя: пара из пяти игр не должна выглядеть лучше пары из пятидесяти.
+            ok.sort(key=lambda x: -((x[2] + base * MATCHUP_K) / (x[1] + MATCHUP_K)))
+            out[h][kind] = {"best": ok[:MATCHUP_TOP], "worst": ok[::-1][:MATCHUP_TOP]}
+        out[h]["wr"] = round(base, 4)
+    log(f"matchups for {len(out)} heroes from {len(by_match)} matches")
+    return out
 
 
 # ---------- Stratz: сборки по рангам и позициям ----------
@@ -247,7 +309,8 @@ def stratz_schema():
         count = next((x for x in COUNT_KEYS if x in names), None)
         if item and count:
             found = (path, item, count, next((x for x in WIN_KEYS if x in names), None),
-                     "instance" if "instance" in names else None)
+                     "instance" if "instance" in names else None,
+                     "time" if "time" in names else None)
             break
         if len(path) < 3:
             for f in fields:
@@ -257,8 +320,8 @@ def stratz_schema():
     log("stratz schema:\n  " + "\n  ".join(tree))
     if not found:
         raise RuntimeError(f"не нашёл список предметов в {ret}")
-    path, item, count, win, inst = found
-    sel = " ".join(x for x in (item, count, win, inst) if x)
+    path, item, count, win, inst, tm = found
+    sel = " ".join(x for x in (item, count, win, inst, tm) if x)
     for name in reversed(path):
         sel = f"{name} {{ {sel} }}"
     log(f"stratz: brackets {brackets}, positions {positions}, selection {{ {sel} }}")
@@ -283,22 +346,57 @@ def events(node, path):
 
 
 def fold(evs, found):
-    _, item, count, win, inst = found
+    """Сводит строки Stratz (предмет × минута × номер покупки) в итог по предмету.
+
+    Номер покупки считаем только первый из встретившихся у предмета: с какого
+    числа Stratz начинает нумерацию, в схеме не сказано.
+    """
+    _, item, count, win, inst, tm = found
+    first = {}
+    if inst:
+        for e in evs:
+            if e.get(item) and e.get(inst) is not None:
+                first[e[item]] = min(first.get(e[item], e[inst]), e[inst])
     acc = {}
     for e in evs:
-        if inst and e.get(inst) not in (None, 1):
-            continue  # вторую покупку того же предмета не считаем
         iid = e.get(item)
-        if not iid:
+        if not iid or (iid in first and e.get(inst) != first[iid]):
             continue
-        cur = acc.setdefault(iid, [iid, 0, 0])
-        cur[1] += e.get(count) or 0
+        cur = acc.setdefault(iid, [iid, 0, 0, 0])
+        c = e.get(count) or 0
+        cur[1] += c
         cur[2] += (e.get(win) or 0) if win else 0
-    return sorted(acc.values(), key=lambda x: -x[1])[:TOP]
+        cur[3] += (e.get(tm) or 0) * c if tm else 0
+    out = sorted(acc.values(), key=lambda x: -x[1])[:TOP]
+    for x in out:
+        # Четвёртое число — средняя минута покупки (взвешенная по числу матчей).
+        t = x[3] / x[1] if tm and x[1] else None
+        # В схеме не сказано, минуты это или секунды; позже 150-й минуты предметы не покупают.
+        x[3] = round(t / 60 if t and t > 150 else t, 1) if t is not None else None
+    return [x if x[3] is not None else x[:3] for x in out]
+
+
+def debug_sample(hid, evs, found):
+    _, item, count, win, inst, _ = found
+    insts = sorted({e.get(inst) for e in evs}, key=str) if inst else []
+    log(f"  sample hero {hid}: {len(evs)} rows, {len({e.get(item) for e in evs})} items, instances {insts[:10]}")
+    for e in sorted(evs, key=lambda e: -(e.get(count) or 0))[:8]:
+        log(f"    {e}")
 
 
 def collect_stratz(hero_ids):
-    brackets, positions, sel, found = stratz_schema()
+    try:
+        brackets, positions, sel, found = stratz_schema()
+    except RuntimeError as e:
+        # Бесплатный ключ Stratz пускает не больше чем с двух IP за 15 минут,
+        # а у каждого запуска Actions свой адрес — ждём, пока место освободится.
+        m = re.search(r"frees up in (\d+) minute", str(e))
+        if "IP Address" not in str(e):
+            raise
+        wait = (int(m.group(1)) + 1) * 60 if m else 16 * 60
+        log(f"stratz: лимит по IP, жду {wait // 60} мин")
+        time.sleep(wait)
+        brackets, positions, sel, found = stratz_schema()
     path = found[0]
     if not brackets:
         raise RuntimeError("Stratz не принимает фильтр по рангу")
@@ -315,6 +413,8 @@ def collect_stratz(hero_ids):
         except RuntimeError as e:
             log(f"  stratz hero {hid}: {e}")
             continue
+        if hid == hero_ids[0]:
+            debug_sample(hid, events(d.get("b0"), path), found)
         folded = {bv: fold(events(d.get(f"b{i}"), path), found) for i, bv in enumerate(uniq)}
         ranks[str(hid)] = {str(n): {"list": folded[bv]} for n, bv in brackets.items()}
         pos[str(hid)] = {str(n): {"list": fold(events(d.get(f"p{n}"), path), found)} for n in positions}
@@ -341,6 +441,20 @@ def main():
     else:
         log("STRATZ_TOKEN не задан — сборки по рангам пропускаю")
 
+    builds_updated = now
+    if not ranks:
+        # Stratz не ответил — оставляем прошлые сборки (с их датой, чтобы сайт
+        # видел возраст), а не затираем их пустыми.
+        try:
+            prev = json.loads((OUT / "builds.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            prev = {}
+        if prev.get("ranks"):
+            log(f"stratz недоступен — оставляю сборки от {prev.get('updated')}")
+            ranks, positions = prev["ranks"], prev.get("positions", {})
+            source, rank_bracket = prev.get("source", ""), prev.get("rank_bracket", {})
+            builds_updated = prev.get("updated", now)
+
     # Словарь предметов — только те, что встречаются в сборках.
     used = set()
     for b in stats["ti"].values():
@@ -357,7 +471,7 @@ def main():
              for v in raw.values() if v.get("id") in used and v.get("dname")}
 
     write("stats.json", {"updated": now, **stats, "items": items})
-    write("builds.json", {"updated": now, "source": source, "rank_bracket": rank_bracket,
+    write("builds.json", {"updated": builds_updated, "source": source, "rank_bracket": rank_bracket,
                           "ranks": ranks, "positions": positions})
 
 

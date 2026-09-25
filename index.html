@@ -365,6 +365,60 @@
   .price { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
   .price small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
 
+  /* Тир-лист */
+  .tiers { display: flex; flex-direction: column; gap: 10px; }
+  .tier-row {
+    display: flex; gap: 12px; align-items: stretch;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px;
+  }
+  .tier-badge {
+    flex: none; width: 64px; border-radius: 10px;
+    display: grid; place-items: center;
+    font: 700 34px/1 var(--head); color: #111;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 80%, #fff), var(--c));
+    box-shadow: 0 0 22px color-mix(in srgb, var(--c) 35%, transparent);
+  }
+  .tier-heroes { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+  .tier-hero {
+    flex-direction: column; align-items: flex-start; gap: 4px;
+    width: 112px; padding: 6px; border-radius: 10px; background: var(--panel2);
+    border: 1px solid transparent; transition: border-color .15s, transform .15s;
+  }
+  .tier-hero:hover { border-color: var(--line2); transform: translateY(-2px); }
+  .tier-hero img { width: 100%; height: 56px; }
+  .tier-hero span { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .tier-hero small { font-size: 11px; color: var(--muted); }
+
+  /* Позиции и матчапы в окне героя */
+  .posgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .poscell {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 2px;
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 10px 14px;
+  }
+  .poscell.off { opacity: .45; }
+  .poscell .posnum { font: 700 22px/1 var(--head); color: var(--muted); }
+  .poscell b { font-size: 12px; }
+  .poscell small { font-size: 11px; color: var(--muted); }
+  .poscell i { position: absolute; left: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--red2)); }
+  .mugrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .mucol h4 { margin: 0 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .mu { display: grid; grid-template-columns: 40px 1fr auto; column-gap: 8px; align-items: center;
+        padding: 4px 6px; border-radius: 8px; }
+  .mu:hover { background: var(--panel2); }
+  .mu img { width: 40px; height: 23px; border-radius: 4px; grid-row: span 2; }
+  .mu span { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mu b { font-size: 12px; grid-row: span 2; }
+  .mu small { font-size: 10px; color: var(--muted); grid-column: 2; }
+
+  /* Порядок сборки */
+  .timeline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .timeline .arrow { color: var(--muted); font-size: 22px; }
+  .tl-item { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 78px; text-align: center; }
+  .tl-item img { width: 56px; height: 41px; border-radius: 6px; box-shadow: 0 3px 10px rgba(0, 0, 0, .5); }
+  .tl-item b { font-size: 12px; color: var(--gold); }
+  .tl-item small { font-size: 10px; color: var(--muted); line-height: 1.2; }
+
   /* Ранги */
   .medal {
     flex: none;
@@ -480,6 +534,10 @@
     .hide-sm { display: none; }
     .stats { grid-template-columns: 1fr 1fr; }
     .ranks { grid-template-columns: repeat(4, 1fr); }
+    .posgrid { grid-template-columns: repeat(3, 1fr); }
+    .mugrid { grid-template-columns: 1fr 1fr; }
+    .tier-badge { width: 40px; font-size: 24px; }
+    .tier-hero { width: calc(50% - 4px); }
     .modal { padding: 0; }
     .modal-box { border-radius: 0; min-height: 100%; }
     .modal-head { padding: 24px 16px 18px; }
@@ -507,6 +565,7 @@
   <nav class="tabs">
     <button data-tab="tournaments" class="on">Турниры</button>
     <button data-tab="ti">The International 2026</button>
+    <button data-tab="tier">Тир-лист</button>
     <button data-tab="hero">Герой по турнирам</button>
     <button data-tab="matrix">Матрица</button>
     <button data-tab="prices">Цены Steam</button>
@@ -771,7 +830,8 @@ async function loadLive() {
   ]);
   try {
     const posRows = await sql(`WITH p AS (
-        SELECT pm.match_id, pm.hero_id, pm.lane_role, pm.gold_per_min, pm.player_slot < 128 AS radiant
+        SELECT pm.match_id, pm.hero_id, pm.lane_role, pm.gold_per_min, pm.player_slot < 128 AS radiant,
+               (pm.player_slot < 128) = m.radiant_win AS win
         FROM player_matches pm
         JOIN matches m ON m.match_id = pm.match_id
         JOIN match_patch mp ON mp.match_id = m.match_id
@@ -782,10 +842,14 @@ async function loadLive() {
       SELECT hero_id,
              CASE WHEN lane_role = 2 AND rn = 1 THEN 2 WHEN lane_role = 1 AND rn = 1 THEN 1
                   WHEN lane_role = 1 THEN 5 WHEN lane_role = 3 AND rn = 1 THEN 3 ELSE 4 END AS pos,
-             count(*) AS n
+             count(*) AS n, sum(CASE WHEN win THEN 1 ELSE 0 END) AS w
       FROM r GROUP BY 1, 2`);
     heroPos = {};
-    for (const r of posRows) (heroPos[r.hero_id] ??= [0, 0, 0, 0, 0])[r.pos - 1] += Number(r.n);
+    heroPosW = {};
+    for (const r of posRows) {
+      (heroPos[r.hero_id] ??= [0, 0, 0, 0, 0])[r.pos - 1] += Number(r.n);
+      (heroPosW[r.hero_id] ??= [0, 0, 0, 0, 0])[r.pos - 1] += Number(r.w);
+    }
   } catch {
     heroPos = {};  // без позиций фильтр работает по ролям героя
   }
@@ -807,6 +871,8 @@ function fromCache(d) {
     tiBuilds[hid] = { picks: b.picks, list: b.list.map(([id, n]) => ({ ...it(id), n })).filter(i => i.name) };
   }
   heroPos = d.pos || {};
+  heroPosW = d.pos_w || {};
+  matchups = d.matchups || {};
   cacheInfo = { updated: d.updated };
   return {
     heroList: d.heroes,
@@ -892,6 +958,8 @@ function syncLeagueSelect() {
 
 // Позиции героев в про-матчах: [пос1, …, пос5] — сколько раз героя сыграли на каждой.
 let heroPos = {};
+let heroPosW = {};
+let matchups = {};
 const POS_MIN_SHARE = 0.2;
 // Если посчитать позиции не удалось — грубая оценка по ролям героя из OpenDota.
 const POS_BY_ROLES = {
@@ -961,6 +1029,74 @@ function posNote(hero) {
   const n = Number(el.role.value);
   const share = n ? posShare(hero, n) : null;
   return share == null ? '' : `<small class="dim" style="display:block;font-size:11px">${Math.round(share * 100)}% игр на позиции ${n}</small>`;
+}
+
+// Тир-лист по публичным матчам выбранного ранга (heroStats OpenDota).
+let tierRank = 0;  // 0 — все ранги вместе
+const TIERS_DEF = [
+  { t: 'S', c: '#ff5d4f', upto: 0.10 },
+  { t: 'A', c: '#ff9f43', upto: 0.30 },
+  { t: 'B', c: '#e8c65a', upto: 0.60 },
+  { t: 'C', c: '#6fc3a0', upto: 0.85 },
+  { t: 'D', c: '#7d8aa3', upto: 1.01 },
+];
+const TIER_K = 300;         // сглаживание винрейта: редких героев тянем к среднему
+const TIER_MIN_RATE = 0.5;  // % матчей — реже героя берут слишком мало, в конец списка
+
+function renderTier() {
+  const ranks = tierRank ? [tierRank] : RANKS.map(r => r.n);
+  const q = el.search.value.trim().toLowerCase();
+  const all = Object.values(heroes).map(h => {
+    let picks = 0, wins = 0;
+    for (const n of ranks) { picks += +h[`${n}_pick`] || 0; wins += +h[`${n}_win`] || 0; }
+    return { hero: h.id, name: heroName(h.id), picks, wins };
+  }).filter(h => h.picks);
+  const games = all.reduce((s, h) => s + h.picks, 0) / 10;
+  const mean = all.reduce((s, h) => s + h.wins, 0) / (all.reduce((s, h) => s + h.picks, 0) || 1);
+  for (const h of all) {
+    h.wr = h.wins / h.picks * 100;
+    h.rate = h.picks / games * 100;
+    h.score = (h.wins + mean * TIER_K) / (h.picks + TIER_K) * 100;
+  }
+  const ranked = all.filter(h => h.rate >= TIER_MIN_RATE).sort((a, b) => b.score - a.score);
+  const rare = all.filter(h => h.rate < TIER_MIN_RATE);
+  ranked.forEach((h, i) => { h.tier = TIERS_DEF.find(t => i / ranked.length < t.upto).t; });
+  rare.forEach(h => { h.tier = 'D'; });
+
+  const shown = [...ranked, ...rare].filter(h => roleOk(h.hero) && (!q || h.name.toLowerCase().includes(q)));
+  const rk = RANKS.find(r => r.n === tierRank);
+  el.stats.innerHTML = `
+    <div>Ранг: <b>${rk ? rk.name : 'все'}</b></div>
+    <div>Матчей в выборке: <b>${Math.round(games).toLocaleString('ru-RU')}</b></div>
+    <div>Героев в S-тире: <b>${ranked.filter(h => h.tier === 'S').length}</b></div>`;
+
+  const chips = `<div class="acts">
+    <button data-tier="0" class="${tierRank ? '' : 'on'}">Все ранги</button>
+    ${RANKS.map(r => `<button data-tier="${r.n}" class="${tierRank === r.n ? 'on' : ''}"
+      title="${r.name}"><span class="medal" style="--c:${r.c}">${r.name[0]}</span><span class="hide-sm">${r.name}</span></button>`).join('')}
+  </div>`;
+  if (!shown.length) { el.view.innerHTML = chips; return showMsg('Ничего не найдено'); }
+
+  el.view.innerHTML = chips + '<div class="tiers">' + TIERS_DEF.map(t => {
+    const list = shown.filter(h => h.tier === t.t);
+    if (!list.length) return '';
+    return `<div class="tier-row">
+      <div class="tier-badge" style="--c:${t.c}">${t.t}</div>
+      <div class="tier-heroes">${list.map(h => `
+        <div class="tier-hero hero clickable" data-hero="${h.hero}" title="${esc(h.name)}: ${h.wins} из ${h.picks}">
+          <img src="${heroImg(h.hero)}" alt="" loading="lazy">
+          <span>${esc(h.name)}</span>
+          <small><b class="${wrClass(h.wr)}">${h.wr.toFixed(1)}%</b> · ${h.rate.toFixed(1)}%</small>
+        </div>`).join('')}</div>
+    </div>`;
+  }).join('') + '</div>' +
+    `<div class="note">Публичные матчи OpenDota на ${rk ? `ранге «${rk.name}»` : 'всех рангах'}.
+      Место в списке — винрейт, сглаженный к среднему (${(mean * 100).toFixed(1)}%): чем реже героя берут,
+      тем сильнее его тянет к середине, чтобы случайная серия не выводила его в топ.
+      S — лучшие 10% героев, A — следующие 20%, B — 30%, C — 25%, D — остальные.
+      Под именем — винрейт и доля матчей с героем. Героев реже ${TIER_MIN_RATE}% матчей
+      отправляем в D: данных слишком мало. Клик по герою открывает его сборку на этом ранге.</div>`;
+  el.msg.hidden = true;
 }
 
 function renderTournaments() {
@@ -1301,7 +1437,7 @@ function fromBuildsCache(b, source) {
     source,
     games: b.games ?? null,
     wins: b.wins ?? 0,
-    list: b.list.map(([id, n, w]) => ({ id, n, w, ...(items?.[id] || { name: '', img: '' }) })).filter(i => i.name),
+    list: b.list.map(([id, n, w, t]) => ({ id, n, w, t, ...(items?.[id] || { name: '', img: '' }) })).filter(i => i.name),
   };
 }
 
@@ -1465,11 +1601,60 @@ function renderBuildModal() {
        ${h.pro_pick ? `<div>Пиков на про-сцене: <b>${h.pro_pick}</b></div>
          <div>Винрейт у про: <b class="${wrClass(h.pro_win / h.pro_pick * 100)}">${(h.pro_win / h.pro_pick * 100).toFixed(1)}%</b></div>` : ''}
      </div>` +
+    posPanel(id) + matchupPanel(id) +
     phasesHtml(phases) +
     `<div class="note">Что профессионалы покупают на этого героя, по данным OpenDota.
       Числа — сколько раз предмет встретился на этой стадии в матчах выборки, а не процент побед:
       частое не значит лучшее. Порядок и выбор зависят от роли, линии и того, что стоит у соперника.
       Чтобы посмотреть, как героя собирают в обычных играх, выберите ранг выше.</div>`;
+}
+
+// Винрейт героя по позициям в про-матчах патча.
+function posPanel(id) {
+  const n = heroPos[id], w = heroPosW[id];
+  if (!n || !n.some(Boolean)) return '';
+  const total = n.reduce((a, b) => a + b, 0);
+  return `<div class="bgroup" style="margin-bottom:18px">
+    <h3>Позиции в про-матчах</h3>
+    <p>Где героя играют и как он там выигрывает</p>
+    <div class="posgrid">${POSITIONS.map((p, i) => {
+      const games = n[i], wr = w && games ? w[i] / games * 100 : null;
+      return `<div class="poscell ${games ? '' : 'off'}">
+        <span class="posnum">${p.n}</span>
+        <b>${p.name}</b>
+        <span class="${wr != null ? wrClass(wr) : 'dim'}" style="font-size:18px;font-weight:700">${wr != null ? wr.toFixed(0) + '%' : '—'}</span>
+        <small>${games} ${plural(games, 'игра', 'игры', 'игр')} · ${Math.round(games / total * 100)}%</small>
+        <i style="width:${games / total * 100}%"></i>
+      </div>`;
+    }).join('')}</div>
+    ${total < 30 ? '<p style="margin-top:8px">Игр немного — проценты могут заметно гулять.</p>' : ''}
+  </div>`;
+}
+
+// С кем герой выигрывает чаще обычного и против кого проседает.
+function matchupPanel(id) {
+  const m = matchups[id];
+  if (!m) return '';
+  const base = m.wr * 100;
+  const list = (arr, cls) => arr.map(([o, n, w]) => {
+    const wr = w / n * 100;
+    return `<div class="mu hero clickable" data-build="${o}" title="${esc(heroName(o))}: ${w} из ${n}">
+      <img src="${heroImg(o)}" alt="" loading="lazy">
+      <span>${esc(heroName(o))}</span>
+      <b class="${cls}">${wr.toFixed(0)}%</b><small>${n}</small>
+    </div>`;
+  }).join('') || '<span class="dim">мало данных</span>';
+  const col = (title, arr, cls) => `<div class="mucol"><h4>${title}</h4>${list(arr, cls)}</div>`;
+  return `<div class="bgroup" style="margin-bottom:18px">
+    <h3>Матчапы</h3>
+    <p>Про-матчи патча · общий винрейт героя ${base.toFixed(1)}%</p>
+    <div class="mugrid">
+      ${col('Хорош против', m.vs.best, 'wr-hi')}
+      ${col('Слаб против', m.vs.worst, 'wr-lo')}
+      ${col('Лучшие союзники', m.with.best, 'wr-hi')}
+      ${col('Худшие союзники', m.with.worst, 'wr-lo')}
+    </div>
+  </div>`;
 }
 
 function renderRankBuild(id, rank, box, top) {
@@ -1509,6 +1694,24 @@ function renderRankBuild(id, rank, box, top) {
 }
 
 // Итоговые предметы из выборки по рангу или позиции.
+// Порядок сборки: самые популярные предметы, выстроенные по средней минуте покупки.
+const TIMELINE_ITEMS = 8;
+function timelineHtml(list) {
+  const timed = list.filter(i => i.t != null).slice(0, TIMELINE_ITEMS).sort((a, b) => a.t - b.t);
+  if (timed.length < 3) return '';
+  return `<div class="bgroup">
+    <h3>Порядок сборки</h3>
+    <p>Самые частые предметы по средней минуте покупки</p>
+    <div class="timeline">${timed.map((i, k) => `
+      ${k ? '<span class="arrow">›</span>' : ''}
+      <div class="tl-item" title="${esc(i.name)}">
+        <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
+        <b>~${Math.round(i.t)} мин</b>
+        <small>${esc(shorten(i.name, 16))}</small>
+      </div>`).join('')}</div>
+  </div>`;
+}
+
 function renderInventory(box, head, title, b, scope) {
   const top = Math.max(1, ...b.list.map(i => i.n));
   const wr = b.games ? b.wins / b.games * 100 : 0;
@@ -1525,7 +1728,7 @@ function renderInventory(box, head, title, b, scope) {
       return b.games
         ? itemSlot(i, sub, i.n / b.games * 100)
         : itemSlot(i, `${i.n.toLocaleString('ru-RU')} ${plural(i.n, 'матч', 'матча', 'матчей')}<br>${sub}`, null, i.n / top * 100);
-    }).join('') + '</div></div></div>' +
+    }).join('') + '</div></div>' + timelineHtml(b.list) + '</div>' +
     `<div class="note">Публичные матчи, источник — ${src}.
       ${b.games ? 'Процент в углу — в какой доле матчей предмет был в слотах к концу игры, ниже — винрейт матчей с этим предметом.'
         : 'Под предметом — в скольких матчах его купили и какой в них винрейт; полоска — популярность относительно самого частого предмета.'}
@@ -1816,6 +2019,7 @@ function writeHash() {
   if (tab === 'hero' && el.hero.value) p.set('hero', el.hero.value);
   if (tab === 'prices' && el.group.value) p.set('group', el.group.value);
   if (!el.role.hidden && el.role.value) p.set('role', el.role.value);
+  if (tab === 'tier' && tierRank) p.set('rank', tierRank);
   if (buildHero != null) {
     p.set('build', buildHero);
     if (buildSrc !== 'all') p.set('src', buildSrc);
@@ -1839,6 +2043,7 @@ function readHash() {
   if (pending.group && el.group.options.length) el.group.innerHTML = '';
   if (p.get('hero') && heroes[p.get('hero')]) el.hero.value = p.get('hero');
   el.role.value = [...el.role.options].some(o => o.value === p.get('role')) ? p.get('role') : '';
+  tierRank = /^[1-8]$/.test(p.get('rank') || '') ? Number(p.get('rank')) : 0;
   const b = Number(p.get('build'));
   const src = p.get('src') || 'all';
   buildSrc = /^(all|ti|r[1-8]|p[1-5])$/.test(src) ? src : 'all';
@@ -1849,7 +2054,7 @@ function readHash() {
 
 function render() {
   const byLeague = tab === 'tournaments' || tab === 'ti';
-  el.role.hidden = !(byLeague || tab === 'matrix');
+  el.role.hidden = !(byLeague || tab === 'matrix' || tab === 'tier');
   el.league.hidden = !byLeague;
   el.hero.hidden = tab !== 'hero';
   el.group.hidden = tab !== 'prices';
@@ -1861,6 +2066,7 @@ function render() {
     syncLeagueSelect();
     renderTournaments();
   } else if (tab === 'hero') renderHero();
+  else if (tab === 'tier') renderTier();
   else if (tab === 'prices') renderPrices();
   else if (tab === 'sockets') renderSocketsTab();
   else if (tab === 'predict') renderPredict();
@@ -1900,8 +2106,13 @@ el.role.onchange = render;
 window.addEventListener('hashchange', readHash);
 
 el.view.addEventListener('click', e => {
+  const tierBtn = e.target.closest('button[data-tier]');
+  if (tierBtn) { tierRank = Number(tierBtn.dataset.tier); return render(); }
   const hero = e.target.closest('.hero.clickable[data-hero]');
-  if (hero) return openBuild(Number(hero.dataset.hero));
+  if (hero) {
+    if (tab === 'tier') buildSrc = tierRank ? 'r' + tierRank : 'all';
+    return openBuild(Number(hero.dataset.hero));
+  }
   const b = e.target.closest('.acts button');
   if (!b || !teams) return;
   if (b.dataset.act === 'clear') predict = {};
@@ -1934,6 +2145,8 @@ el.view.onchange = e => {
 
 el.modal.addEventListener('click', e => {
   if (e.target === el.modal || e.target.closest('.modal-x')) return closeBuild();
+  const other = e.target.closest('[data-build]');
+  if (other) return openBuild(Number(other.dataset.build));
   const src = e.target.closest('[data-src]');
   if (src) {
     buildSrc = src.dataset.src;
