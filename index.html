@@ -193,6 +193,35 @@
   .item-slot { width: 116px; height: 128px; gap: 6px; }
   .item-slot img { width: 62px; height: 46px; }
   .item-slot .nm { font-size: 11px; letter-spacing: .03em; white-space: normal; }
+  .hero.clickable { cursor: pointer; }
+  .hero.clickable:hover span { color: var(--red); }
+
+  .modal {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(0, 0, 0, .72);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 40px 16px; overflow-y: auto;
+  }
+  .modal-box {
+    position: relative;
+    width: 100%; max-width: 900px;
+    background: var(--bg);
+    border: 2px solid var(--text);
+    padding: 28px 24px 24px;
+  }
+  .modal-x {
+    position: absolute; top: 10px; right: 12px;
+    background: none; border: none; color: var(--muted);
+    font-size: 26px; line-height: 1; cursor: pointer;
+  }
+  .modal-x:hover { color: var(--red); }
+  .modal-head {
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 2px solid var(--text); padding-bottom: 16px; margin-bottom: 8px;
+  }
+  .modal-head img { width: 64px; height: 36px; object-fit: cover; }
+  .modal-head h2 { margin: 0; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: -.02em; }
+  .modal-head .sub2 { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
   .slot .nm { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
               overflow: hidden; text-overflow: ellipsis; width: 100%; }
   .slot .rec { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -293,7 +322,6 @@
     <button data-tab="prices">Цены Steam</button>
     <button data-tab="sockets">Аркана с гемом</button>
     <button data-tab="predict">Прогнозы на Инт</button>
-    <button data-tab="builds">Сборки</button>
   </nav>
 
   <div class="controls">
@@ -308,6 +336,14 @@
     <div id="msg" class="msg">Загрузка данных…</div>
     <div id="view"></div>
   </main>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-box">
+    <button class="modal-x" aria-label="Закрыть">×</button>
+    <div class="modal-head"></div>
+    <div class="modal-body"></div>
+  </div>
 </div>
 
 <footer class="wrap">
@@ -333,6 +369,7 @@ const el = {
   msg: document.getElementById('msg'),
   view: document.getElementById('view'),
   sub: document.getElementById('sub'),
+  modal: document.getElementById('modal'),
 };
 
 let heroes = {};
@@ -632,7 +669,7 @@ function renderTournaments() {
     list.map((h, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
-        <td><div class="hero"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div></td>
+        <td><div class="hero clickable" data-hero="${h.hero}"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div></td>
         <td class="num"><div class="bar"><i style="width:${h.picks / max * 100}%"></i><span>${h.picks}</span></div></td>
         <td class="num">${h.bans}</td>
         <td class="num hide-sm">${h.contest.toFixed(0)}%</td>
@@ -685,9 +722,9 @@ function renderHero() {
   ];
 
   el.view.innerHTML = `
-    <div class="hero" style="gap:14px;padding:4px 0 14px">
+    <div class="hero clickable" data-hero="${id}" style="gap:14px;padding:4px 0 14px">
       <img src="${heroImg(id)}" alt="" style="width:88px;height:50px">
-      <div style="font-size:20px">${esc(heroName(id))}</div>
+      <div style="font-size:20px">${esc(heroName(id))} <span class="dim" style="font-size:13px">— сборки ↗</span></div>
     </div>
     <div class="scroll plain"><table><thead>${header(cols, sort.hero)}</thead><tbody>` +
     list.map((r, i) => `
@@ -734,7 +771,7 @@ function renderMatrix() {
   const body = totals.map(h => `
     <tr>
       <td class="name">
-        <div class="hero"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div>
+        <div class="hero clickable" data-hero="${h.hero}"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div>
       </td>
       <td class="cell col-total" style="background:${wrColor(h.wr)}">
         ${h.wr.toFixed(0)}%<small>${h.picks}</small>
@@ -875,6 +912,22 @@ async function loadBuild(id) {
   }
 }
 
+let buildHero = null;
+
+function openBuild(id) {
+  buildHero = id;
+  el.modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  renderBuildModal();
+  el.modal.scrollTop = 0;
+}
+
+function closeBuild() {
+  el.modal.hidden = true;
+  buildHero = null;
+  document.body.style.overflow = '';
+}
+
 function buildTabs(active) {
   return `<div class="acts">
     <button data-src="all" class="${active === 'all' ? 'on' : ''}">Все про-матчи</button>
@@ -882,60 +935,59 @@ function buildTabs(active) {
   </div>`;
 }
 
-function renderTiBuild(id) {
-  const b = tiBuilds[id];
-  el.stats.innerHTML = `
-    <div>Герой: <b>${esc(heroes[id]?.localized_name || '')}</b></div>
-    <div>Взят на TI: <b>${b.picks}</b> ${plural(b.picks, 'раз', 'раза', 'раз')}</div>`;
+function renderBuildModal() {
+  const id = buildHero;
+  if (id == null) return;
+  const box = el.modal.querySelector('.modal-body');
+  el.modal.querySelector('.modal-head').innerHTML =
+    `<img src="${heroImg(id)}" alt="">
+     <div><h2>${esc(heroName(id))}</h2><div class="sub2">Сборки предметов</div></div>`;
 
-  if (!b.list.length) {
-    el.view.innerHTML = buildTabs('ti');
-    return showMsg('На TI 2026 этого героя не брали');
-  }
-
-  el.view.innerHTML = buildTabs('ti') + '<div class="board"><div class="bgroup">' +
-    `<h3>Итоговый инвентарь</h3><p>Что оставалось в слотах к концу матча</p>` +
-    '<div class="slots">' + b.list.map(i => `
-      <div class="slot item-slot">
-        <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
-        <div class="nm">${esc(i.name)}</div>
-        <div class="rec">${i.n} ${plural(i.n, 'раз', 'раза', 'раз')}</div>
-      </div>`).join('') + '</div></div></div>' +
-    `<div class="note">Считается по матчам The International 2026 — это итоговый инвентарь,
-      а не порядок закупки: разбивки по стадиям для отдельного турнира OpenDota не даёт.
-      Герой сыгран ${b.picks} ${plural(b.picks, 'раз', 'раза', 'раз')}.
-      ${b.picks < 30 ? `Это мало: числа показывают тенденцию, а не закономерность —
-        для устойчивой картины переключитесь на все про-матчи.` : ''}</div>`;
-  el.msg.hidden = true;
-}
-
-function renderBuilds() {
-  const id = Number(el.hero.value);
   if (buildsError) {
-    el.stats.innerHTML = '';
-    el.view.innerHTML = buildTabs(buildSrc);
-    return showMsg(`Не удалось загрузить сборки: ${buildsError}`, true);
+    box.innerHTML = buildTabs(buildSrc) + `<div class="msg err">Не удалось загрузить: ${esc(buildsError)}</div>`;
+    return;
   }
   const store = buildSrc === 'ti' ? tiBuilds : builds;
   if (!store[id]) {
-    el.stats.innerHTML = '';
-    el.view.innerHTML = buildTabs(buildSrc);
-    showMsg('Загрузка сборок…');
+    box.innerHTML = buildTabs(buildSrc) + `<div class="msg">Загрузка сборок…</div>`;
     (buildSrc === 'ti' ? loadTiBuild(id) : loadBuild(id))
-      .then(() => { if (tab === 'builds') render(); });
+      .then(() => { if (buildHero === id) renderBuildModal(); });
     return;
   }
-  if (buildSrc === 'ti') return renderTiBuild(id);
+
+  if (buildSrc === 'ti') {
+    const b = tiBuilds[id];
+    if (!b.list.length) {
+      box.innerHTML = buildTabs('ti') + '<div class="msg">На TI 2026 этого героя не брали</div>';
+      return;
+    }
+    box.innerHTML = buildTabs('ti') +
+      `<div class="stats"><div>Взят на TI: <b>${b.picks}</b> ${plural(b.picks, 'раз', 'раза', 'раз')}</div></div>` +
+      '<div class="board"><div class="bgroup">' +
+      `<h3>Итоговый инвентарь</h3><p>Что оставалось в слотах к концу матча</p>` +
+      '<div class="slots">' + b.list.map(i => `
+        <div class="slot item-slot">
+          <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
+          <div class="nm">${esc(i.name)}</div>
+          <div class="rec">${i.n} ${plural(i.n, 'раз', 'раза', 'раз')}</div>
+        </div>`).join('') + '</div></div></div>' +
+      `<div class="note">Считается по матчам The International 2026 — это итоговый инвентарь,
+        а не порядок закупки: разбивки по стадиям для отдельного турнира OpenDota не даёт.
+        Герой сыгран ${b.picks} ${plural(b.picks, 'раз', 'раза', 'раз')}.
+        ${b.picks < 30 ? `Это мало: числа показывают тенденцию, а не закономерность —
+          для устойчивой картины переключитесь на все про-матчи.` : ''}</div>`;
+    return;
+  }
 
   const phases = builds[id];
   const total = phases.reduce((s, p) => s + p.list.reduce((x, i) => x + i.n, 0), 0);
-  el.stats.innerHTML = `
-    <div>Герой: <b>${esc(heroes[id]?.localized_name || '')}</b></div>
-    <div>Покупок в выборке: <b>${total.toLocaleString('ru-RU')}</b></div>`;
-
-  if (!phases.some(p => p.list.length)) return showMsg('По этому герою данных нет');
-
-  el.view.innerHTML = buildTabs('all') + '<div class="board">' + phases.map(p => `
+  if (!phases.some(p => p.list.length)) {
+    box.innerHTML = buildTabs('all') + '<div class="msg">По этому герою данных нет</div>';
+    return;
+  }
+  box.innerHTML = buildTabs('all') +
+    `<div class="stats"><div>Покупок в выборке: <b>${total.toLocaleString('ru-RU')}</b></div></div>` +
+    '<div class="board">' + phases.map(p => `
       <div class="bgroup">
         <h3>${esc(p.title)}</h3>
         <p>${esc(p.note)}</p>
@@ -948,9 +1000,7 @@ function renderBuilds() {
       </div>`).join('') + '</div>' +
     `<div class="note">Что профессионалы покупают на этого героя, по данным OpenDota.
       Числа — сколько раз предмет встретился на этой стадии в матчах выборки, а не процент побед:
-      частое не значит лучшее. Это не готовая сборка на игру — порядок и выбор зависят от роли,
-      линии и того, что стоит у соперника.</div>`;
-  el.msg.hidden = true;
+      частое не значит лучшее. Порядок и выбор зависят от роли, линии и того, что стоит у соперника.</div>`;
 }
 
 async function loadTeams() {
@@ -1228,9 +1278,9 @@ function tiBanner() {
 function render() {
   const byLeague = tab === 'tournaments' || tab === 'ti';
   el.league.hidden = !byLeague;
-  el.hero.hidden = tab !== 'hero' && tab !== 'builds';
+  el.hero.hidden = tab !== 'hero';
   el.group.hidden = tab !== 'prices';
-  el.search.hidden = tab === 'predict' || tab === 'builds';
+  el.search.hidden = tab === 'predict';
   el.search.placeholder = tab === 'hero' ? 'Поиск турнира…'
     : tab === 'prices' ? 'Поиск предмета…' : tab === 'sockets' ? 'Поиск гема…' : 'Поиск героя…';
 
@@ -1241,7 +1291,6 @@ function render() {
   else if (tab === 'prices') renderPrices();
   else if (tab === 'sockets') renderSocketsTab();
   else if (tab === 'predict') renderPredict();
-  else if (tab === 'builds') renderBuilds();
   else renderMatrix();
 }
 
@@ -1275,12 +1324,8 @@ el.group.onchange = () => {
 el.search.oninput = render;
 
 el.view.addEventListener('click', e => {
-  const src = e.target.closest('.acts button[data-src]');
-  if (src) {
-    buildSrc = src.dataset.src;
-    buildsError = '';
-    return render();
-  }
+  const hero = e.target.closest('.hero.clickable[data-hero]');
+  if (hero) return openBuild(Number(hero.dataset.hero));
   const b = e.target.closest('.acts button');
   if (!b || !teams) return;
   if (b.dataset.act === 'clear') predict = {};
@@ -1310,6 +1355,19 @@ el.view.onchange = e => {
   savePredict();
   render();
 };
+
+el.modal.addEventListener('click', e => {
+  if (e.target === el.modal || e.target.closest('.modal-x')) return closeBuild();
+  const src = e.target.closest('.acts button[data-src]');
+  if (src) {
+    buildSrc = src.dataset.src;
+    buildsError = '';
+    renderBuildModal();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !el.modal.hidden) closeBuild();
+});
 
 init();
 </script>
