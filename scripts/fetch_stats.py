@@ -133,8 +133,34 @@ def collect_stats():
         }
     log(f"pro builds {len(pro)}")
 
+    # Позиция 1–5 в про-матчах: линия из OpenDota, а на паре героев в одной линии
+    # кор — тот, у кого больше золота в минуту (1 или 3), второй — поддержка (5 или 4).
+    pos_rows = sql(f"""WITH p AS (
+                         SELECT pm.match_id, pm.hero_id, pm.lane_role, pm.gold_per_min,
+                                pm.player_slot < 128 AS radiant
+                         FROM player_matches pm
+                         JOIN matches m ON m.match_id = pm.match_id
+                         JOIN match_patch mp ON mp.match_id = m.match_id
+                         JOIN leagues l ON l.leagueid = m.leagueid
+                         {where} AND pm.lane_role IS NOT NULL),
+                       r AS (SELECT *, row_number() OVER (PARTITION BY match_id, radiant, lane_role
+                                                          ORDER BY gold_per_min DESC) AS rn FROM p)
+                       SELECT hero_id,
+                              CASE WHEN lane_role = 2 AND rn = 1 THEN 2
+                                   WHEN lane_role = 1 AND rn = 1 THEN 1
+                                   WHEN lane_role = 1 THEN 5
+                                   WHEN lane_role = 3 AND rn = 1 THEN 3
+                                   ELSE 4 END AS pos,
+                              count(*) AS n
+                       FROM r GROUP BY 1, 2""")
+    pos = {}
+    for r in pos_rows:
+        pos.setdefault(str(r["hero_id"]), [0] * 5)[int(r["pos"]) - 1] += int(r["n"])
+    log(f"positions for {len(pos)} heroes")
+
     return {
         "patch": patch,
+        "pos": pos,
         "heroes": heroes,
         "leagues": [[int(l["leagueid"]), l["name"], int(l["matches"]),
                      int(l["first_match"]), int(l["last_match"])] for l in leagues],
