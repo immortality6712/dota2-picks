@@ -4,70 +4,107 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dota 2 — пики героев на крупных турнирах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0b0b0c;
-    --panel: #141416;
-    --panel2: #17171a;
-    --line: #2a2a2e;
-    --text: #f2f2f0;
-    --muted: #8a8a90;
-    --red: #e63329;
-    --gold: #e63329;
-    --green: #3fb27f;
+    --bg: #0a0d12;
+    --bg2: #0f141b;
+    --panel: #121821;
+    --panel2: #182130;
+    --panel3: #1e2939;
+    --line: #243044;
+    --line2: #2f3d55;
+    --text: #eef1f6;
+    --muted: #8793a8;
+    --red: #e5483d;
+    --red2: #ff7a4a;
+    --gold: #e8b85a;
+    --green: #4fc98a;
+    --radius: 14px;
+    --shadow: 0 12px 40px rgba(0, 0, 0, .35);
+    --head: "Rajdhani", "Inter", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
+  html { background: var(--bg); }
   body {
     margin: 0;
-    background: var(--bg);
+    min-height: 100vh;
+    background:
+      radial-gradient(1100px 520px at 12% -120px, rgba(229, 72, 61, .20), transparent 60%),
+      radial-gradient(900px 480px at 92% -80px, rgba(232, 184, 90, .12), transparent 60%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 480px);
     color: var(--text);
-    font: 15px/1.55 "Helvetica Neue", Helvetica, Inter, "Segoe UI", system-ui, sans-serif;
+    font: 14px/1.55 "Inter", "Segoe UI", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  header {
-    padding: 44px 20px 24px;
-    border-bottom: 2px solid var(--text);
+  ::selection { background: rgba(229, 72, 61, .45); }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+
+  header { padding: 40px 20px 26px; }
+  header .wrap { display: flex; align-items: center; gap: 18px; }
+  .logo {
+    flex: none;
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--red), #8f1d17);
+    box-shadow: 0 8px 28px rgba(229, 72, 61, .45), inset 0 1px 0 rgba(255, 255, 255, .25);
+    font: 700 26px/1 var(--head);
+    letter-spacing: -.02em;
   }
-  .wrap { max-width: 1200px; margin: 0 auto; }
   h1 {
-    margin: 0 0 10px;
-    font-size: clamp(28px, 5vw, 46px);
-    font-weight: 800;
-    line-height: 1.02;
-    letter-spacing: -.03em;
+    margin: 0 0 6px;
+    font-family: var(--head);
+    font-size: clamp(26px, 4.4vw, 40px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: .01em;
     text-transform: uppercase;
   }
-  h1 span { color: var(--red); }
-  .sub {
-    color: var(--muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .14em;
+  h1 span {
+    background: linear-gradient(90deg, var(--red2), var(--gold));
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
   }
+  .sub { color: var(--muted); font-size: 13px; }
 
   .tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
-    padding: 0 20px;
-    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 20;
+    display: flex; gap: 4px;
+    margin: 0 20px;
+    padding: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: rgba(18, 24, 33, .82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
   }
+  .tabs::-webkit-scrollbar { display: none; }
   .tabs button {
+    flex: none;
     background: none;
     border: none;
-    border-bottom: 3px solid transparent;
+    border-radius: 999px;
     color: var(--muted);
     font: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    padding: 16px 18px 13px;
-    margin-bottom: -1px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
     cursor: pointer;
+    white-space: nowrap;
+    transition: color .15s, background .15s;
   }
-  .tabs button:hover { color: var(--text); }
-  .tabs button.on { color: var(--text); border-bottom-color: var(--red); }
+  .tabs button:hover { color: var(--text); background: var(--panel2); }
+  .tabs button.on {
+    color: #fff;
+    background: linear-gradient(135deg, var(--red), #b52c23);
+    box-shadow: 0 4px 16px rgba(229, 72, 61, .4);
+  }
 
   .controls {
     display: flex;
@@ -77,152 +114,240 @@
     padding: 22px 20px 0;
   }
   select, input {
-    background: transparent;
+    background: var(--panel);
     color: var(--text);
     border: 1px solid var(--line);
-    border-radius: 0;
-    padding: 10px 12px;
+    border-radius: 10px;
+    padding: 10px 14px;
     font: inherit;
     font-size: 13px;
     outline: none;
+    transition: border-color .15s, box-shadow .15s;
   }
-  select:focus, input:focus { border-color: var(--red); }
+  select:hover, input:hover { border-color: var(--line2); }
+  select:focus, input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229, 72, 61, .18); }
+  select option { background: var(--panel); }
   select { min-width: 320px; }
-  input { width: 220px; }
+  input { width: 240px; }
   [hidden] { display: none !important; }
 
   .stats {
-    display: flex;
-    gap: 12px 40px;
-    flex-wrap: wrap;
-    align-items: baseline;
-    padding: 26px 20px 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+    padding: 18px 20px;
     color: var(--muted);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: .12em;
+    font-size: 12px;
   }
-  .stats b { color: var(--text); font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .stats:empty { display: none; }
+  .stats > div {
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .stats b {
+    color: var(--text);
+    font-family: var(--head);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    margin-left: 4px;
+  }
   main { padding: 0 20px 80px; }
+  #view > .scroll {
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
 
   table { width: 100%; border-collapse: collapse; }
   th {
     text-align: left;
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .12em;
+    letter-spacing: .08em;
     color: var(--muted);
-    padding: 12px 8px;
-    border-bottom: 2px solid var(--text);
+    padding: 14px 10px 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel2);
     white-space: nowrap;
   }
   th[data-sort] { cursor: pointer; user-select: none; }
   th[data-sort]:hover { color: var(--text); }
-  th.active { color: var(--red); }
-  td { padding: 9px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  tbody tr:hover td { background: var(--panel); }
-  .rank { color: var(--muted); width: 40px; font-variant-numeric: tabular-nums; }
-  .hero { display: flex; align-items: center; gap: 12px; }
+  th.active { color: var(--gold); }
+  th.active::after { content: " ↕"; opacity: .6; }
+  td { padding: 9px 10px; border-bottom: 1px solid rgba(36, 48, 68, .6); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .12s; }
+  tbody tr:hover td { background: rgba(30, 41, 57, .55); }
+  .rank { color: var(--muted); width: 44px; font-variant-numeric: tabular-nums; text-align: center; }
+  tbody tr:nth-child(-n+3) .rank { color: var(--gold); font-weight: 700; }
+  .hero { display: flex; align-items: center; gap: 12px; font-weight: 500; }
   .hero img {
-    width: 52px; height: 29px;
+    width: 56px; height: 32px;
     object-fit: cover;
-    border-radius: 0;
+    border-radius: 6px;
     background: var(--panel2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .4);
   }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .bar { position: relative; background: var(--panel2); border-radius: 0; height: 20px; min-width: 90px; }
-  .bar i { position: absolute; inset: 0 auto 0 0; background: var(--red); border-radius: 0; opacity: .8; }
+  .bar { position: relative; background: var(--panel3); border-radius: 999px; height: 22px; min-width: 100px; overflow: hidden; }
+  .bar i {
+    position: absolute; inset: 0 auto 0 0;
+    background: linear-gradient(90deg, #9e2a22, var(--red) 70%, var(--red2));
+    border-radius: 999px;
+  }
   .bar span {
     position: relative; display: block; text-align: center;
-    font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums;
+    font-size: 12px; font-weight: 600; line-height: 22px; font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
   }
-  .wr-hi { color: var(--green); }
-  .wr-lo { color: #d9634f; }
+  .wr-hi { color: var(--green); font-weight: 600; }
+  .wr-lo { color: #ef6b5b; font-weight: 600; }
   .dim { color: var(--muted); }
   .ellip { max-width: 380px; overflow: hidden; text-overflow: ellipsis; }
-  .item { display: flex; align-items: center; gap: 10px; }
+  .item { display: flex; align-items: center; gap: 12px; }
   .item img {
     width: 44px; height: 44px;
     object-fit: contain;
-    border-radius: 0;
+    border-radius: 8px;
     background: var(--panel2);
     flex: none;
   }
   .item small { display: block; color: var(--muted); font-size: 11px; }
-  .acts { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 22px; }
+
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-bottom: 18px; }
+  .acts .lbl { color: var(--muted); font-size: 12px; margin: 0 4px 0 8px; }
   .acts button {
-    background: none; color: var(--text);
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--panel2); color: var(--text);
     border: 1px solid var(--line);
-    font: inherit; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .1em;
-    padding: 10px 16px; cursor: pointer;
+    border-radius: 999px;
+    font: inherit; font-size: 12px; font-weight: 600;
+    padding: 8px 14px; cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
   }
-  .acts button:hover { border-color: var(--red); color: var(--red); }
-  .acts button.on { border-color: var(--red); color: var(--red); }
-  .board { display: flex; flex-direction: column; gap: 26px; padding-top: 4px; }
+  .acts button:hover { border-color: var(--line2); background: var(--panel3); }
+  .acts button.on {
+    border-color: var(--red);
+    background: rgba(229, 72, 61, .16);
+    color: #fff;
+  }
+  .board { display: flex; flex-direction: column; gap: 22px; padding-top: 4px; }
   .brow { display: flex; gap: 22px; flex-wrap: wrap; }
-  .bgroup { display: flex; flex-direction: column; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+  .bgroup {
+    display: flex; flex-direction: column; gap: 8px;
+    flex: 0 1 auto; min-width: 0; max-width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
   .bgroup > h3 {
     margin: 0;
-    font-size: 11px;
+    font-family: var(--head);
+    font-size: 18px;
     font-weight: 700;
+    letter-spacing: .03em;
     text-transform: uppercase;
-    letter-spacing: .14em;
-    border-top: 2px solid var(--text);
-    padding-top: 8px;
+    display: flex; align-items: center; gap: 10px;
   }
-  .bgroup > p { margin: 0 0 4px; color: var(--muted); font-size: 11px; max-width: 30ch; }
-  .slots { display: flex; gap: 8px; flex-wrap: wrap; }
+  .bgroup > h3::before {
+    content: ""; width: 4px; height: 16px; border-radius: 2px;
+    background: linear-gradient(180deg, var(--red2), var(--red));
+  }
+  .bgroup > p { margin: 0 0 4px; color: var(--muted); font-size: 12px; max-width: 40ch; }
+  .slots { display: flex; gap: 10px; flex-wrap: wrap; }
   .slot {
     position: relative;
     width: 132px; height: 150px;
     border: 1px solid var(--line);
-    background: var(--panel);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 8px; padding: 10px; text-align: center;
+    transition: transform .15s, border-color .15s, box-shadow .15s;
   }
-  .slot.filled { border-color: var(--red); }
+  .slot:hover { transform: translateY(-2px); border-color: var(--line2); box-shadow: 0 8px 22px rgba(0, 0, 0, .35); }
+  .slot.filled { border-color: rgba(229, 72, 61, .7); }
   .slot big {
-    font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+    font-family: var(--head);
+    font-size: 30px; font-weight: 700;
     color: var(--muted); line-height: 1;
   }
   .slot.filled big { color: var(--red); }
   .slot img { width: 46px; height: 46px; object-fit: contain; }
-  .item-slot { width: 116px; height: 128px; gap: 6px; }
-  .item-slot img { width: 62px; height: 46px; }
-  .item-slot .nm { font-size: 11px; letter-spacing: .03em; white-space: normal; }
+  .item-slot { width: 112px; height: 132px; gap: 6px; }
+  .item-slot img { width: 64px; height: 47px; border-radius: 6px; box-shadow: 0 3px 10px rgba(0, 0, 0, .5); }
+  .slot.item-slot .nm { font-size: 11px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: normal;
+                   line-height: 1.25; max-height: 2.5em; }
+  .item-slot .pct { position: absolute; top: 6px; right: 6px; font-size: 10px; font-weight: 700;
+                    padding: 1px 6px; border-radius: 999px; background: rgba(232, 184, 90, .16); color: var(--gold); }
+  .item-slot .meter { width: 100%; height: 3px; border-radius: 2px; background: var(--panel3); overflow: hidden; }
+  .item-slot .meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--red2)); }
   .hero.clickable { cursor: pointer; }
-  .hero.clickable:hover span { color: var(--red); }
+  .hero.clickable:hover span { color: var(--red2); }
 
   .modal {
     position: fixed; inset: 0; z-index: 50;
-    background: rgba(0, 0, 0, .72);
+    background: rgba(4, 6, 10, .74);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: flex; align-items: flex-start; justify-content: center;
     padding: 40px 16px; overflow-y: auto;
+    animation: fade .18s ease-out;
   }
   .modal-box {
     position: relative;
-    width: 100%; max-width: 900px;
-    background: var(--bg);
-    border: 2px solid var(--text);
-    padding: 28px 24px 24px;
+    width: 100%; max-width: 980px;
+    background: var(--bg2);
+    border: 1px solid var(--line2);
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+    overflow: hidden;
+    animation: pop .22s ease-out;
   }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.985); } }
   .modal-x {
-    position: absolute; top: 10px; right: 12px;
-    background: none; border: none; color: var(--muted);
-    font-size: 26px; line-height: 1; cursor: pointer;
+    position: absolute; top: 14px; right: 14px; z-index: 2;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(10, 13, 18, .6); border: 1px solid var(--line2); color: var(--text);
+    font-size: 22px; line-height: 1; cursor: pointer;
   }
-  .modal-x:hover { color: var(--red); }
+  .modal-x:hover { background: var(--red); border-color: var(--red); }
   .modal-head {
-    display: flex; align-items: center; gap: 14px;
-    border-bottom: 2px solid var(--text); padding-bottom: 16px; margin-bottom: 8px;
+    position: relative;
+    display: flex; align-items: center; gap: 18px;
+    padding: 30px 26px 24px;
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
   }
-  .modal-head img { width: 64px; height: 36px; object-fit: cover; }
-  .modal-head h2 { margin: 0; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: -.02em; }
-  .modal-head .sub2 { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
-  .slot .nm { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  .modal-head .bg {
+    position: absolute; inset: -30px;
+    background-size: cover; background-position: center 30%;
+    filter: blur(22px) saturate(1.3);
+    opacity: .38;
+  }
+  .modal-head::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(15, 20, 27, .2), var(--bg2) 85%);
+  }
+  .modal-head > :not(.bg) { position: relative; z-index: 1; }
+  .modal-head img { width: 128px; height: 72px; object-fit: cover; border-radius: 10px;
+                    box-shadow: 0 8px 26px rgba(0, 0, 0, .6); }
+  .modal-head h2 { margin: 0 0 4px; font-family: var(--head); font-size: 30px; font-weight: 700;
+                   text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
+  .modal-head .sub2 { color: var(--muted); font-size: 13px; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .tags span { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: rgba(255, 255, 255, .07);
+               border: 1px solid rgba(255, 255, 255, .08); color: #c9d1de; }
+  .modal-body { padding: 20px 26px 26px; }
+  .modal-body .stats { padding: 0 0 18px; }
+
+  .slot .nm { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
               overflow: hidden; text-overflow: ellipsis; width: 100%; }
   .slot .rec { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .slot select {
@@ -235,20 +360,54 @@
   .gem i {
     position: absolute; right: -3px; bottom: -3px;
     width: 16px; height: 16px; border-radius: 50%;
-    border: 2px solid var(--bg);
+    border: 2px solid var(--panel);
   }
-  .price { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .price small { display: block; color: var(--muted); font-size: 11px; }
-  .scroll.plain { border: none; }
+  .price { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+  .price small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
 
-  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 0; }
+  /* Ранги */
+  .medal {
+    flex: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-grid; place-items: center;
+    background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 70%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 55%, #000));
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, .35), 0 0 12px color-mix(in srgb, var(--c) 45%, transparent);
+    color: #111; font: 700 11px/1 var(--head);
+  }
+  .medal.lg { width: 34px; height: 34px; font-size: 15px; }
+  .ranks {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 14px 12px;
+    margin-bottom: 18px;
+  }
+  .ranks h4 { grid-column: 1 / -1; margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted);
+              display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .rcol {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    background: none; border: 1px solid transparent; border-radius: 12px;
+    padding: 8px 2px; color: var(--text); font: inherit; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .rcol:hover { background: var(--panel2); }
+  .rcol.on { background: var(--panel2); border-color: var(--c); }
+  .rcol .wr { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rcol .col { width: 100%; max-width: 38px; height: 70px; display: flex; align-items: flex-end;
+               background: var(--panel3); border-radius: 6px; overflow: hidden; }
+  .rcol .col i { display: block; width: 100%; background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 40%, #000)); }
+  .rcol small { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.2; }
+
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+  .scroll.plain { border: 1px solid var(--line); }
   .matrix { border-collapse: separate; border-spacing: 0; }
-  .matrix th, .matrix td { border-bottom: 1px solid #20242b; }
+  .matrix th, .matrix td { border-bottom: 1px solid rgba(36, 48, 68, .6); }
   .matrix thead th {
     position: sticky; top: 0;
-    background: var(--bg);
+    background: var(--panel2);
     font-size: 11px;
-    padding: 8px 6px;
+    padding: 10px 6px;
     vertical-align: bottom;
   }
   .matrix thead th.cell {
@@ -258,49 +417,77 @@
   }
   .matrix .name {
     position: sticky; left: 0;
-    background: var(--bg);
+    background: var(--panel);
     z-index: 2;
-    min-width: 170px;
+    min-width: 180px;
     border-right: 1px solid var(--line);
   }
-  .matrix thead .name { z-index: 3; }
-  .matrix tbody tr:hover .name { background: var(--panel); }
+  .matrix thead .name { z-index: 3; background: var(--panel2); }
+  .matrix tbody tr:hover .name { background: var(--panel2); }
   .matrix td.cell {
     text-align: center;
     font-size: 12px;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
-    min-width: 46px;
-    padding: 4px 3px;
+    min-width: 50px;
+    padding: 5px 3px;
+    border-right: 1px solid rgba(0, 0, 0, .25);
   }
-  .matrix td.cell small { display: block; font-size: 10px; opacity: .55; }
+  .matrix td.cell small { display: block; font-size: 10px; font-weight: 400; opacity: .6; }
   .matrix td.thin { opacity: .35; }
-  .matrix td.empty { color: #3a4048; }
-  .matrix .col-total { border-left: 1px solid var(--line); font-weight: 600; }
+  .matrix td.empty { color: #3a4658; }
+  .matrix .col-total { border-left: 1px solid var(--line); }
 
-  .msg { padding: 56px 20px; text-align: center; color: var(--muted); font-size: 13px;
-         text-transform: uppercase; letter-spacing: .12em; }
-  .msg.err { color: var(--red); }
+  .msg { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+  .msg::before {
+    content: ""; display: block; width: 28px; height: 28px; margin: 0 auto 14px;
+    border-radius: 50%; border: 3px solid var(--line2); border-top-color: var(--red);
+    animation: spin .8s linear infinite;
+  }
+  .msg.err::before, .msg.static::before { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .msg.err { color: var(--red2); }
   .note {
-    padding: 18px 0 0;
+    padding: 14px 16px;
     margin-top: 18px;
-    border-top: 1px solid var(--line);
+    background: rgba(18, 24, 33, .6);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--gold);
+    border-radius: 10px;
     color: var(--muted);
-    font-size: 12px;
-    max-width: 70ch;
+    font-size: 12.5px;
+    max-width: 90ch;
   }
   footer {
     padding: 26px 20px 56px;
     color: var(--muted);
     font-size: 12px;
-    border-top: 2px solid var(--text);
-    max-width: 80ch;
+    border-top: 1px solid var(--line);
   }
-  a { color: var(--red); text-decoration: none; border-bottom: 1px solid currentColor; }
-  a:hover { color: var(--text); }
-  @media (max-width: 640px) {
+  footer p { max-width: 90ch; margin: 0; }
+  a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(232, 184, 90, .4); }
+  a:hover { color: var(--text); border-bottom-color: currentColor; }
+  @media (max-width: 720px) {
+    header { padding: 26px 16px 18px; }
+    h1 { font-size: 24px; }
+    td, th { padding-left: 6px; padding-right: 6px; }
+    .bar { min-width: 70px; }
+    .logo { width: 44px; height: 44px; font-size: 20px; border-radius: 12px; }
+    .tabs { margin: 0 12px; }
+    .controls, .stats { padding-left: 16px; padding-right: 16px; }
+    main { padding: 0 12px 60px; }
     select, input { min-width: 0; width: 100%; }
     .hide-sm { display: none; }
-    .tabs button { padding: 13px 12px 10px; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .ranks { grid-template-columns: repeat(4, 1fr); }
+    .modal { padding: 0; }
+    .modal-box { border-radius: 0; min-height: 100%; }
+    .modal-head { padding: 24px 16px 18px; }
+    .modal-head img { width: 88px; height: 50px; }
+    .modal-head h2 { font-size: 24px; }
+    .modal-body { padding: 16px; }
+    .bgroup { padding: 12px; }
+    .item-slot { width: calc(33.3% - 7px); min-width: 92px; }
   }
 </style>
 </head>
@@ -308,8 +495,11 @@
 
 <header>
   <div class="wrap">
-    <h1>DOTA 2 — <span>пики героев</span> на крупных турнирах</h1>
-    <div class="sub" id="sub">Загрузка…</div>
+    <div class="logo">D2</div>
+    <div>
+      <h1>Dota 2 — <span>пики героев</span> на крупных турнирах</h1>
+      <div class="sub" id="sub">Загрузка…</div>
+    </div>
   </div>
 </header>
 
@@ -346,13 +536,15 @@
   </div>
 </div>
 
-<footer class="wrap">
+<footer class="wrap"><p>
   Данные: <a href="https://www.opendota.com" target="_blank" rel="noopener">OpenDota API</a>.
   Учитываются только матчи 2026 года на актуальном патче, турниры уровня premium и professional.
   Контест = доля матчей, где герой был выбран или забанен.
   Цены — <a href="https://steamcommunity.com/market/search?appid=570" target="_blank" rel="noopener">Steam Community Market</a>,
   обновляются раз в сутки.
-</footer>
+  Статистика по рангам — публичные матчи из
+  <a href="https://docs.opendota.com/#tag/hero-stats" target="_blank" rel="noopener">heroStats</a> OpenDota.
+</p></footer>
 
 <script>
 const API = 'https://api.opendota.com/api';
@@ -431,6 +623,17 @@ const BUILD_PHASES = [
   { key: 'mid_game_items', title: 'Середина', note: 'Основной костяк' },
   { key: 'late_game_items', title: 'Поздняя игра', note: 'Что собирают в конце' },
 ];
+// Ранги по порядку rank_tier OpenDota: 1 — Рекрут … 8 — Титан.
+const RANKS = [
+  { n: 1, name: 'Рекрут', c: '#a88a6c' },
+  { n: 2, name: 'Страж', c: '#8fb07a' },
+  { n: 3, name: 'Рыцарь', c: '#5fb8b0' },
+  { n: 4, name: 'Герой', c: '#5b8fd8' },
+  { n: 5, name: 'Легенда', c: '#a07be0' },
+  { n: 6, name: 'Властелин', c: '#e0b35a' },
+  { n: 7, name: 'Божество', c: '#dfe6ee' },
+  { n: 8, name: 'Титан', c: '#ec5c4e' },
+];
 const plural = (n, one, few, many) => {
   const a = Math.abs(n) % 100, b = a % 10;
   return a > 10 && a < 20 ? many : b > 1 && b < 5 ? few : b === 1 ? one : many;
@@ -439,6 +642,7 @@ const plural = (n, one, few, many) => {
 let items = null;
 let builds = {};
 let tiBuilds = {};
+let rankBuilds = {};
 let buildSrc = 'all';
 let buildsError = '';
 
@@ -479,7 +683,7 @@ function sql(query) {
 
 function showMsg(text, isError) {
   el.msg.textContent = text;
-  el.msg.className = 'msg' + (isError ? ' err' : '');
+  el.msg.className = 'msg' + (isError ? ' err' : /…$/.test(text) ? '' : ' static');
   el.msg.hidden = false;
   el.view.innerHTML = '';
 }
@@ -665,7 +869,7 @@ function renderTournaments() {
     { key: 'wr', label: 'Винрейт' },
   ];
 
-  el.view.innerHTML = tiBanner() + `<table><thead>${header(cols, sort[tab])}</thead><tbody>` +
+  el.view.innerHTML = tiBanner() + `<div class="scroll"><table><thead>${header(cols, sort[tab])}</thead><tbody>` +
     list.map((h, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
@@ -675,7 +879,7 @@ function renderTournaments() {
         <td class="num hide-sm">${h.contest.toFixed(0)}%</td>
         <td class="num hide-sm">${h.wins}</td>
         <td class="${wrClass(h.wr)}">${h.picks ? h.wr.toFixed(1) + '%' : '—'}</td>
-      </tr>`).join('') + '</tbody></table>';
+      </tr>`).join('') + '</tbody></table></div>';
   el.msg.hidden = true;
 }
 
@@ -722,9 +926,10 @@ function renderHero() {
   ];
 
   el.view.innerHTML = `
-    <div class="hero clickable" data-hero="${id}" style="gap:14px;padding:4px 0 14px">
-      <img src="${heroImg(id)}" alt="" style="width:88px;height:50px">
-      <div style="font-size:20px">${esc(heroName(id))} <span class="dim" style="font-size:13px">— сборки ↗</span></div>
+    <div class="hero clickable" data-hero="${id}" style="gap:16px;padding:4px 0 16px">
+      <img src="${heroImg(id)}" alt="" style="width:96px;height:54px;border-radius:10px">
+      <div><div style="font:700 24px/1.1 var(--head);text-transform:uppercase">${esc(heroName(id))}</div>
+        <span class="dim" style="font-size:13px">Открыть сборки по рангам ↗</span></div>
     </div>
     <div class="scroll plain"><table><thead>${header(cols, sort.hero)}</thead><tbody>` +
     list.map((r, i) => `
@@ -928,28 +1133,135 @@ function closeBuild() {
   document.body.style.overflow = '';
 }
 
+const ATTR = { str: 'Сила', agi: 'Ловкость', int: 'Интеллект', all: 'Универсальный' };
+
+function rankStats(id) {
+  const h = heroes[id] || {};
+  return RANKS.map(r => {
+    const picks = +h[`${r.n}_pick`] || 0;
+    const wins = +h[`${r.n}_win`] || 0;
+    // В каждом матче десять героев, поэтому сумма пиков по рангу / 10 — число матчей в выборке.
+    const games = Object.values(heroes).reduce((s, x) => s + (+x[`${r.n}_pick`] || 0), 0) / 10;
+    return { ...r, picks, wins, wr: picks ? wins / picks * 100 : 0, rate: games ? picks / games * 100 : 0 };
+  });
+}
+
+// Предметы в конце матча для одного ранга — по публичным матчам последней недели.
+async function loadRankBuild(id, n) {
+  const key = `${id}:${n}`;
+  try {
+    await loadItems();
+    const from = `FROM public_player_matches p
+                  JOIN public_matches pm ON pm.match_id = p.match_id
+                  WHERE pm.start_time >= extract(epoch from now() - interval '7 days')
+                    AND pm.avg_rank_tier >= ${n * 10} AND pm.avg_rank_tier < ${n * 10 + 10}
+                    AND p.hero_id = ${id}`;
+    const win = `CASE WHEN (p.player_slot < 128) = pm.radiant_win THEN 1 ELSE 0 END`;
+    const [list, cnt] = await Promise.all([
+      sql(`SELECT item, count(*) AS n, sum(win) AS w FROM (
+             SELECT unnest(ARRAY[p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5]) AS item,
+                    ${win} AS win
+             ${from}
+           ) s WHERE item > 0 GROUP BY 1 ORDER BY n DESC LIMIT 12`),
+      sql(`SELECT count(*) AS n, sum(${win}) AS w ${from}`),
+    ]);
+    rankBuilds[key] = {
+      games: +(cnt[0]?.n || 0),
+      wins: +(cnt[0]?.w || 0),
+      list: list.map(r => ({ id: r.item, n: +r.n, w: +r.w, ...(items[r.item] || { name: '', img: '' }) }))
+                .filter(i => i.name),
+    };
+  } catch (e) {
+    rankBuilds[key] = { error: e.message, games: 0, list: [] };
+  }
+}
+
 function buildTabs(active) {
   return `<div class="acts">
-    <button data-src="all" class="${active === 'all' ? 'on' : ''}">Все про-матчи</button>
-    <button data-src="ti" class="${active === 'ti' ? 'on' : ''}">Только TI 2026</button>
+    <button data-src="all" class="${active === 'all' ? 'on' : ''}">🏆 Про-сцена</button>
+    <button data-src="ti" class="${active === 'ti' ? 'on' : ''}">TI 2026</button>
+    <span class="lbl">Ранг:</span>
+    ${RANKS.map(r => `<button data-src="r${r.n}" class="${active === 'r' + r.n ? 'on' : ''}"
+        title="${r.name}"><span class="medal" style="--c:${r.c}">${r.name[0]}</span><span class="hide-sm">${r.name}</span></button>`).join('')}
   </div>`;
+}
+
+function ranksPanel(id, active) {
+  const list = rankStats(id);
+  if (!list.some(r => r.picks)) return '';
+  const lo = Math.min(...list.map(r => r.wr)) - 2;
+  const hi = Math.max(...list.map(r => r.wr)) + 1;
+  const best = list.reduce((a, b) => b.wr > a.wr ? b : a);
+  return `<div class="ranks">
+    <h4><span>Винрейт по рангам · публичные матчи</span>
+      <span>Лучше всего играется: <b style="color:${best.c}">${best.name}</b> — ${best.wr.toFixed(1)}%</span></h4>
+    ${list.map(r => `
+      <button class="rcol ${active === 'r' + r.n ? 'on' : ''}" data-src="r${r.n}" style="--c:${r.c}">
+        <span class="wr ${wrClass(r.wr)}">${r.picks ? r.wr.toFixed(1) + '%' : '—'}</span>
+        <span class="col"><i style="height:${Math.max(4, (r.wr - lo) / (hi - lo) * 100)}%"></i></span>
+        <span class="medal lg" style="--c:${r.c}">${r.name[0]}</span>
+        <small>${r.name}<br>${r.rate.toFixed(1)}% пиков</small>
+      </button>`).join('')}
+  </div>`;
+}
+
+function itemSlot(i, sub, share) {
+  return `<div class="slot item-slot" title="${esc(i.name)}">
+    ${share != null ? `<span class="pct">${Math.round(share)}%</span>` : ''}
+    <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
+    <div class="nm">${esc(i.name)}</div>
+    <div class="rec">${sub}</div>
+    ${share != null ? `<div class="meter"><i style="width:${Math.min(100, share)}%"></i></div>` : ''}
+  </div>`;
+}
+
+function phasesHtml(phases) {
+  return '<div class="board">' + phases.map(p => {
+    const top = Math.max(1, ...p.list.map(i => i.n));
+    return `
+    <div class="bgroup">
+      <h3>${esc(p.title)}</h3>
+      <p>${esc(p.note)}</p>
+      <div class="slots">${p.list.map(i => `
+        <div class="slot item-slot" title="${esc(i.name)}">
+          <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
+          <div class="nm">${esc(i.name)}</div>
+          <div class="rec">${i.n.toLocaleString('ru-RU')} ${plural(i.n, 'покупка', 'покупки', 'покупок')}</div>
+          <div class="meter"><i style="width:${i.n / top * 100}%"></i></div>
+        </div>`).join('') || '<span class="dim">нет данных</span>'}</div>
+    </div>`;
+  }).join('') + '</div>';
 }
 
 function renderBuildModal() {
   const id = buildHero;
   if (id == null) return;
+  const h = heroes[id] || {};
   const box = el.modal.querySelector('.modal-body');
   el.modal.querySelector('.modal-head').innerHTML =
-    `<img src="${heroImg(id)}" alt="">
-     <div><h2>${esc(heroName(id))}</h2><div class="sub2">Сборки предметов</div></div>`;
+    `<div class="bg" style="background-image:url('${heroImg(id)}')"></div>
+     <img src="${heroImg(id)}" alt="">
+     <div><h2>${esc(heroName(id))}</h2>
+       <div class="sub2">Сборки предметов — про-сцена, TI 2026 и каждый ранг</div>
+       <div class="tags">
+         ${ATTR[h.primary_attr] ? `<span>${ATTR[h.primary_attr]}</span>` : ''}
+         ${h.attack_type ? `<span>${h.attack_type === 'Melee' ? 'Ближний бой' : 'Дальний бой'}</span>` : ''}
+         ${(h.roles || []).slice(0, 4).map(r => `<span>${esc(r)}</span>`).join('')}
+       </div></div>`;
+
+  const top = buildTabs(buildSrc) + ranksPanel(id, buildSrc);
 
   if (buildsError) {
-    box.innerHTML = buildTabs(buildSrc) + `<div class="msg err">Не удалось загрузить: ${esc(buildsError)}</div>`;
+    box.innerHTML = top + `<div class="msg err">Не удалось загрузить: ${esc(buildsError)}</div>`;
     return;
   }
+
+  const rank = RANKS.find(r => 'r' + r.n === buildSrc);
+  if (rank) return renderRankBuild(id, rank, box, top);
+
   const store = buildSrc === 'ti' ? tiBuilds : builds;
   if (!store[id]) {
-    box.innerHTML = buildTabs(buildSrc) + `<div class="msg">Загрузка сборок…</div>`;
+    box.innerHTML = top + `<div class="msg">Загрузка сборок…</div>`;
     (buildSrc === 'ti' ? loadTiBuild(id) : loadBuild(id))
       .then(() => { if (buildHero === id) renderBuildModal(); });
     return;
@@ -958,49 +1270,91 @@ function renderBuildModal() {
   if (buildSrc === 'ti') {
     const b = tiBuilds[id];
     if (!b.list.length) {
-      box.innerHTML = buildTabs('ti') + '<div class="msg">На TI 2026 этого героя не брали</div>';
+      box.innerHTML = top + '<div class="msg static">На TI 2026 этого героя не брали</div>';
       return;
     }
-    box.innerHTML = buildTabs('ti') +
+    box.innerHTML = top +
       `<div class="stats"><div>Взят на TI: <b>${b.picks}</b> ${plural(b.picks, 'раз', 'раза', 'раз')}</div></div>` +
       '<div class="board"><div class="bgroup">' +
       `<h3>Итоговый инвентарь</h3><p>Что оставалось в слотах к концу матча</p>` +
-      '<div class="slots">' + b.list.map(i => `
-        <div class="slot item-slot">
-          <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
-          <div class="nm">${esc(i.name)}</div>
-          <div class="rec">${i.n} ${plural(i.n, 'раз', 'раза', 'раз')}</div>
-        </div>`).join('') + '</div></div></div>' +
+      '<div class="slots">' + b.list.map(i =>
+        itemSlot(i, `${i.n} ${plural(i.n, 'раз', 'раза', 'раз')}`, b.picks ? i.n / b.picks * 100 : null)
+      ).join('') + '</div></div></div>' +
       `<div class="note">Считается по матчам The International 2026 — это итоговый инвентарь,
         а не порядок закупки: разбивки по стадиям для отдельного турнира OpenDota не даёт.
-        Герой сыгран ${b.picks} ${plural(b.picks, 'раз', 'раза', 'раз')}.
-        ${b.picks < 30 ? `Это мало: числа показывают тенденцию, а не закономерность —
-          для устойчивой картины переключитесь на все про-матчи.` : ''}</div>`;
+        Процент — в какой доле матчей предмет был в слотах.
+        ${b.picks < 30 ? `Выборка маленькая: числа показывают тенденцию, а не закономерность —
+          для устойчивой картины переключитесь на про-сцену.` : ''}</div>`;
     return;
   }
 
   const phases = builds[id];
   const total = phases.reduce((s, p) => s + p.list.reduce((x, i) => x + i.n, 0), 0);
   if (!phases.some(p => p.list.length)) {
-    box.innerHTML = buildTabs('all') + '<div class="msg">По этому герою данных нет</div>';
+    box.innerHTML = top + '<div class="msg static">По этому герою данных нет</div>';
     return;
   }
-  box.innerHTML = buildTabs('all') +
-    `<div class="stats"><div>Покупок в выборке: <b>${total.toLocaleString('ru-RU')}</b></div></div>` +
-    '<div class="board">' + phases.map(p => `
-      <div class="bgroup">
-        <h3>${esc(p.title)}</h3>
-        <p>${esc(p.note)}</p>
-        <div class="slots">${p.list.map(i => `
-          <div class="slot item-slot">
-            <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
-            <div class="nm">${esc(i.name)}</div>
-            <div class="rec">${i.n.toLocaleString('ru-RU')} ${plural(i.n, 'покупка', 'покупки', 'покупок')}</div>
-          </div>`).join('') || '<span class="dim">нет данных</span>'}</div>
-      </div>`).join('') + '</div>' +
+  box.innerHTML = top +
+    `<div class="stats">
+       <div>Покупок в выборке: <b>${total.toLocaleString('ru-RU')}</b></div>
+       ${h.pro_pick ? `<div>Пиков на про-сцене: <b>${h.pro_pick}</b></div>
+         <div>Винрейт у про: <b class="${wrClass(h.pro_win / h.pro_pick * 100)}">${(h.pro_win / h.pro_pick * 100).toFixed(1)}%</b></div>` : ''}
+     </div>` +
+    phasesHtml(phases) +
     `<div class="note">Что профессионалы покупают на этого героя, по данным OpenDota.
       Числа — сколько раз предмет встретился на этой стадии в матчах выборки, а не процент побед:
-      частое не значит лучшее. Порядок и выбор зависят от роли, линии и того, что стоит у соперника.</div>`;
+      частое не значит лучшее. Порядок и выбор зависят от роли, линии и того, что стоит у соперника.
+      Чтобы посмотреть, как героя собирают в обычных играх, выберите ранг выше.</div>`;
+}
+
+function renderRankBuild(id, rank, box, top) {
+  const s = rankStats(id).find(r => r.n === rank.n);
+  const stats = `<div class="stats">
+      <div><span class="medal" style="--c:${rank.c};vertical-align:middle;margin-right:6px">${rank.name[0]}</span>${rank.name}</div>
+      <div>Винрейт: <b class="${wrClass(s.wr)}">${s.picks ? s.wr.toFixed(1) + '%' : '—'}</b></div>
+      <div>Популярность: <b>${s.rate.toFixed(1)}%</b></div>
+      <div>Игр в выборке: <b>${s.picks.toLocaleString('ru-RU')}</b></div>
+    </div>`;
+
+  const key = `${id}:${rank.n}`;
+  const b = rankBuilds[key];
+  if (!b) {
+    box.innerHTML = top + stats + `<div class="msg">Считаю сборку для ранга «${rank.name}»…</div>`;
+    loadRankBuild(id, rank.n).then(() => { if (buildHero === id) renderBuildModal(); });
+    return;
+  }
+
+  if (b.error || !b.list.length) {
+    // Публичные матчи с предметами OpenDota отдаёт не всегда — тогда показываем
+    // статистику ранга и про-сборку как ориентир, а не пустой экран.
+    if (!builds[id]) {
+      box.innerHTML = top + stats + `<div class="msg">Загрузка сборок…</div>`;
+      loadBuild(id).then(() => { if (buildHero === id) renderBuildModal(); });
+      return;
+    }
+    box.innerHTML = top + stats +
+      `<div class="note" style="margin:0 0 18px">Предметы по рангу «${rank.name}» OpenDota сейчас не отдал
+        ${b.error ? `(${esc(b.error)})` : '— за последнюю неделю подходящих матчей не нашлось'}.
+        Винрейт и популярность выше — настоящие данные ранга; ниже для ориентира — сборка про-сцены.</div>` +
+      phasesHtml(builds[id]);
+    return;
+  }
+
+  const wr = b.games ? b.wins / b.games * 100 : 0;
+  box.innerHTML = top + stats +
+    '<div class="board"><div class="bgroup">' +
+    `<h3>Сборка на ранге «${esc(rank.name)}»</h3>
+     <p>Итоговый инвентарь за последние 7 дней: ${b.games.toLocaleString('ru-RU')}
+       ${plural(b.games, 'матч', 'матча', 'матчей')}, винрейт ${wr.toFixed(1)}%</p>` +
+    '<div class="slots">' + b.list.map(i => {
+      const iwr = i.n ? i.w / i.n * 100 : 0;
+      return itemSlot(i, `<span class="${wrClass(iwr)}">${iwr.toFixed(0)}% побед</span>`, b.games ? i.n / b.games * 100 : null);
+    }).join('') + '</div></div></div>' +
+    `<div class="note">Публичные матчи OpenDota, где средний ранг лобби — «${rank.name}».
+      Процент в углу — в какой доле матчей предмет был в слотах к концу игры,
+      ниже — винрейт матчей с этим предметом. Высокий винрейт у поздних предметов
+      во многом следствие того, что до них доживают в выигранных играх.
+      ${b.games < 200 ? 'Выборка небольшая, числа могут заметно гулять.' : ''}</div>`;
 }
 
 async function loadTeams() {
@@ -1358,7 +1712,7 @@ el.view.onchange = e => {
 
 el.modal.addEventListener('click', e => {
   if (e.target === el.modal || e.target.closest('.modal-x')) return closeBuild();
-  const src = e.target.closest('.acts button[data-src]');
+  const src = e.target.closest('[data-src]');
   if (src) {
     buildSrc = src.dataset.src;
     buildsError = '';
