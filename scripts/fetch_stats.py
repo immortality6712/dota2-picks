@@ -71,7 +71,7 @@ def sql(query):
 
 def collect_stats():
     hero_list = od("/heroStats")
-    keep = ["id", "localized_name", "img", "primary_attr", "attack_type", "roles", "pro_pick", "pro_win"]
+    keep = ["id", "name", "localized_name", "img", "primary_attr", "attack_type", "roles", "pro_pick", "pro_win"]
     keep += [f"{n}_{k}" for n in range(1, 8) for k in ("pick", "win")]
     heroes = [{k: h.get(k) for k in keep} for h in hero_list]
 
@@ -168,12 +168,15 @@ def collect_stats():
     log(f"positions for {len(pos)} heroes")
 
     matchups = collect_matchups(where)
+    skills, abilities = collect_skills(where, heroes)
 
     return {
         "patch": patch,
         "pos": pos,
         "pos_w": pos_w,
         "matchups": matchups,
+        "skills": skills,
+        "abilities": abilities,
         "heroes": heroes,
         "leagues": [[int(l["leagueid"]), l["name"], int(l["matches"]),
                      int(l["first_match"]), int(l["last_match"])] for l in leagues],
@@ -199,6 +202,99 @@ def rank_pairs(lst, base=None):
 MATCHUP_MIN = 5   # меньше матчей на пару — не показываем
 MATCHUP_K = 10    # сглаживание винрейта к среднему героя
 MATCHUP_TOP = 6
+
+
+SKILL_PREFIX = 10  # сколько первых повышений способностей сравниваем между матчами
+
+
+def fill_template(v, name):
+    """Название таланта в OpenDota — шаблон вида «+{s:value} Armor»: подставляем числа из attrib."""
+    text = v.get("dname") or name.replace("special_bonus_", "").replace("_", " ")
+    vals = {}
+    for at in v.get("attrib") or []:
+        val = at.get("value")
+        if isinstance(val, list):
+            val = "/".join(str(x) for x in val)
+        if at.get("key") is not None and val is not None:
+            vals[str(at["key"])] = str(val)
+    text = re.sub(r"\{s:([^}]+)\}", lambda m: vals.get(m.group(1), ""), text)
+    return re.sub(r"\s+", " ", re.sub(r"\{[^}]*\}", "", text)).strip()
+
+
+def collect_skills(where, heroes):
+    """Порядок прокачки и таланты в про-матчах патча по ability_upgrades_arr из OpenDota."""
+    try:
+        rows = sql(f"""SELECT pm.hero_id, pm.ability_upgrades_arr AS a,
+                              CASE WHEN (pm.player_slot < 128) = m.radiant_win THEN 1 ELSE 0 END AS win
+                       FROM player_matches pm
+                       JOIN matches m ON m.match_id = pm.match_id
+                       JOIN match_patch mp ON mp.match_id = m.match_id
+                       JOIN leagues l ON l.leagueid = m.leagueid
+                       {where} AND pm.ability_upgrades_arr IS NOT NULL""")
+        ability_ids = od("/constants/ability_ids")
+        abil = od("/constants/abilities")
+        hero_abil = od("/constants/hero_abilities")
+    except RuntimeError as e:
+        log(f"  skills: {e}")
+        return {}, {}
+    id_by_name = {v: int(k) for k, v in ability_ids.items()}
+    npc = {h["id"]: h.get("name") for h in heroes}
+
+    by_hero = {}
+    for r in rows:
+        arr = r["a"] if isinstance(r["a"], list) else []
+        if arr:
+            by_hero.setdefault(r["hero_id"], []).append((arr, int(r["win"])))
+
+    out, used = {}, set()
+    for hid, games in by_hero.items():
+        info = hero_abil.get(npc.get(hid) or "", {})
+        talents = {}  # id способности → уровень таланта 1..4 (10/15/20/25)
+        for t in info.get("talents") or []:
+            if t.get("name") in id_by_name:
+                talents[id_by_name[t["name"]]] = int(t.get("level") or 0)
+
+        def is_skill(a):
+            return a not in talents and not ability_ids.get(str(a), "").startswith("special_bonus")
+
+        # Самая частая последовательность первых повышений (без талантов).
+        seqs = {}
+        for arr, win in games:
+            key = tuple(a for a in arr if is_skill(a))[:SKILL_PREFIX]
+            if len(key) == SKILL_PREFIX:
+                cur = seqs.setdefault(key, [0, 0])
+                cur[0] += 1
+                cur[1] += win
+        order, share = [], 0
+        if seqs:
+            key, (n, w) = max(seqs.items(), key=lambda kv: kv[1][0])
+            order, share = list(key), round(n / sum(v[0] for v in seqs.values()), 3)
+
+        # Выбор таланта на каждом уровне: сколько раз взяли и сколько из этих игр выиграли.
+        tcount = {}
+        for arr, win in games:
+            for a in set(arr):
+                if a in talents:
+                    cur = tcount.setdefault(a, [0, 0])
+                    cur[0] += 1
+                    cur[1] += win
+        tiers = []
+        for lvl in (1, 2, 3, 4):
+            opts = [[a, *tcount.get(a, [0, 0])] for a, l in talents.items() if l == lvl]
+            if opts:
+                tiers.append([lvl, opts])
+        out[str(hid)] = {"n": len(games), "order": order, "share": share, "talents": tiers}
+        used.update(order)
+        used.update(talents)
+
+    abilities = {}
+    for a in used:
+        name = ability_ids.get(str(a), "")
+        v = abil.get(name) or {}
+        dname = fill_template(v, name)
+        abilities[str(a)] = [dname.strip(), v.get("img") or ""]
+    log(f"skills for {len(out)} heroes, abilities {len(abilities)}")
+    return out, abilities
 
 
 def collect_matchups(where):
@@ -322,6 +418,16 @@ def stratz_schema():
             extras[key] = (name,) + item_shape(unwrap(f["type"])["name"])
         except RuntimeError as e:
             log(f"stratz: {name}: {e}")
+    # Таланты по рангам: поле с «talent» в имени и id способности в ответе.
+    log("stratz: поля heroStats: " + ", ".join(sorted(by_name)))
+    tf = next((f for f in fields if "talent" in f["name"].lower()), None)
+    if tf and {"heroId", brackets[1][0]} <= {a["name"] for a in tf["args"]}:
+        try:
+            extras["talent"] = (tf["name"],) + item_shape(unwrap(tf["type"])["name"], ("abilityId",))
+        except RuntimeError as e:
+            log(f"stratz: {tf['name']}: {e}")
+    else:
+        log(f"stratz: полей талантов с фильтром по рангу нет ({tf and tf['name']})")
     mu = None
     f = next((f for f in fields if "matchup" in f["name"].lower()), None)
     if f:
@@ -338,8 +444,9 @@ def stratz_schema():
 EXTRA_FIELDS = {"start": "itemStartingPurchase", "boots": "itemBootPurchase", "neutral": "itemNeutral"}
 
 
-def item_shape(ret):
+def item_shape(ret, id_keys=None):
     """Ищет (до трёх уровней вглубь) объект с id предмета и числом матчей и строит выборку полей."""
+    id_keys = id_keys or ITEM_KEYS
     tree = []
     queue = [(ret, [])]
     found = None
@@ -348,7 +455,7 @@ def item_shape(ret):
         fields = gql(TYPE_Q, {"n": tname})["__type"]["fields"] or []
         names = {f["name"] for f in fields}
         tree.append(f"{'.'.join([ret] + path)}: {sorted(names)}")
-        item = next((x for x in ITEM_KEYS if x in names), None)
+        item = next((x for x in id_keys if x in names), None)
         count = next((x for x in COUNT_KEYS if x in names), None)
         if item and count:
             found = (path, item, count, next((x for x in WIN_KEYS if x in names), None),

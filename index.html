@@ -418,6 +418,39 @@
   .mini small { font-size: 10px; color: var(--muted); line-height: 1.2; }
   .mini i { position: absolute; left: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--red2)); }
 
+  .skillgrid { display: grid; grid-template-columns: minmax(120px, 170px) repeat(var(--cols), minmax(22px, 1fr));
+               gap: 4px; align-items: center; overflow-x: auto; }
+  .skillgrid .lvl { text-align: center; font-size: 11px; color: var(--muted); }
+  .skillgrid .skill { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .skillgrid .skill img { width: 28px; height: 28px; border-radius: 6px; flex: none; }
+  .skillgrid .skill small { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .skillgrid .cell { height: 26px; border-radius: 5px; background: var(--panel2); }
+  .skillgrid .cell.on { background: linear-gradient(180deg, var(--gold), #b8862d); box-shadow: 0 0 10px rgba(232, 184, 90, .35); }
+  .talents { display: flex; flex-direction: column; gap: 6px; }
+  .tal-row { display: grid; grid-template-columns: 1fr 44px 1fr; gap: 6px; align-items: stretch; }
+  .tal { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 8px 10px;
+         background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; font-size: 12px; }
+  .tal.left { text-align: right; }
+  .tal.pick { border-color: rgba(232, 184, 90, .7); background: rgba(232, 184, 90, .08); }
+  .tal small { color: var(--muted); font-size: 11px; }
+  .tal-lvl { display: grid; place-items: center; border-radius: 50%; width: 44px; height: 44px; align-self: center;
+             background: var(--panel3); font: 700 16px/1 var(--head); color: var(--gold); }
+
+  .player-form { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .player-form input { flex: 1 1 320px; width: auto; }
+  .player-form button { background: linear-gradient(135deg, var(--red), #b52c23); color: #fff; border: none;
+                        border-radius: 10px; padding: 10px 18px; font: inherit; font-weight: 600; cursor: pointer; }
+  .player-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px;
+                 background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+  .player-card > img { width: 72px; height: 72px; border-radius: 14px; }
+  .player-card h2 { margin: 0 0 4px; font: 700 26px/1.1 var(--head); }
+  .player-rank { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .player-rank small { display: block; color: var(--muted); }
+  .player-cols { display: grid; grid-template-columns: 1fr 1.2fr; gap: 18px; }
+  .player-cols .bgroup { min-width: 0; }
+  .ptable td, .ptable th { padding: 6px 6px; background: none; }
+  .ptable .hero img { width: 44px; height: 25px; }
+
   /* Порядок сборки */
   .timeline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
   .timeline .arrow { color: var(--muted); font-size: 22px; }
@@ -542,6 +575,8 @@
     .stats { grid-template-columns: 1fr 1fr; }
     .ranks { grid-template-columns: repeat(4, 1fr); }
     .posgrid { grid-template-columns: repeat(3, 1fr); }
+    .player-cols { grid-template-columns: 1fr; }
+    .player-rank { margin-left: 0; }
     .mugrid { grid-template-columns: 1fr 1fr; }
     .tier-badge { width: 40px; font-size: 24px; }
     .tier-hero { width: calc(50% - 4px); }
@@ -573,6 +608,7 @@
     <button data-tab="tournaments" class="on">Турниры</button>
     <button data-tab="ti">The International 2026</button>
     <button data-tab="tier">Тир-лист</button>
+    <button data-tab="player">Игрок</button>
     <button data-tab="hero">Герой по турнирам</button>
     <button data-tab="matrix">Матрица</button>
     <button data-tab="prices">Цены Steam</button>
@@ -879,6 +915,8 @@ function fromCache(d) {
   }
   heroPos = d.pos || {};
   heroPosW = d.pos_w || {};
+  heroSkills = d.skills || {};
+  abilityDict = d.abilities || {};
   matchups = d.matchups || {};
   cacheInfo = { updated: d.updated };
   return {
@@ -966,6 +1004,8 @@ function syncLeagueSelect() {
 // Позиции героев в про-матчах: [пос1, …, пос5] — сколько раз героя сыграли на каждой.
 let heroPos = {};
 let heroPosW = {};
+let heroSkills = {};
+let abilityDict = {};
 let matchups = {};
 const POS_MIN_SHARE = 0.2;
 // Если посчитать позиции не удалось — грубая оценка по ролям героя из OpenDota.
@@ -1154,6 +1194,146 @@ function renderTier() {
       Под именем — винрейт и доля матчей с героем; стрелка — как изменился винрейт
       ${past ? `с ${new Date(past.day).toLocaleDateString('ru-RU')}` : 'за неделю (история копится с сегодняшнего дня)'}. Героев реже ${TIER_MIN_RATE}% матчей
       отправляем в D: данных слишком мало. Клик по герою открывает его сборку на этом ранге.</div>`;
+  el.msg.hidden = true;
+}
+
+// ---------- Игрок: профиль и матчи из OpenDota по Steam ID ----------
+const STEAM64_BASE = 76561197960265728n;
+const PLAYER_KEY = 'dota2-picks-player';
+let playerId = null;
+try { playerId = localStorage.getItem(PLAYER_KEY); } catch {}
+const players = {};  // id → данные или { error }
+
+// Принимает 32-битный ID, 64-битный Steam ID или ссылку на Steam/OpenDota/Dotabuff/Stratz.
+function parsePlayerId(raw) {
+  const s = raw.trim();
+  if (/steamcommunity\.com\/id\//i.test(s)) return { error: 'Ссылки с именем профиля (/id/…) не поддерживаются — нужна ссылка вида /profiles/7656… или числовой ID.' };
+  const m = s.match(/(\d{5,20})/);
+  if (!m) return { error: 'Не нашёл в строке числового ID.' };
+  let n = BigInt(m[1]);
+  if (n >= STEAM64_BASE) n -= STEAM64_BASE;
+  return { id: n.toString() };
+}
+
+async function loadPlayer(id) {
+  const get = path => fetch(`${API}/players/${id}${path}`).then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)));
+  try {
+    const [profile, wl, recent, heroesPlayed] = await Promise.all([
+      get(''), get('/wl'), get('/recentMatches'), get('/heroes'),
+    ]);
+    players[id] = { profile, wl, recent: recent || [], heroes: heroesPlayed || [] };
+  } catch (e) {
+    players[id] = { error: e.message };
+  }
+}
+
+function rankLabel(tier) {
+  if (!tier) return null;
+  const n = Math.floor(tier / 10), stars = tier % 10;
+  if (n === 8) return { name: 'Титан', c: '#ec5c4e', stars: 0, n };
+  const r = RANKS.find(x => x.n === n);
+  return r ? { ...r, stars } : null;
+}
+
+const fmtDur = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+function renderPlayer() {
+  el.stats.innerHTML = '';
+  const form = `<form class="player-form" id="player-form">
+      <input name="q" placeholder="Steam ID, ID из OpenDota/Dotabuff или ссылка на профиль" value="${esc(playerId || '')}" autocomplete="off">
+      <button type="submit">Показать</button>
+    </form>`;
+  if (!playerId) {
+    el.view.innerHTML = form + `<div class="note">Вставьте ссылку на профиль Steam вида
+      <code>steamcommunity.com/profiles/7656…</code>, ссылку на OpenDota/Dotabuff или числовой ID аккаунта.
+      Данные берутся из OpenDota; если профиль скрыт в настройках Dota 2, матчей видно не будет.</div>`;
+    el.msg.hidden = true;
+    return;
+  }
+  const d = players[playerId];
+  if (!d) {
+    el.view.innerHTML = form;
+    el.msg.hidden = true;
+    el.view.insertAdjacentHTML('beforeend', '<div class="msg">Загрузка профиля…</div>');
+    const id = playerId;
+    loadPlayer(id).then(() => { if (tab === 'player' && playerId === id) render(); });
+    return;
+  }
+  if (d.error || !d.profile?.profile) {
+    el.view.innerHTML = form + `<div class="msg err">${d.error
+      ? `Не удалось загрузить профиль: ${esc(d.error)}`
+      : 'Такого профиля в OpenDota нет или он скрыт. Проверьте ID и включите «Общедоступную историю матчей» в настройках Dota 2.'}</div>`;
+    el.msg.hidden = true;
+    return;
+  }
+
+  const p = d.profile.profile;
+  const rk = rankLabel(d.profile.rank_tier);
+  const games = (d.wl.win || 0) + (d.wl.lose || 0);
+  const pwr = games ? d.wl.win / games * 100 : 0;
+  el.stats.innerHTML = `
+    <div>Матчей: <b>${games.toLocaleString('ru-RU')}</b></div>
+    <div>Винрейт: <b class="${wrClass(pwr)}">${pwr.toFixed(1)}%</b></div>
+    <div>Победы / поражения: <b>${d.wl.win || 0}</b> / ${d.wl.lose || 0}</div>`;
+
+  // Средний винрейт героя на ранге игрока — чтобы было с чем сравнивать.
+  const avgWr = hid => {
+    const h = heroes[hid];
+    if (!h || !rk || rk.n > 7) return null;
+    const pk = +h[`${rk.n}_pick`] || 0;
+    return pk ? (+h[`${rk.n}_win`] || 0) / pk * 100 : null;
+  };
+  const top = d.heroes.filter(h => h.games > 0).slice(0, 12);
+  const recent = d.recent.slice(0, 20);
+
+  el.view.innerHTML = form + `
+    <div class="player-card">
+      ${p.avatarfull ? `<img src="${esc(p.avatarfull)}" alt="">` : ''}
+      <div>
+        <h2>${esc(p.personaname || 'Игрок ' + playerId)}</h2>
+        <div class="dim">ID ${esc(playerId)}${p.profileurl ? ` · <a href="${esc(p.profileurl)}" target="_blank" rel="noopener">Steam</a>` : ''}
+          · <a href="https://www.opendota.com/players/${esc(playerId)}" target="_blank" rel="noopener">OpenDota</a></div>
+      </div>
+      ${rk ? `<div class="player-rank"><span class="medal lg" style="--c:${rk.c}">${rk.name[0]}</span>
+        <div><b>${rk.name}${rk.stars ? ' ' + '★'.repeat(rk.stars) : ''}</b>
+        ${d.profile.leaderboard_rank ? `<small>#${d.profile.leaderboard_rank} в таблице лидеров</small>` : ''}</div></div>`
+        : '<div class="player-rank dim">Ранг не откалиброван или скрыт</div>'}
+    </div>
+    <div class="player-cols">
+      <div class="bgroup">
+        <h3>Частые герои</h3>
+        <p>${rk && rk.n <= 7 ? `Рядом — средний винрейт героя на ранге «${rk.name}»` : 'За всё время'}</p>
+        ${top.length ? `<table class="ptable"><thead><tr><th>Герой</th><th class="num">Игр</th><th class="num">Винрейт</th><th class="num">На ранге</th></tr></thead><tbody>
+          ${top.map(h => {
+            const wr = h.win / h.games * 100, avg = avgWr(h.hero_id);
+            return `<tr>
+              <td><div class="hero clickable" data-hero="${h.hero_id}"><img src="${heroImg(h.hero_id)}" alt="" loading="lazy"><span>${esc(heroName(h.hero_id))}</span></div></td>
+              <td class="num">${h.games}</td>
+              <td class="num ${wrClass(wr)}">${wr.toFixed(0)}%</td>
+              <td class="num dim">${avg != null ? avg.toFixed(1) + '%' : '—'}${avg != null && h.games >= 10
+                ? ` <span class="${wr >= avg ? 'wr-hi' : 'wr-lo'}">${wr >= avg ? '▲' : '▼'}</span>` : ''}</td>
+            </tr>`;
+          }).join('')}</tbody></table>` : '<span class="dim">нет данных</span>'}
+      </div>
+      <div class="bgroup">
+        <h3>Последние матчи</h3>
+        <p>${recent.length} последних игр</p>
+        ${recent.length ? `<table class="ptable"><thead><tr><th>Герой</th><th>Итог</th><th class="num">K / D / A</th><th class="num">Время</th><th class="num hide-sm">Когда</th></tr></thead><tbody>
+          ${recent.map(m => {
+            const win = (m.player_slot < 128) === m.radiant_win;
+            return `<tr>
+              <td><div class="hero clickable" data-hero="${m.hero_id}"><img src="${heroImg(m.hero_id)}" alt="" loading="lazy"><span>${esc(heroName(m.hero_id))}</span></div></td>
+              <td><a class="${win ? 'wr-hi' : 'wr-lo'}" href="https://www.opendota.com/matches/${m.match_id}" target="_blank" rel="noopener" style="border:none">${win ? 'Победа' : 'Поражение'}</a></td>
+              <td class="num">${m.kills} / ${m.deaths} / ${m.assists}</td>
+              <td class="num">${fmtDur(m.duration || 0)}</td>
+              <td class="num dim hide-sm">${fmtDate(m.start_time)}</td>
+            </tr>`;
+          }).join('')}</tbody></table>` : '<span class="dim">Матчей не видно — возможно, история матчей скрыта в настройках Dota 2.</span>'}
+      </div>
+    </div>
+    <div class="note">Данные OpenDota по публичному профилю. Клик по герою открывает его сборки.
+      Ранг и матчи обновляются в OpenDota с задержкой; если чего-то не хватает, откройте профиль на
+      <a href="https://www.opendota.com/players/${esc(playerId)}" target="_blank" rel="noopener">OpenDota</a> — это запускает обновление.</div>`;
   el.msg.hidden = true;
 }
 
@@ -1665,12 +1845,70 @@ function renderBuildModal() {
        ${h.pro_pick ? `<div>Пиков на про-сцене: <b>${h.pro_pick}</b></div>
          <div>Винрейт у про: <b class="${wrClass(h.pro_win / h.pro_pick * 100)}">${(h.pro_win / h.pro_pick * 100).toFixed(1)}%</b></div>` : ''}
      </div>` +
-    posPanel(id) + matchupPanel(id) +
+    posPanel(id) + skillsPanel(id) + matchupPanel(id) +
     phasesHtml(phases) +
     `<div class="note">Что профессионалы покупают на этого героя, по данным OpenDota.
       Числа — сколько раз предмет встретился на этой стадии в матчах выборки, а не процент побед:
       частое не значит лучшее. Порядок и выбор зависят от роли, линии и того, что стоит у соперника.
       Чтобы посмотреть, как героя собирают в обычных играх, выберите ранг выше.</div>`;
+}
+
+// Порядок прокачки и таланты. Прокачка — самая частая последовательность в про-матчах,
+// таланты — либо про-матчи, либо выборка ранга из Stratz.
+const TALENT_LEVELS = { 1: 10, 2: 15, 3: 20, 4: 25 };
+function abilityName(a) { return abilityDict[a]?.[0] || `#${a}`; }
+
+function skillsPanel(id) {
+  const sk = heroSkills[id];
+  if (!sk || !sk.order?.length) return '';
+  const rows = [...new Set(sk.order)];
+  return `<div class="bgroup" style="margin-bottom:18px">
+    <h3>Порядок прокачки</h3>
+    <p>Самая частая последовательность первых ${sk.order.length} уровней в про-матчах —
+      так качали в ${Math.round(sk.share * 100)}% из ${sk.n} ${plural(sk.n, 'игры', 'игр', 'игр')}</p>
+    <div class="skillgrid" style="--cols:${sk.order.length}">
+      <span></span>${sk.order.map((_, i) => `<span class="lvl">${i + 1}</span>`).join('')}
+      ${rows.map(a => `
+        <span class="skill" title="${esc(abilityName(a))}">
+          ${abilityDict[a]?.[1] ? `<img src="${CDN}${esc(abilityDict[a][1])}" alt="" loading="lazy">` : ''}
+          <small>${esc(shorten(abilityName(a), 18))}</small>
+        </span>
+        ${sk.order.map(o => `<span class="cell ${o === a ? 'on' : ''}"></span>`).join('')}`).join('')}
+    </div>
+  </div>` + talentsPanel(sk.talents, 'Таланты в про-матчах');
+}
+
+// tiers: [[уровень 1..4, [[id способности, взяли, выиграли], …]], …]
+function talentsPanel(tiers, title, note = '') {
+  if (!tiers?.length) return '';
+  return `<div class="bgroup" style="margin-bottom:18px">
+    <h3>${esc(title)}</h3>
+    <p>${note || 'Какой талант берут на каждом уровне и как с ним выигрывают'}</p>
+    <div class="talents">${[...tiers].sort((a, b) => b[0] - a[0]).map(([lvl, opts]) => {
+      const total = opts.reduce((s, o) => s + o[1], 0) || 1;
+      const [l, r] = opts;
+      const side = (o, cls) => {
+        if (!o) return `<div class="tal ${cls}"></div>`;
+        const share = o[1] / total * 100, wr = o[1] ? o[2] / o[1] * 100 : null;
+        return `<div class="tal ${cls} ${share >= 50 ? 'pick' : ''}">
+          <span>${esc(abilityName(o[0]))}</span>
+          <small>${Math.round(share)}%${wr != null ? ` · <b class="${wrClass(wr)}">${wr.toFixed(0)}% побед</b>` : ''}</small>
+        </div>`;
+      };
+      return `<div class="tal-row">${side(l, 'left')}<div class="tal-lvl">${TALENT_LEVELS[lvl] || lvl}</div>${side(r, 'right')}</div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+// Таланты ранга из Stratz: раскладываем по уровням по про-данным о герое.
+function rankTalents(id, bv, scope) {
+  const list = buildsCacheValue?.extras?.[id]?.[bv]?.talent;
+  const tiers = heroSkills[id]?.talents;
+  if (!list?.length || !tiers?.length) return '';
+  const got = new Map(list.map(([a, n, w]) => [Number(a), [n, w]]));
+  const mapped = tiers.map(([lvl, opts]) => [lvl, opts.map(([a]) => [a, ...(got.get(Number(a)) || [0, 0])])])
+    .filter(([, opts]) => opts.some(o => o[1]));
+  return talentsPanel(mapped, 'Таланты на ранге', `Публичные матчи Stratz · ${esc(scope)}`);
 }
 
 // Винрейт героя по позициям в про-матчах патча.
@@ -1757,7 +1995,7 @@ function renderRankBuild(id, rank, box, top) {
   const bv = buildsCacheValue?.rank_bracket?.[rank.n];
   const mu = bv && buildsCacheValue?.matchups?.[id]?.[bv];
   renderInventory(box, top + stats, `Сборка на ранге «${rank.name}»`, b, scope,
-    extrasHtml(id, bv) + matchupPanel(id, mu, `Публичные матчи Stratz · ${esc(scope)}`));
+    extrasHtml(id, bv) + rankTalents(id, bv, scope) + matchupPanel(id, mu, `Публичные матчи Stratz · ${esc(scope)}`));
 }
 
 // Стартовые предметы, сапоги и нейтралки ранга (Stratz).
@@ -2112,6 +2350,7 @@ function writeHash() {
   if (tab === 'prices' && el.group.value) p.set('group', el.group.value);
   if (!el.role.hidden && el.role.value) p.set('role', el.role.value);
   if (tab === 'tier' && tierRank) p.set('rank', tierRank);
+  if (tab === 'player' && playerId) p.set('id', playerId);
   if (buildHero != null) {
     p.set('build', buildHero);
     if (buildSrc !== 'all') p.set('src', buildSrc);
@@ -2135,6 +2374,7 @@ function readHash() {
   if (pending.group && el.group.options.length) el.group.innerHTML = '';
   if (p.get('hero') && heroes[p.get('hero')]) el.hero.value = p.get('hero');
   el.role.value = [...el.role.options].some(o => o.value === p.get('role')) ? p.get('role') : '';
+  if (/^\d{1,12}$/.test(p.get('id') || '')) playerId = p.get('id');
   tierRank = /^[1-7]$/.test(p.get('rank') || '') ? Number(p.get('rank')) : 0;
   const b = Number(p.get('build'));
   const src = p.get('src') || 'all';
@@ -2150,7 +2390,7 @@ function render() {
   el.league.hidden = !byLeague;
   el.hero.hidden = tab !== 'hero';
   el.group.hidden = tab !== 'prices';
-  el.search.hidden = tab === 'predict';
+  el.search.hidden = tab === 'predict' || tab === 'player';
   el.search.placeholder = tab === 'hero' ? 'Поиск турнира…'
     : tab === 'prices' ? 'Поиск предмета…' : tab === 'sockets' ? 'Поиск гема…' : 'Поиск героя…';
 
@@ -2159,6 +2399,7 @@ function render() {
     renderTournaments();
   } else if (tab === 'hero') renderHero();
   else if (tab === 'tier') renderTier();
+  else if (tab === 'player') renderPlayer();
   else if (tab === 'prices') renderPrices();
   else if (tab === 'sockets') renderSocketsTab();
   else if (tab === 'predict') renderPredict();
@@ -2194,6 +2435,19 @@ el.group.onchange = () => {
   render();
 };
 el.search.oninput = render;
+el.view.addEventListener('submit', e => {
+  if (e.target.id !== 'player-form') return;
+  e.preventDefault();
+  const r = parsePlayerId(e.target.q.value);
+  if (r.error) {
+    e.target.insertAdjacentHTML('afterend', `<div class="msg err">${esc(r.error)}</div>`);
+    return;
+  }
+  playerId = r.id;
+  delete players[playerId];  // «Показать» ещё раз — перезагрузить
+  try { localStorage.setItem(PLAYER_KEY, playerId); } catch {}
+  render();
+});
 el.role.onchange = render;
 window.addEventListener('hashchange', readHash);
 
