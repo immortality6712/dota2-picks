@@ -430,7 +430,7 @@
   }
   .medal.lg { width: 34px; height: 34px; font-size: 15px; }
   .ranks {
-    display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -693,7 +693,8 @@ const BUILD_PHASES = [
   { key: 'mid_game_items', title: 'Середина', note: 'Основной костяк' },
   { key: 'late_game_items', title: 'Поздняя игра', note: 'Что собирают в конце' },
 ];
-// Ранги по порядку rank_tier OpenDota: 1 — Рекрут … 8 — Титан.
+// Ранги по порядку rank_tier OpenDota: 1 — Рекрут … 7 — Божество.
+// Титана (8) нет: OpenDota не публикует по нему статистику.
 const RANKS = [
   { n: 1, name: 'Рекрут', c: '#a88a6c' },
   { n: 2, name: 'Страж', c: '#8fb07a' },
@@ -702,7 +703,6 @@ const RANKS = [
   { n: 5, name: 'Легенда', c: '#a07be0' },
   { n: 6, name: 'Властелин', c: '#e0b35a' },
   { n: 7, name: 'Божество', c: '#dfe6ee' },
-  { n: 8, name: 'Титан', c: '#ec5c4e' },
 ];
 const POSITIONS = [
   { n: 1, name: 'Керри' },
@@ -1075,7 +1075,15 @@ function renderTier() {
     ${RANKS.map(r => `<button data-tier="${r.n}" class="${tierRank === r.n ? 'on' : ''}"
       title="${r.name}"><span class="medal" style="--c:${r.c}">${r.name[0]}</span><span class="hide-sm">${r.name}</span></button>`).join('')}
   </div>`;
-  if (!shown.length) { el.view.innerHTML = chips; return showMsg('Ничего не найдено'); }
+  // Сообщение рисуем под кнопками рангов, а не через showMsg: тот очищает весь view,
+  // и переключиться на другой ранг было бы нечем.
+  if (!all.length || !shown.length) {
+    el.view.innerHTML = chips + `<div class="msg static">${!all.length
+      ? `OpenDota не публикует статистику ранга «${rk ? rk.name : ''}» — выберите другой ранг.`
+      : 'Ничего не найдено'}</div>`;
+    el.msg.hidden = true;
+    return;
+  }
 
   el.view.innerHTML = chips + '<div class="tiers">' + TIERS_DEF.map(t => {
     const list = shown.filter(h => h.tier === t.t);
@@ -1479,8 +1487,10 @@ function buildTabs(active) {
 function ranksPanel(id, active) {
   const list = rankStats(id);
   if (!list.some(r => r.picks)) return '';
-  const lo = Math.min(...list.map(r => r.wr)) - 2;
-  const hi = Math.max(...list.map(r => r.wr)) + 1;
+  // Ранги без данных в масштаб не берём.
+  const known = list.filter(r => r.picks);
+  const lo = Math.min(...known.map(r => r.wr)) - 2;
+  const hi = Math.max(...known.map(r => r.wr)) + 1;
   const best = list.reduce((a, b) => b.wr > a.wr ? b : a);
   return `<div class="ranks">
     <h4><span>Винрейт по рангам · публичные матчи</span>
@@ -1488,9 +1498,9 @@ function ranksPanel(id, active) {
     ${list.map(r => `
       <button class="rcol ${active === 'r' + r.n ? 'on' : ''}" data-src="r${r.n}" style="--c:${r.c}">
         <span class="wr ${wrClass(r.wr)}">${r.picks ? r.wr.toFixed(1) + '%' : '—'}</span>
-        <span class="col"><i style="height:${Math.max(4, (r.wr - lo) / (hi - lo) * 100)}%"></i></span>
+        <span class="col"><i style="height:${r.picks ? Math.max(4, (r.wr - lo) / (hi - lo) * 100) : 0}%"></i></span>
         <span class="medal lg" style="--c:${r.c}">${r.name[0]}</span>
-        <small>${r.name}<br>${r.rate.toFixed(1)}% пиков</small>
+        <small>${r.name}<br>${r.picks ? r.rate.toFixed(1) + '% пиков' : 'нет данных'}</small>
       </button>`).join('')}
   </div>`;
 }
@@ -1661,9 +1671,10 @@ function renderRankBuild(id, rank, box, top) {
   const s = rankStats(id).find(r => r.n === rank.n);
   const stats = `<div class="stats">
       <div><span class="medal" style="--c:${rank.c};vertical-align:middle;margin-right:6px">${rank.name[0]}</span>${rank.name}</div>
-      <div>Винрейт: <b class="${wrClass(s.wr)}">${s.picks ? s.wr.toFixed(1) + '%' : '—'}</b></div>
+      ${s.picks ? `<div>Винрейт: <b class="${wrClass(s.wr)}">${s.wr.toFixed(1)}%</b></div>
       <div>Популярность: <b>${s.rate.toFixed(1)}%</b></div>
-      <div>Игр в выборке: <b>${s.picks.toLocaleString('ru-RU')}</b></div>
+      <div>Игр в выборке: <b>${s.picks.toLocaleString('ru-RU')}</b></div>`
+      : '<div>Винрейт и популярность: <b>нет данных</b> — OpenDota не публикует этот ранг</div>'}
     </div>`;
 
   const key = `${id}:${rank.n}`;
@@ -2043,10 +2054,10 @@ function readHash() {
   if (pending.group && el.group.options.length) el.group.innerHTML = '';
   if (p.get('hero') && heroes[p.get('hero')]) el.hero.value = p.get('hero');
   el.role.value = [...el.role.options].some(o => o.value === p.get('role')) ? p.get('role') : '';
-  tierRank = /^[1-8]$/.test(p.get('rank') || '') ? Number(p.get('rank')) : 0;
+  tierRank = /^[1-7]$/.test(p.get('rank') || '') ? Number(p.get('rank')) : 0;
   const b = Number(p.get('build'));
   const src = p.get('src') || 'all';
-  buildSrc = /^(all|ti|r[1-8]|p[1-5])$/.test(src) ? src : 'all';
+  buildSrc = /^(all|ti|r[1-7]|p[1-5])$/.test(src) ? src : 'all';
   render();
   if (b && heroes[b]) openBuild(b);
   else if (buildHero != null) closeBuild();
