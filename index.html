@@ -412,7 +412,7 @@
   .mu small { font-size: 10px; color: var(--muted); grid-column: 2; }
 
   .minis { display: flex; flex-wrap: wrap; gap: 8px; }
-  .mini { position: relative; width: 76px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  .mini { position: relative; width: 84px; display: flex; flex-direction: column; align-items: center; gap: 3px;
           padding: 6px 4px 8px; background: var(--panel2); border-radius: 8px; overflow: hidden; text-align: center; }
   .mini img { width: 48px; height: 35px; border-radius: 5px; }
   .mini small { font-size: 10px; color: var(--muted); line-height: 1.2; }
@@ -2013,7 +2013,7 @@ function extrasHtml(id, bv) {
         const wr = i.n ? i.w / i.n * 100 : 0;
         return `<div class="mini" title="${esc(i.name)} — ${i.n.toLocaleString('ru-RU')} матчей, ${wr.toFixed(0)}% побед">
           <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
-          <small>${esc(shorten(i.name, 14))}</small>
+          <small>${esc(shorten(i.name, 24))}</small>
           <i style="width:${i.n / top * 100}%"></i>
         </div>`;
       }).join('')}</div></div>`;

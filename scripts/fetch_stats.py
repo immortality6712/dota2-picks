@@ -187,12 +187,12 @@ def collect_stats():
     }
 
 
-def rank_pairs(lst, base=None):
+def rank_pairs(lst, base=None, min_n=None):
     """Лучшие и худшие пары по винрейту, сглаженному к общему винрейту героя."""
     if base is None:
         n = sum(x[1] for x in lst)
         base = sum(x[2] for x in lst) / n if n else 0.5
-    ok = [x for x in lst if x[1] >= MATCHUP_MIN]
+    ok = [x for x in lst if x[1] >= (min_n or MATCHUP_MIN)]
     # Пара из пяти игр не должна выглядеть лучше пары из пятидесяти.
     ok.sort(key=lambda x: -((x[2] + base * MATCHUP_K) / (x[1] + MATCHUP_K)))
     best = ok[:MATCHUP_TOP]
@@ -200,6 +200,7 @@ def rank_pairs(lst, base=None):
 
 
 MATCHUP_MIN = 5   # меньше матчей на пару — не показываем
+STRATZ_MATCHUP_MIN = 200  # у Stratz выборка в тысячи игр: пары из сотни игр слишком шумные
 MATCHUP_K = 10    # сглаживание винрейта к среднему героя
 MATCHUP_TOP = 6
 
@@ -650,7 +651,7 @@ def fold_matchups(node, paths):
                 w = (e.get(win) or 0) if win else None
                 if o and n and w is not None and n > best.get(o, [0, 0, 0])[1]:
                     best[o] = [o, n, w]
-        out[kind] = rank_pairs(list(best.values()))
+        out[kind] = rank_pairs(list(best.values()), min_n=STRATZ_MATCHUP_MIN)
     return out
 
 
