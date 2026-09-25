@@ -191,26 +191,36 @@ MATCHUP_TOP = 6
 
 def collect_matchups(where):
     """Союзники и противники героя в про-матчах патча: с кем и против кого он выигрывает чаще обычного."""
+    # Пары считаем здесь, а не в SQL: самообъединение player_matches не укладывается
+    # в лимит времени Explorer, а плоский список героев по матчам отдаётся быстро.
     try:
-        rows = sql(f"""WITH p AS (
-                         SELECT pm.match_id, pm.hero_id, pm.player_slot < 128 AS radiant,
-                                (pm.player_slot < 128) = m.radiant_win AS win
-                         FROM player_matches pm
-                         JOIN matches m ON m.match_id = pm.match_id
-                         JOIN match_patch mp ON mp.match_id = m.match_id
-                         JOIN leagues l ON l.leagueid = m.leagueid
-                         {where})
-                       SELECT a.hero_id AS h, b.hero_id AS o, a.radiant = b.radiant AS ally,
-                              count(*) AS n, sum(CASE WHEN a.win THEN 1 ELSE 0 END) AS w
-                       FROM p a JOIN p b ON a.match_id = b.match_id AND a.hero_id <> b.hero_id
-                       GROUP BY 1, 2, 3""")
+        rows = sql(f"""SELECT pm.match_id, pm.hero_id, pm.player_slot < 128 AS radiant,
+                              CASE WHEN (pm.player_slot < 128) = m.radiant_win THEN 1 ELSE 0 END AS win
+                       FROM player_matches pm
+                       JOIN matches m ON m.match_id = pm.match_id
+                       JOIN match_patch mp ON mp.match_id = m.match_id
+                       JOIN leagues l ON l.leagueid = m.leagueid
+                       {where}""")
     except RuntimeError as e:
         log(f"  matchups: {e}")
         return {}
-    pairs = {}
+    by_match = {}
     for r in rows:
-        kind = "with" if r["ally"] in (True, "true", 1, "t") else "vs"
-        pairs.setdefault(str(r["h"]), {"with": [], "vs": []})[kind].append([int(r["o"]), int(r["n"]), int(r["w"])])
+        by_match.setdefault(r["match_id"], []).append(
+            (int(r["hero_id"]), r["radiant"] in (True, "true", 1, "t"), int(r["win"])))
+    acc = {}
+    for team in by_match.values():
+        for h, side, win in team:
+            for o, oside, _ in team:
+                if o == h:
+                    continue
+                key = (h, o, side == oside)
+                cur = acc.setdefault(key, [0, 0])
+                cur[0] += 1
+                cur[1] += win
+    pairs = {}
+    for (h, o, ally), (n, w) in acc.items():
+        pairs.setdefault(str(h), {"with": [], "vs": []})["with" if ally else "vs"].append([o, n, w])
     out = {}
     for h, kinds in pairs.items():
         # Общий винрейт героя: против каждого соперника он играет ровно пять раз за матч.
@@ -223,7 +233,7 @@ def collect_matchups(where):
             ok.sort(key=lambda x: -((x[2] + base * MATCHUP_K) / (x[1] + MATCHUP_K)))
             out[h][kind] = {"best": ok[:MATCHUP_TOP], "worst": ok[::-1][:MATCHUP_TOP]}
         out[h]["wr"] = round(base, 4)
-    log(f"matchups for {len(out)} heroes from {len(rows)} pairs")
+    log(f"matchups for {len(out)} heroes from {len(by_match)} matches")
     return out
 
 
