@@ -133,8 +133,38 @@ def collect_stats():
         }
     log(f"pro builds {len(pro)}")
 
+    # Позиция 1–5 в про-матчах: линия из OpenDota, а на паре героев в одной линии
+    # кор — тот, у кого больше золота в минуту (1 или 3), второй — поддержка (5 или 4).
+    try:
+        pos_rows = sql(f"""WITH p AS (
+                         SELECT pm.match_id, pm.hero_id, pm.lane_role, pm.gold_per_min,
+                                pm.player_slot < 128 AS radiant
+                         FROM player_matches pm
+                         JOIN matches m ON m.match_id = pm.match_id
+                         JOIN match_patch mp ON mp.match_id = m.match_id
+                         JOIN leagues l ON l.leagueid = m.leagueid
+                         {where} AND pm.lane_role IS NOT NULL),
+                       r AS (SELECT *, row_number() OVER (PARTITION BY match_id, radiant, lane_role
+                                                          ORDER BY gold_per_min DESC) AS rn FROM p)
+                       SELECT hero_id,
+                              CASE WHEN lane_role = 2 AND rn = 1 THEN 2
+                                   WHEN lane_role = 1 AND rn = 1 THEN 1
+                                   WHEN lane_role = 1 THEN 5
+                                   WHEN lane_role = 3 AND rn = 1 THEN 3
+                                   ELSE 4 END AS pos,
+                              count(*) AS n
+                       FROM r GROUP BY 1, 2""")
+    except RuntimeError as e:
+        log(f"  positions: {e}")
+        pos_rows = []
+    pos = {}
+    for r in pos_rows:
+        pos.setdefault(str(r["hero_id"]), [0] * 5)[int(r["pos"]) - 1] += int(r["n"])
+    log(f"positions for {len(pos)} heroes")
+
     return {
         "patch": patch,
+        "pos": pos,
         "heroes": heroes,
         "leagues": [[int(l["leagueid"]), l["name"], int(l["matches"]),
                      int(l["first_match"]), int(l["last_match"])] for l in leagues],
@@ -203,92 +233,92 @@ def stratz_schema():
             if v.startswith("POSITION_") and v[-1] in "12345":
                 positions[int(v[-1])] = v
 
-    # Поля ответа: ищем список событий с itemId и matchCount.
+    # Поля ответа: ищем (до трёх уровней вглубь) объект с id предмета и числом матчей.
     ret = unwrap(fp["type"])["name"]
-    rfields = gql(TYPE_Q, {"n": ret})["__type"]["fields"]
-    list_field = None
-    ev_fields = set()
-    for f in rfields:
-        t = unwrap(f["type"])
-        if t.get("kind") == "OBJECT":
-            sub = {x["name"] for x in gql(TYPE_Q, {"n": t["name"]})["__type"]["fields"]}
-            if {"itemId", "matchCount"} <= sub:
-                list_field, ev_fields = f["name"], sub
-                break
-    if not list_field:
+    tree = []
+    queue = [(ret, [])]
+    found = None
+    while queue and not found:
+        tname, path = queue.pop(0)
+        fields = gql(TYPE_Q, {"n": tname})["__type"]["fields"] or []
+        names = {f["name"] for f in fields}
+        tree.append(f"{'.'.join([ret] + path)}: {sorted(names)}")
+        item = next((x for x in ITEM_KEYS if x in names), None)
+        count = next((x for x in COUNT_KEYS if x in names), None)
+        if item and count:
+            found = (path, item, count, next((x for x in WIN_KEYS if x in names), None),
+                     "instance" if "instance" in names else None)
+            break
+        if len(path) < 3:
+            for f in fields:
+                t = unwrap(f["type"])
+                if t.get("kind") == "OBJECT":
+                    queue.append((t["name"], path + [f["name"]]))
+    log("stratz schema:\n  " + "\n  ".join(tree))
+    if not found:
         raise RuntimeError(f"не нашёл список предметов в {ret}")
-    ev = " ".join(x for x in ("itemId", "matchCount", "winCount", "instance") if x in ev_fields)
-    log(f"stratz: brackets {brackets}, positions {positions}, {ret}.{list_field}{{{ev}}}")
-    return brackets, positions, list_field, ev, ev_fields
+    path, item, count, win, inst = found
+    sel = " ".join(x for x in (item, count, win, inst) if x)
+    for name in reversed(path):
+        sel = f"{name} {{ {sel} }}"
+    log(f"stratz: brackets {brackets}, positions {positions}, selection {{ {sel} }}")
+    return brackets, positions, sel, found
 
 
-def fold(events, ev_fields):
+ITEM_KEYS = ("itemId", "item_id")
+COUNT_KEYS = ("matchCount", "count", "matches", "purchaseCount")
+WIN_KEYS = ("winCount", "wins", "winsCount")
+
+
+def events(node, path):
+    """Спускается по пути полей, раскрывая списки на любом уровне."""
+    nodes = node if isinstance(node, list) else [node]
+    for name in path:
+        nxt = []
+        for n in nodes:
+            v = (n or {}).get(name)
+            nxt.extend(v if isinstance(v, list) else [v])
+        nodes = nxt
+    return [n for n in nodes if n]
+
+
+def fold(evs, found):
+    _, item, count, win, inst = found
     acc = {}
-    for e in events or []:
-        if "instance" in ev_fields and e.get("instance") not in (None, 1):
+    for e in evs:
+        if inst and e.get(inst) not in (None, 1):
             continue  # вторую покупку того же предмета не считаем
-        cur = acc.setdefault(e["itemId"], [e["itemId"], 0, 0])
-        cur[1] += e.get("matchCount") or 0
-        cur[2] += e.get("winCount") or 0
+        iid = e.get(item)
+        if not iid:
+            continue
+        cur = acc.setdefault(iid, [iid, 0, 0])
+        cur[1] += e.get(count) or 0
+        cur[2] += (e.get(win) or 0) if win else 0
     return sorted(acc.values(), key=lambda x: -x[1])[:TOP]
 
 
 def collect_stratz(hero_ids):
-    brackets, positions, list_field, ev, ev_fields = stratz_schema()
+    brackets, positions, sel, found = stratz_schema()
+    path = found[0]
     if not brackets:
         raise RuntimeError("Stratz не принимает фильтр по рангу")
     ranks, pos = {}, {}
     for hid in hero_ids:
         # При парных рангах (Рекрут+Страж и т.п.) запрашиваем каждую пару один раз.
         uniq = sorted(set(brackets.values()))
-        parts = [f'b{i}: itemFullPurchase(heroId: {hid}, {arg}: [{val}]) {{ {list_field} {{ {ev} }} }}'
+        parts = [f'b{i}: itemFullPurchase(heroId: {hid}, {arg}: [{val}]) {{ {sel} }}'
                  for i, (arg, val) in enumerate(uniq)]
-        parts += [f'p{n}: itemFullPurchase(heroId: {hid}, positionIds: [{val}]) {{ {list_field} {{ {ev} }} }}'
+        parts += [f'p{n}: itemFullPurchase(heroId: {hid}, positionIds: [{val}]) {{ {sel} }}'
                   for n, val in positions.items()]
         try:
             d = gql("{ heroStats { " + " ".join(parts) + " } }")["heroStats"]
         except RuntimeError as e:
             log(f"  stratz hero {hid}: {e}")
             continue
-        def events(key):
-            v = d.get(key) or {}
-            if isinstance(v, list):  # в части версий схемы поле отдаёт список
-                v = v[0] if v else {}
-            return v.get(list_field)
-
-        folded = {bv: fold(events(f"b{i}"), ev_fields) for i, bv in enumerate(uniq)}
+        folded = {bv: fold(events(d.get(f"b{i}"), path), found) for i, bv in enumerate(uniq)}
         ranks[str(hid)] = {str(n): {"list": folded[bv]} for n, bv in brackets.items()}
-        pos[str(hid)] = {str(n): {"list": fold(events(f"p{n}"), ev_fields)} for n in positions}
+        pos[str(hid)] = {str(n): {"list": fold(events(d.get(f"p{n}"), path), found)} for n in positions}
     return ranks, pos, {str(n): v for n, (_, v) in brackets.items()}
-
-
-# ---------- OpenDota: запасной путь для рангов ----------
-
-def collect_opendota_ranks():
-    ranks = {}
-    for n in range(1, 9):
-        base = f"""FROM public_player_matches p
-                   JOIN public_matches pm ON pm.match_id = p.match_id
-                   WHERE pm.start_time >= extract(epoch from now() - interval '3 days')
-                     AND pm.avg_rank_tier >= {n * 10} AND pm.avg_rank_tier < {n * 10 + 10}"""
-        win = "CASE WHEN (p.player_slot < 128) = pm.radiant_win THEN 1 ELSE 0 END"
-        try:
-            rows = sql(f"""SELECT hero_id, item, count(*) AS n, sum(win) AS w FROM (
-                             SELECT p.hero_id, {win} AS win,
-                                    unnest(ARRAY[p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5]) AS item
-                             {base}) s WHERE item > 0 GROUP BY 1, 2""")
-            games = sql(f"SELECT p.hero_id, count(*) AS n, sum({win}) AS w {base} GROUP BY 1")
-        except RuntimeError as e:
-            log(f"  opendota rank {n}: {e}")
-            return {}  # если не вышло на одном ранге — таблицы нет, дальше не пробуем
-        for g in games:
-            ranks.setdefault(str(g["hero_id"]), {})[str(n)] = {
-                "games": int(g["n"]), "wins": int(g["w"] or 0), "list": []}
-        for r in sorted(rows, key=lambda r: -int(r["n"])):
-            b = ranks.get(str(r["hero_id"]), {}).get(str(n))
-            if b is not None and len(b["list"]) < TOP:
-                b["list"].append([int(r["item"]), int(r["n"]), int(r["w"] or 0)])
-    return ranks
 
 
 def write(name, data):
@@ -309,10 +339,7 @@ def main():
         except (RuntimeError, StopIteration, KeyError, TypeError) as e:
             log(f"stratz failed: {e!r}")
     else:
-        log("STRATZ_TOKEN не задан — пробую ранги через OpenDota")
-    if not ranks:
-        ranks = collect_opendota_ranks()
-        source = "opendota" if ranks else ""
+        log("STRATZ_TOKEN не задан — сборки по рангам пропускаю")
 
     # Словарь предметов — только те, что встречаются в сборках.
     used = set()

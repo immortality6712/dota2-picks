@@ -519,15 +519,12 @@
     <select id="hero" hidden></select>
     <select id="group" hidden></select>
     <select id="role" hidden>
-      <option value="">Все роли</option>
-      <option value="Carry">Керри</option>
-      <option value="Support">Поддержка</option>
-      <option value="Nuker">Нюкер</option>
-      <option value="Disabler">Контроль</option>
-      <option value="Initiator">Инициатор</option>
-      <option value="Durable">Танк</option>
-      <option value="Escape">Побег</option>
-      <option value="Pusher">Пушер</option>
+      <option value="">Все позиции</option>
+      <option value="1">1 — Керри</option>
+      <option value="2">2 — Мид</option>
+      <option value="3">3 — Хардлейн</option>
+      <option value="4">4 — Четвёрка (частичная поддержка)</option>
+      <option value="5">5 — Пятёрка (полная поддержка)</option>
     </select>
     <input id="search" type="search" autocomplete="off">
   </div>
@@ -652,8 +649,8 @@ const POSITIONS = [
   { n: 1, name: 'Керри' },
   { n: 2, name: 'Мид' },
   { n: 3, name: 'Хард' },
-  { n: 4, name: 'Роумер' },
-  { n: 5, name: 'Саппорт' },
+  { n: 4, name: 'Четвёрка' },
+  { n: 5, name: 'Пятёрка' },
 ];
 const plural = (n, one, few, many) => {
   const a = Math.abs(n) % 100, b = a % 10;
@@ -772,6 +769,26 @@ async function loadLive() {
          ${where}
          GROUP BY 1, 2`),
   ]);
+  try {
+    const posRows = await sql(`WITH p AS (
+        SELECT pm.match_id, pm.hero_id, pm.lane_role, pm.gold_per_min, pm.player_slot < 128 AS radiant
+        FROM player_matches pm
+        JOIN matches m ON m.match_id = pm.match_id
+        JOIN match_patch mp ON mp.match_id = m.match_id
+        JOIN leagues l ON l.leagueid = m.leagueid
+        ${where} AND pm.lane_role IS NOT NULL),
+      r AS (SELECT *, row_number() OVER (PARTITION BY match_id, radiant, lane_role
+                                         ORDER BY gold_per_min DESC) AS rn FROM p)
+      SELECT hero_id,
+             CASE WHEN lane_role = 2 AND rn = 1 THEN 2 WHEN lane_role = 1 AND rn = 1 THEN 1
+                  WHEN lane_role = 1 THEN 5 WHEN lane_role = 3 AND rn = 1 THEN 3 ELSE 4 END AS pos,
+             count(*) AS n
+      FROM r GROUP BY 1, 2`);
+    heroPos = {};
+    for (const r of posRows) (heroPos[r.hero_id] ??= [0, 0, 0, 0, 0])[r.pos - 1] += Number(r.n);
+  } catch {
+    heroPos = {};  // без позиций фильтр работает по ролям героя
+  }
   return { heroList, patch: livePatch, leagueRows, pickRows };
 }
 
@@ -789,6 +806,7 @@ function fromCache(d) {
   for (const [hid, b] of Object.entries(d.ti || {})) {
     tiBuilds[hid] = { picks: b.picks, list: b.list.map(([id, n]) => ({ ...it(id), n })).filter(i => i.name) };
   }
+  heroPos = d.pos || {};
   cacheInfo = { updated: d.updated };
   return {
     heroList: d.heroes,
@@ -872,7 +890,30 @@ function syncLeagueSelect() {
   pending.league = null;
 }
 
-const roleOk = hero => !el.role.value || (heroes[hero]?.roles || []).includes(el.role.value);
+// Позиции героев в про-матчах: [пос1, …, пос5] — сколько раз героя сыграли на каждой.
+let heroPos = {};
+const POS_MIN_SHARE = 0.2;
+// Если посчитать позиции не удалось — грубая оценка по ролям героя из OpenDota.
+const POS_BY_ROLES = {
+  1: r => r.includes('Carry'),
+  2: r => r.includes('Nuker') && !r.includes('Support') || r.includes('Carry') && r.includes('Escape') && r.includes('Nuker'),
+  3: r => (r.includes('Initiator') || r.includes('Durable')) && !r.includes('Support'),
+  4: r => r.includes('Support') && (r.includes('Initiator') || r.includes('Nuker') || r.includes('Escape')),
+  5: r => r.includes('Support'),
+};
+
+function posShare(hero, n) {
+  const p = heroPos[hero];
+  const sum = p ? p.reduce((a, b) => a + b, 0) : 0;
+  return sum ? p[n - 1] / sum : null;
+}
+
+function roleOk(hero) {
+  const n = Number(el.role.value);
+  if (!n) return true;
+  if (Object.keys(heroPos).length) return (posShare(hero, n) || 0) >= POS_MIN_SHARE;
+  return POS_BY_ROLES[n](heroes[hero]?.roles || []);
+}
 
 function heroName(id) {
   return heroes[id]?.localized_name || `Hero ${id}`;
@@ -916,6 +957,12 @@ function header(cols, state) {
   ).join('') + '</tr>';
 }
 
+function posNote(hero) {
+  const n = Number(el.role.value);
+  const share = n ? posShare(hero, n) : null;
+  return share == null ? '' : `<small class="dim" style="display:block;font-size:11px">${Math.round(share * 100)}% игр на позиции ${n}</small>`;
+}
+
 function renderTournaments() {
   if (tab === 'ti' && !tiLeagues.length) {
     el.stats.innerHTML = '';
@@ -933,6 +980,11 @@ function renderTournaments() {
     <div>Уникальных героев в пиках: <b>${all.filter(h => h.picks > 0).length}</b></div>
     <div>Всего пиков: <b>${all.reduce((s, h) => s + h.picks, 0)}</b></div>
     <div>Всего банов: <b>${all.reduce((s, h) => s + h.bans, 0)}</b></div>`;
+  const posNoteText = el.role.value ? `<div class="note">Показаны герои, которых хотя бы в ${POS_MIN_SHARE * 100}% про-матчей
+      играли на позиции ${el.role.value}; пики и баны — по всем их матчам.
+      ${Object.keys(heroPos).length ? `Позиция определяется по линии и золоту: в паре на линии
+      кор — тот, кто больше фармил, второй — поддержка.`
+      : 'Позиции из матчей получить не удалось, поэтому отбор примерный — по ролям героя.'}</div>` : '';
 
   if (!list.length) return showMsg('Ничего не найдено');
 
@@ -950,13 +1002,13 @@ function renderTournaments() {
     list.map((h, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
-        <td><div class="hero clickable" data-hero="${h.hero}"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div></td>
+        <td><div class="hero clickable" data-hero="${h.hero}"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}${posNote(h.hero)}</span></div></td>
         <td class="num"><div class="bar"><i style="width:${h.picks / max * 100}%"></i><span>${h.picks}</span></div></td>
         <td class="num">${h.bans}</td>
         <td class="num hide-sm">${h.contest.toFixed(0)}%</td>
         <td class="num hide-sm">${h.wins}</td>
         <td class="${wrClass(h.wr)}">${h.picks ? h.wr.toFixed(1) + '%' : '—'}</td>
-      </tr>`).join('') + '</tbody></table></div>';
+      </tr>`).join('') + '</tbody></table></div>' + posNoteText;
   el.msg.hidden = true;
 }
 
@@ -1253,41 +1305,13 @@ function fromBuildsCache(b, source) {
   };
 }
 
-// Предметы по рангу: сначала кэш, иначе — живой запрос по публичным матчам последней недели.
+// Предметы по рангу есть только в кэше: их собирает сборщик из Stratz.
+// Таблицы публичных матчей в OpenDota больше нет, живого запроса для рангов не бывает.
 async function loadRankBuild(id, n) {
   const key = `${id}:${n}`;
   const cache = await loadBuildsCache();
   const hit = cache?.ranks?.[id]?.[n];
-  if (hit?.list?.length) {
-    rankBuilds[key] = fromBuildsCache(hit, cache.source);
-    if (rankBuilds[key].list.length) return;
-  }
-  try {
-    await loadItems();
-    const from = `FROM public_player_matches p
-                  JOIN public_matches pm ON pm.match_id = p.match_id
-                  WHERE pm.start_time >= extract(epoch from now() - interval '7 days')
-                    AND pm.avg_rank_tier >= ${n * 10} AND pm.avg_rank_tier < ${n * 10 + 10}
-                    AND p.hero_id = ${id}`;
-    const win = `CASE WHEN (p.player_slot < 128) = pm.radiant_win THEN 1 ELSE 0 END`;
-    const [list, cnt] = await Promise.all([
-      sql(`SELECT item, count(*) AS n, sum(win) AS w FROM (
-             SELECT unnest(ARRAY[p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5]) AS item,
-                    ${win} AS win
-             ${from}
-           ) s WHERE item > 0 GROUP BY 1 ORDER BY n DESC LIMIT 12`),
-      sql(`SELECT count(*) AS n, sum(${win}) AS w ${from}`),
-    ]);
-    rankBuilds[key] = {
-      source: 'opendota',
-      games: +(cnt[0]?.n || 0),
-      wins: +(cnt[0]?.w || 0),
-      list: list.map(r => ({ id: r.item, n: +r.n, w: +r.w, ...(items[r.item] || { name: '', img: '' }) }))
-                .filter(i => i.name),
-    };
-  } catch (e) {
-    rankBuilds[key] = { error: e.message, games: 0, list: [] };
-  }
+  rankBuilds[key] = hit?.list?.length ? fromBuildsCache(hit, cache.source) : { list: [] };
 }
 
 // Stratz может отдавать ранги парами (Рекрут+Страж) — тогда так и подписываем.
@@ -1474,8 +1498,8 @@ function renderRankBuild(id, rank, box, top) {
       return;
     }
     box.innerHTML = top + stats +
-      `<div class="note" style="margin:0 0 18px">Предметы по рангу «${rank.name}» OpenDota сейчас не отдал
-        ${b.error ? `(${esc(b.error)})` : '— за последнюю неделю подходящих матчей не нашлось'}.
+      `<div class="note" style="margin:0 0 18px">Предметов для ранга «${rank.name}» пока нет —
+        они берутся из Stratz и появятся после ближайшего обновления данных.
         Винрейт и популярность выше — настоящие данные ранга; ниже для ориентира — сборка про-сцены.</div>` +
       phasesHtml(builds[id]);
     return;
