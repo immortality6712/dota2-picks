@@ -1,0 +1,35 @@
+name: Update hero stats
+
+on:
+  schedule:
+    # Раз в шесть часов: турниры и сборки меняются медленно, а у OpenDota без ключа суточный лимит.
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stats
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -u scripts/fetch_stats.py
+        env:
+          # Необязательно: ключ Stratz (stratz.com/api) даёт сборки по рангам и позициям.
+          STRATZ_TOKEN: ${{ secrets.STRATZ_TOKEN }}
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet && exit 0
+          git commit -m "Update hero stats"
+          # Параллельно может закоммитить обновление цен — подтягиваем его перед отправкой.
+          for i in 1 2 3; do git pull --rebase origin main && git push && exit 0; sleep 5; done
+          exit 1
