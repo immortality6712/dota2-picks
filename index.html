@@ -279,7 +279,7 @@
   }
   .slot.filled big { color: var(--red); }
   .slot img { width: 46px; height: 46px; object-fit: contain; }
-  .item-slot { width: 112px; height: 132px; gap: 6px; }
+  .item-slot { width: 112px; height: auto; min-height: 132px; gap: 6px; }
   .item-slot img { width: 64px; height: 47px; border-radius: 6px; box-shadow: 0 3px 10px rgba(0, 0, 0, .5); }
   .slot.item-slot .nm { font-size: 11px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: normal;
                    line-height: 1.25; max-height: 2.5em; }
@@ -518,6 +518,17 @@
     <select id="league" hidden></select>
     <select id="hero" hidden></select>
     <select id="group" hidden></select>
+    <select id="role" hidden>
+      <option value="">Все роли</option>
+      <option value="Carry">Керри</option>
+      <option value="Support">Поддержка</option>
+      <option value="Nuker">Нюкер</option>
+      <option value="Disabler">Контроль</option>
+      <option value="Initiator">Инициатор</option>
+      <option value="Durable">Танк</option>
+      <option value="Escape">Побег</option>
+      <option value="Pusher">Пушер</option>
+    </select>
     <input id="search" type="search" autocomplete="off">
   </div>
 
@@ -543,7 +554,9 @@
   Цены — <a href="https://steamcommunity.com/market/search?appid=570" target="_blank" rel="noopener">Steam Community Market</a>,
   обновляются раз в сутки.
   Статистика по рангам — публичные матчи из
-  <a href="https://docs.opendota.com/#tag/hero-stats" target="_blank" rel="noopener">heroStats</a> OpenDota.
+  <a href="https://docs.opendota.com/#tag/hero-stats" target="_blank" rel="noopener">heroStats</a> OpenDota,
+  сборки по рангам и позициям — <a href="https://stratz.com" target="_blank" rel="noopener">Stratz</a>.
+  Данные кэшируются и обновляются каждые шесть часов.
 </p></footer>
 
 <script>
@@ -557,6 +570,7 @@ const el = {
   hero: document.getElementById('hero'),
   group: document.getElementById('group'),
   search: document.getElementById('search'),
+  role: document.getElementById('role'),
   stats: document.getElementById('stats'),
   msg: document.getElementById('msg'),
   view: document.getElementById('view'),
@@ -634,6 +648,13 @@ const RANKS = [
   { n: 7, name: 'Божество', c: '#dfe6ee' },
   { n: 8, name: 'Титан', c: '#ec5c4e' },
 ];
+const POSITIONS = [
+  { n: 1, name: 'Керри' },
+  { n: 2, name: 'Мид' },
+  { n: 3, name: 'Хард' },
+  { n: 4, name: 'Роумер' },
+  { n: 5, name: 'Саппорт' },
+];
 const plural = (n, one, few, many) => {
   const a = Math.abs(n) % 100, b = a % 10;
   return a > 10 && a < 20 ? many : b > 1 && b < 5 ? few : b === 1 ? one : many;
@@ -697,45 +718,94 @@ function wrClass(wr) {
   return wr >= 55 ? 'wr-hi' : wr <= 45 ? 'wr-lo' : '';
 }
 
+// Кэш, который раз в шесть часов собирает GitHub Actions (scripts/fetch_stats.py).
+// Если его нет или он устарел — идём в OpenDota напрямую, как раньше.
+const CACHE_MAX_AGE = 3 * 24 * 3600 * 1000;
+let cacheInfo = null;
+
+async function loadCache() {
+  try {
+    const r = await fetch('data/stats.json', { cache: 'no-cache' });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d.heroes?.length || !d.leagues?.length) return null;
+    if (Date.now() - new Date(d.updated) > CACHE_MAX_AGE) return null;
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+async function loadLive() {
+  const [heroList, patchRows] = await Promise.all([
+    fetch(`${API}/heroStats`).then(r => r.json()),
+    sql(`SELECT mp.patch, count(*) AS n
+         FROM match_patch mp JOIN matches m ON m.match_id = mp.match_id
+         WHERE m.start_time >= extract(epoch from now() - interval '30 days')
+         GROUP BY 1 ORDER BY n DESC LIMIT 1`),
+  ]);
+  const livePatch = patchRows[0]?.patch;
+  if (!livePatch) throw new Error('не удалось определить актуальный патч');
+
+  const where = `WHERE mp.patch = '${livePatch}'
+                   AND m.start_time >= ${SEASON_START} AND ${TIERS}`;
+
+  const [leagueRows, pickRows] = await Promise.all([
+    sql(`SELECT l.leagueid, l.name,
+                count(distinct m.match_id) AS matches,
+                min(m.start_time) AS first_match, max(m.start_time) AS last_match
+         FROM leagues l
+         JOIN matches m ON m.leagueid = l.leagueid
+         JOIN match_patch mp ON mp.match_id = m.match_id
+         ${where}
+         GROUP BY l.leagueid, l.name
+         ORDER BY last_match DESC`),
+    sql(`SELECT m.leagueid, pb.hero_id,
+                sum(CASE WHEN pb.is_pick THEN 1 ELSE 0 END) AS picks,
+                sum(CASE WHEN NOT pb.is_pick THEN 1 ELSE 0 END) AS bans,
+                sum(CASE WHEN pb.is_pick AND ((pb.team = 0 AND m.radiant_win)
+                          OR (pb.team = 1 AND NOT m.radiant_win)) THEN 1 ELSE 0 END) AS wins
+         FROM picks_bans pb
+         JOIN matches m ON m.match_id = pb.match_id
+         JOIN match_patch mp ON mp.match_id = m.match_id
+         JOIN leagues l ON l.leagueid = m.leagueid
+         ${where}
+         GROUP BY 1, 2`),
+  ]);
+  return { heroList, patch: livePatch, leagueRows, pickRows };
+}
+
+function fromCache(d) {
+  items = Object.fromEntries(Object.entries(d.items || {}).map(([id, [name, img]]) => [id, { name, img }]));
+  const it = id => ({ id, ...(items[id] || { name: '', img: '' }) });
+  for (const [hid, ph] of Object.entries(d.pro || {})) {
+    builds[hid] = BUILD_PHASES.map(p => ({
+      ...p,
+      list: (ph[p.key] || []).map(([id, n]) => ({ ...it(id), n })).filter(i => i.name),
+    }));
+  }
+  // Кэш покрывает всех героев: кого нет в TI-выборке, того там просто не брали.
+  if (d.ti) for (const h of d.heroes) tiBuilds[h.id] = { picks: 0, list: [] };
+  for (const [hid, b] of Object.entries(d.ti || {})) {
+    tiBuilds[hid] = { picks: b.picks, list: b.list.map(([id, n]) => ({ ...it(id), n })).filter(i => i.name) };
+  }
+  cacheInfo = { updated: d.updated };
+  return {
+    heroList: d.heroes,
+    patch: d.patch,
+    leagueRows: d.leagues.map(([leagueid, name, matches, first_match, last_match]) =>
+      ({ leagueid, name, matches, first_match, last_match })),
+    pickRows: d.picks.map(([leagueid, hero_id, picks, bans, wins]) => ({ leagueid, hero_id, picks, bans, wins })),
+  };
+}
+
 async function init() {
   try {
-    const [heroList, patchRows] = await Promise.all([
-      fetch(`${API}/heroStats`).then(r => r.json()),
-      sql(`SELECT mp.patch, count(*) AS n
-           FROM match_patch mp JOIN matches m ON m.match_id = mp.match_id
-           WHERE m.start_time >= extract(epoch from now() - interval '30 days')
-           GROUP BY 1 ORDER BY n DESC LIMIT 1`),
-    ]);
-
+    const cache = await loadCache();
+    const data = cache ? fromCache(cache) : await loadLive();
+    const { heroList, leagueRows, pickRows } = data;
     heroes = Object.fromEntries(heroList.map(h => [h.id, h]));
-    patch = patchRows[0]?.patch;
-    if (!patch) throw new Error('не удалось определить актуальный патч');
-
-    const where = `WHERE mp.patch = '${patch}'
-                     AND m.start_time >= ${SEASON_START} AND ${TIERS}`;
-
-    const [leagueRows, pickRows] = await Promise.all([
-      sql(`SELECT l.leagueid, l.name,
-                  count(distinct m.match_id) AS matches,
-                  min(m.start_time) AS first_match, max(m.start_time) AS last_match
-           FROM leagues l
-           JOIN matches m ON m.leagueid = l.leagueid
-           JOIN match_patch mp ON mp.match_id = m.match_id
-           ${where}
-           GROUP BY l.leagueid, l.name
-           ORDER BY last_match DESC`),
-      sql(`SELECT m.leagueid, pb.hero_id,
-                  sum(CASE WHEN pb.is_pick THEN 1 ELSE 0 END) AS picks,
-                  sum(CASE WHEN NOT pb.is_pick THEN 1 ELSE 0 END) AS bans,
-                  sum(CASE WHEN pb.is_pick AND ((pb.team = 0 AND m.radiant_win)
-                            OR (pb.team = 1 AND NOT m.radiant_win)) THEN 1 ELSE 0 END) AS wins
-           FROM picks_bans pb
-           JOIN matches m ON m.match_id = pb.match_id
-           JOIN match_patch mp ON mp.match_id = m.match_id
-           JOIN leagues l ON l.leagueid = m.leagueid
-           ${where}
-           GROUP BY 1, 2`),
-    ]);
+    patch = data.patch;
 
     if (!leagueRows.length) throw new Error('турниры на патче ' + patch + ' не найдены');
 
@@ -759,7 +829,8 @@ async function init() {
 
     el.sub.textContent = `Патч ${patch} · ${fmtDate(Math.min(...leagues.map(l => l.first)))}`
       + ` — ${fmtDate(Math.max(...leagues.map(l => l.last)))}`
-      + ` · ${leagues.length} турниров, ${totalMatches} матчей`;
+      + ` · ${leagues.length} турниров, ${totalMatches} матчей`
+      + (cacheInfo ? ` · обновлено ${new Date(cacheInfo.updated).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : '');
 
     tiLeagues = leagues.filter(l => /international 2026/i.test(l.name));
 
@@ -767,7 +838,7 @@ async function init() {
     el.hero.innerHTML = byPicks
       .map(h => `<option value="${h.hero}">${esc(h.name)} — ${h.picks} пиков</option>`).join('');
 
-    render();
+    readHash();
   } catch (e) {
     showMsg('Не удалось загрузить данные: ' + e.message, true);
   }
@@ -795,7 +866,13 @@ function syncLeagueSelect() {
   el.league.innerHTML = `<option value="all">${label}</option>` +
     list.map(l => `<option value="${l.id}">${esc(l.name)} (${l.matches} матчей)</option>`).join('');
   el.league.dataset.mode = tab;
+  if (pending.league && leagueById[pending.league] && list.includes(leagueById[pending.league])) {
+    el.league.value = pending.league;
+  }
+  pending.league = null;
 }
+
+const roleOk = hero => !el.role.value || (heroes[hero]?.roles || []).includes(el.role.value);
 
 function heroName(id) {
   return heroes[id]?.localized_name || `Hero ${id}`;
@@ -848,7 +925,7 @@ function renderTournaments() {
   const ids = currentScope();
   const q = el.search.value.trim().toLowerCase();
   const all = aggregateHeroes(ids);
-  const list = sortList(all.filter(h => !q || h.name.toLowerCase().includes(q)), sort[tab]);
+  const list = sortList(all.filter(h => (!q || h.name.toLowerCase().includes(q)) && roleOk(h.hero)), sort[tab]);
 
   const total = [...ids].reduce((s, id) => s + leagueById[id].matches, 0);
   el.stats.innerHTML = `
@@ -951,7 +1028,7 @@ const MATRIX_LEAGUES = 10;
 
 function renderMatrix() {
   const q = el.search.value.trim().toLowerCase();
-  const ranked = aggregateHeroes(idsOf(leagues)).sort((a, b) => b.picks - a.picks);
+  const ranked = aggregateHeroes(idsOf(leagues)).filter(h => roleOk(h.hero)).sort((a, b) => b.picks - a.picks);
   const totals = q
     ? ranked.filter(h => h.name.toLowerCase().includes(q))
     : ranked.slice(0, MATRIX_HEROES);
@@ -1061,13 +1138,18 @@ function syncGroupSelect() {
     prices.groups.map(g => `<option value="${g.key}">${esc(g.title)} (${count(g.key)})</option>`).join('');
 
   el.group.value = prices.groups[0]?.key || 'all';
+  if (pending.group && [...el.group.options].some(o => o.value === pending.group)) el.group.value = pending.group;
+  pending.group = null;
 }
 
+// В кэше лежат только предметы из собранных сборок; для живых запросов нужен полный список.
+let itemsFull = false;
 async function loadItems() {
-  if (items) return;
+  if (itemsFull) return;
   const raw = await fetch(`${API}/constants/items`).then(r => r.json());
-  items = {};
+  items = items || {};
   for (const v of Object.values(raw)) items[v.id] = { name: v.dname || '', img: v.img || '' };
+  itemsFull = true;
 }
 
 // Сборки именно с TI: у эндпоинта OpenDota разбивки по турнирам нет,
@@ -1125,12 +1207,15 @@ function openBuild(id) {
   document.body.style.overflow = 'hidden';
   renderBuildModal();
   el.modal.scrollTop = 0;
+  // Кнопки позиций появляются, когда подгрузится файл со сборками.
+  if (buildsCacheValue === undefined) loadBuildsCache().then(() => { if (buildHero === id) renderBuildModal(); });
 }
 
 function closeBuild() {
   el.modal.hidden = true;
   buildHero = null;
   document.body.style.overflow = '';
+  writeHash();
 }
 
 const ATTR = { str: 'Сила', agi: 'Ловкость', int: 'Интеллект', all: 'Универсальный' };
@@ -1146,9 +1231,37 @@ function rankStats(id) {
   });
 }
 
-// Предметы в конце матча для одного ранга — по публичным матчам последней недели.
+// Сборки по рангам и позициям, которые собирает GitHub Actions (Stratz или OpenDota).
+let buildsCache;
+let buildsCacheValue; // undefined — ещё грузится, null — файла нет
+function loadBuildsCache() {
+  buildsCache ??= fetch('data/builds.json', { cache: 'no-cache' })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => d && Date.now() - new Date(d.updated) < CACHE_MAX_AGE ? d : null)
+    .catch(() => null)
+    .then(d => (buildsCacheValue = d));
+  return buildsCache;
+}
+const SOURCE_NAME = { stratz: 'Stratz', opendota: 'OpenDota' };
+
+function fromBuildsCache(b, source) {
+  return {
+    source,
+    games: b.games ?? null,
+    wins: b.wins ?? 0,
+    list: b.list.map(([id, n, w]) => ({ id, n, w, ...(items?.[id] || { name: '', img: '' }) })).filter(i => i.name),
+  };
+}
+
+// Предметы по рангу: сначала кэш, иначе — живой запрос по публичным матчам последней недели.
 async function loadRankBuild(id, n) {
   const key = `${id}:${n}`;
+  const cache = await loadBuildsCache();
+  const hit = cache?.ranks?.[id]?.[n];
+  if (hit?.list?.length) {
+    rankBuilds[key] = fromBuildsCache(hit, cache.source);
+    if (rankBuilds[key].list.length) return;
+  }
   try {
     await loadItems();
     const from = `FROM public_player_matches p
@@ -1166,6 +1279,7 @@ async function loadRankBuild(id, n) {
       sql(`SELECT count(*) AS n, sum(${win}) AS w ${from}`),
     ]);
     rankBuilds[key] = {
+      source: 'opendota',
       games: +(cnt[0]?.n || 0),
       wins: +(cnt[0]?.w || 0),
       list: list.map(r => ({ id: r.item, n: +r.n, w: +r.w, ...(items[r.item] || { name: '', img: '' }) }))
@@ -1176,13 +1290,29 @@ async function loadRankBuild(id, n) {
   }
 }
 
+// Stratz может отдавать ранги парами (Рекрут+Страж) — тогда так и подписываем.
+function rankScope(n) {
+  const br = buildsCacheValue?.rank_bracket;
+  if (!br?.[n]) return RANKS[n - 1].name;
+  return RANKS.filter(r => br[r.n] === br[n]).map(r => r.name).join(' + ');
+}
+
+function positionBuild(id, n) {
+  const b = buildsCacheValue?.positions?.[id]?.[n];
+  return b?.list?.length ? fromBuildsCache(b, buildsCacheValue.source) : null;
+}
+
 function buildTabs(active) {
+  const id = buildHero;
+  const pos = POSITIONS.filter(p => positionBuild(id, p.n));
   return `<div class="acts">
     <button data-src="all" class="${active === 'all' ? 'on' : ''}">🏆 Про-сцена</button>
     <button data-src="ti" class="${active === 'ti' ? 'on' : ''}">TI 2026</button>
     <span class="lbl">Ранг:</span>
     ${RANKS.map(r => `<button data-src="r${r.n}" class="${active === 'r' + r.n ? 'on' : ''}"
         title="${r.name}"><span class="medal" style="--c:${r.c}">${r.name[0]}</span><span class="hide-sm">${r.name}</span></button>`).join('')}
+    ${pos.length ? `<span style="flex-basis:100%"></span><span class="lbl" style="margin-left:0">Позиция:</span>` + pos.map(p => `
+      <button data-src="p${p.n}" class="${active === 'p' + p.n ? 'on' : ''}" title="${p.name}"><b>${p.n}</b><span class="hide-sm">${p.name}</span></button>`).join('') : ''}
   </div>`;
 }
 
@@ -1205,13 +1335,13 @@ function ranksPanel(id, active) {
   </div>`;
 }
 
-function itemSlot(i, sub, share) {
+function itemSlot(i, sub, share, bar = share) {
   return `<div class="slot item-slot" title="${esc(i.name)}">
     ${share != null ? `<span class="pct">${Math.round(share)}%</span>` : ''}
     <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
     <div class="nm">${esc(i.name)}</div>
     <div class="rec">${sub}</div>
-    ${share != null ? `<div class="meter"><i style="width:${Math.min(100, share)}%"></i></div>` : ''}
+    ${bar != null ? `<div class="meter"><i style="width:${Math.min(100, bar)}%"></i></div>` : ''}
   </div>`;
 }
 
@@ -1236,6 +1366,7 @@ function phasesHtml(phases) {
 function renderBuildModal() {
   const id = buildHero;
   if (id == null) return;
+  writeHash();
   const h = heroes[id] || {};
   const box = el.modal.querySelector('.modal-body');
   el.modal.querySelector('.modal-head').innerHTML =
@@ -1258,6 +1389,16 @@ function renderBuildModal() {
 
   const rank = RANKS.find(r => 'r' + r.n === buildSrc);
   if (rank) return renderRankBuild(id, rank, box, top);
+  const position = POSITIONS.find(p => 'p' + p.n === buildSrc);
+  if (position) {
+    const b = positionBuild(id, position.n);
+    if (b) return renderInventory(box, top, `Сборка на позиции ${position.n} — ${position.name}`, b, 'все ранги');
+    if (buildsCacheValue === undefined) {
+      box.innerHTML = top + `<div class="msg">Загрузка сборок…</div>`;
+      return;  // openBuild перерисует окно, когда файл загрузится
+    }
+    buildSrc = 'all';
+  }
 
   const store = buildSrc === 'ti' ? tiBuilds : builds;
   if (!store[id]) {
@@ -1340,21 +1481,33 @@ function renderRankBuild(id, rank, box, top) {
     return;
   }
 
+  renderInventory(box, top + stats, `Сборка на ранге «${rank.name}»`, b, b.source === 'stratz' ? rankScope(rank.n) : rank.name);
+}
+
+// Итоговые предметы из выборки по рангу или позиции.
+function renderInventory(box, head, title, b, scope) {
+  const top = Math.max(1, ...b.list.map(i => i.n));
   const wr = b.games ? b.wins / b.games * 100 : 0;
-  box.innerHTML = top + stats +
+  const src = SOURCE_NAME[b.source] || 'OpenDota';
+  box.innerHTML = head +
     '<div class="board"><div class="bgroup">' +
-    `<h3>Сборка на ранге «${esc(rank.name)}»</h3>
-     <p>Итоговый инвентарь за последние 7 дней: ${b.games.toLocaleString('ru-RU')}
-       ${plural(b.games, 'матч', 'матча', 'матчей')}, винрейт ${wr.toFixed(1)}%</p>` +
+    `<h3>${esc(title)}</h3>
+     <p>${b.games ? `Итоговый инвентарь за последние дни: ${b.games.toLocaleString('ru-RU')}
+       ${plural(b.games, 'матч', 'матча', 'матчей')}, винрейт ${wr.toFixed(1)}%`
+       : `Самые частые покупки за последнюю неделю · ${src} · ${esc(scope)}`}</p>` +
     '<div class="slots">' + b.list.map(i => {
       const iwr = i.n ? i.w / i.n * 100 : 0;
-      return itemSlot(i, `<span class="${wrClass(iwr)}">${iwr.toFixed(0)}% побед</span>`, b.games ? i.n / b.games * 100 : null);
+      const sub = `<span class="${wrClass(iwr)}">${iwr.toFixed(0)}% побед</span>`;
+      return b.games
+        ? itemSlot(i, sub, i.n / b.games * 100)
+        : itemSlot(i, `${i.n.toLocaleString('ru-RU')} ${plural(i.n, 'матч', 'матча', 'матчей')}<br>${sub}`, null, i.n / top * 100);
     }).join('') + '</div></div></div>' +
-    `<div class="note">Публичные матчи OpenDota, где средний ранг лобби — «${rank.name}».
-      Процент в углу — в какой доле матчей предмет был в слотах к концу игры,
-      ниже — винрейт матчей с этим предметом. Высокий винрейт у поздних предметов
-      во многом следствие того, что до них доживают в выигранных играх.
-      ${b.games < 200 ? 'Выборка небольшая, числа могут заметно гулять.' : ''}</div>`;
+    `<div class="note">Публичные матчи, источник — ${src}.
+      ${b.games ? 'Процент в углу — в какой доле матчей предмет был в слотах к концу игры, ниже — винрейт матчей с этим предметом.'
+        : 'Под предметом — в скольких матчах его купили и какой в них винрейт; полоска — популярность относительно самого частого предмета.'}
+      Высокий винрейт у поздних предметов во многом следствие того,
+      что до них доживают в выигранных играх.
+      ${b.games && b.games < 200 ? 'Выборка небольшая, числа могут заметно гулять.' : ''}</div>`;
 }
 
 async function loadTeams() {
@@ -1629,8 +1782,50 @@ function tiBanner() {
     региональные квалификации TI 2026. Основная сетка появится здесь автоматически, как только пройдут первые матчи.</div>`;
 }
 
+// Состояние страницы живёт в адресе: вкладка, фильтры и открытая сборка — чтобы делиться ссылкой.
+const pending = { league: null, group: null };
+
+function writeHash() {
+  const p = new URLSearchParams();
+  if (tab !== 'tournaments') p.set('tab', tab);
+  if (!el.league.hidden && el.league.value && el.league.value !== 'all') p.set('league', el.league.value);
+  if (tab === 'hero' && el.hero.value) p.set('hero', el.hero.value);
+  if (tab === 'prices' && el.group.value) p.set('group', el.group.value);
+  if (!el.role.hidden && el.role.value) p.set('role', el.role.value);
+  if (buildHero != null) {
+    p.set('build', buildHero);
+    if (buildSrc !== 'all') p.set('src', buildSrc);
+  }
+  const hash = p.toString();
+  if (hash !== location.hash.slice(1)) history.replaceState(null, '', hash ? '#' + hash : location.pathname + location.search);
+}
+
+function setTab(name) {
+  tab = name;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+}
+
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const t = p.get('tab');
+  setTab(t && document.querySelector(`.tabs button[data-tab="${CSS.escape(t)}"]`) ? t : 'tournaments');
+  el.league.dataset.mode = '';
+  pending.league = p.get('league');
+  pending.group = p.get('group');
+  if (pending.group && el.group.options.length) el.group.innerHTML = '';
+  if (p.get('hero') && heroes[p.get('hero')]) el.hero.value = p.get('hero');
+  el.role.value = [...el.role.options].some(o => o.value === p.get('role')) ? p.get('role') : '';
+  const b = Number(p.get('build'));
+  const src = p.get('src') || 'all';
+  buildSrc = /^(all|ti|r[1-8]|p[1-5])$/.test(src) ? src : 'all';
+  render();
+  if (b && heroes[b]) openBuild(b);
+  else if (buildHero != null) closeBuild();
+}
+
 function render() {
   const byLeague = tab === 'tournaments' || tab === 'ti';
+  el.role.hidden = !(byLeague || tab === 'matrix');
   el.league.hidden = !byLeague;
   el.hero.hidden = tab !== 'hero';
   el.group.hidden = tab !== 'prices';
@@ -1646,6 +1841,7 @@ function render() {
   else if (tab === 'sockets') renderSocketsTab();
   else if (tab === 'predict') renderPredict();
   else renderMatrix();
+  writeHash();
 }
 
 document.querySelector('.tabs').onclick = e => {
@@ -1676,6 +1872,8 @@ el.group.onchange = () => {
   render();
 };
 el.search.oninput = render;
+el.role.onchange = render;
+window.addEventListener('hashchange', readHash);
 
 el.view.addEventListener('click', e => {
   const hero = e.target.closest('.hero.clickable[data-hero]');
