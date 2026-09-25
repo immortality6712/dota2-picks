@@ -1305,41 +1305,13 @@ function fromBuildsCache(b, source) {
   };
 }
 
-// Предметы по рангу: сначала кэш, иначе — живой запрос по публичным матчам последней недели.
+// Предметы по рангу есть только в кэше: их собирает сборщик из Stratz.
+// Таблицы публичных матчей в OpenDota больше нет, живого запроса для рангов не бывает.
 async function loadRankBuild(id, n) {
   const key = `${id}:${n}`;
   const cache = await loadBuildsCache();
   const hit = cache?.ranks?.[id]?.[n];
-  if (hit?.list?.length) {
-    rankBuilds[key] = fromBuildsCache(hit, cache.source);
-    if (rankBuilds[key].list.length) return;
-  }
-  try {
-    await loadItems();
-    const from = `FROM public_player_matches p
-                  JOIN public_matches pm ON pm.match_id = p.match_id
-                  WHERE pm.start_time >= extract(epoch from now() - interval '7 days')
-                    AND pm.avg_rank_tier >= ${n * 10} AND pm.avg_rank_tier < ${n * 10 + 10}
-                    AND p.hero_id = ${id}`;
-    const win = `CASE WHEN (p.player_slot < 128) = pm.radiant_win THEN 1 ELSE 0 END`;
-    const [list, cnt] = await Promise.all([
-      sql(`SELECT item, count(*) AS n, sum(win) AS w FROM (
-             SELECT unnest(ARRAY[p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5]) AS item,
-                    ${win} AS win
-             ${from}
-           ) s WHERE item > 0 GROUP BY 1 ORDER BY n DESC LIMIT 12`),
-      sql(`SELECT count(*) AS n, sum(${win}) AS w ${from}`),
-    ]);
-    rankBuilds[key] = {
-      source: 'opendota',
-      games: +(cnt[0]?.n || 0),
-      wins: +(cnt[0]?.w || 0),
-      list: list.map(r => ({ id: r.item, n: +r.n, w: +r.w, ...(items[r.item] || { name: '', img: '' }) }))
-                .filter(i => i.name),
-    };
-  } catch (e) {
-    rankBuilds[key] = { error: e.message, games: 0, list: [] };
-  }
+  rankBuilds[key] = hit?.list?.length ? fromBuildsCache(hit, cache.source) : { list: [] };
 }
 
 // Stratz может отдавать ранги парами (Рекрут+Страж) — тогда так и подписываем.
@@ -1526,8 +1498,8 @@ function renderRankBuild(id, rank, box, top) {
       return;
     }
     box.innerHTML = top + stats +
-      `<div class="note" style="margin:0 0 18px">Предметы по рангу «${rank.name}» OpenDota сейчас не отдал
-        ${b.error ? `(${esc(b.error)})` : '— за последнюю неделю подходящих матчей не нашлось'}.
+      `<div class="note" style="margin:0 0 18px">Предметов для ранга «${rank.name}» пока нет —
+        они берутся из Stratz и появятся после ближайшего обновления данных.
         Винрейт и популярность выше — настоящие данные ранга; ниже для ориентира — сборка про-сцены.</div>` +
       phasesHtml(builds[id]);
     return;
