@@ -9,6 +9,7 @@ data/builds.json — сборки по рангам и позициям: Stratz 
 import json
 import os
 import pathlib
+import re
 import sys
 import time
 import urllib.error
@@ -314,7 +315,18 @@ def debug_sample(hid, evs, found):
 
 
 def collect_stratz(hero_ids):
-    brackets, positions, sel, found = stratz_schema()
+    try:
+        brackets, positions, sel, found = stratz_schema()
+    except RuntimeError as e:
+        # Бесплатный ключ Stratz пускает не больше чем с двух IP за 15 минут,
+        # а у каждого запуска Actions свой адрес — ждём, пока место освободится.
+        m = re.search(r"frees up in (\d+) minute", str(e))
+        if "IP Address" not in str(e):
+            raise
+        wait = (int(m.group(1)) + 1) * 60 if m else 16 * 60
+        log(f"stratz: лимит по IP, жду {wait // 60} мин")
+        time.sleep(wait)
+        brackets, positions, sel, found = stratz_schema()
     path = found[0]
     if not brackets:
         raise RuntimeError("Stratz не принимает фильтр по рангу")
@@ -359,6 +371,20 @@ def main():
     else:
         log("STRATZ_TOKEN не задан — сборки по рангам пропускаю")
 
+    builds_updated = now
+    if not ranks:
+        # Stratz не ответил — оставляем прошлые сборки (с их датой, чтобы сайт
+        # видел возраст), а не затираем их пустыми.
+        try:
+            prev = json.loads((OUT / "builds.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            prev = {}
+        if prev.get("ranks"):
+            log(f"stratz недоступен — оставляю сборки от {prev.get('updated')}")
+            ranks, positions = prev["ranks"], prev.get("positions", {})
+            source, rank_bracket = prev.get("source", ""), prev.get("rank_bracket", {})
+            builds_updated = prev.get("updated", now)
+
     # Словарь предметов — только те, что встречаются в сборках.
     used = set()
     for b in stats["ti"].values():
@@ -375,7 +401,7 @@ def main():
              for v in raw.values() if v.get("id") in used and v.get("dname")}
 
     write("stats.json", {"updated": now, **stats, "items": items})
-    write("builds.json", {"updated": now, "source": source, "rank_bracket": rank_bracket,
+    write("builds.json", {"updated": builds_updated, "source": source, "rank_bracket": rank_bracket,
                           "ranks": ranks, "positions": positions})
 
 
