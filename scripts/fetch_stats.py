@@ -168,7 +168,11 @@ def collect_stats():
     log(f"positions for {len(pos)} heroes")
 
     matchups = collect_matchups(where)
-    skills, abilities = collect_skills(where, heroes)
+    try:
+        skills, abilities = collect_skills(where, heroes)
+    except Exception as e:  # прокачка — дополнительная часть, из-за неё сбор не должен падать
+        log(f"  skills failed: {e!r}")
+        skills, abilities = {}, {}
 
     return {
         "patch": patch,
@@ -238,7 +242,15 @@ def collect_skills(where, heroes):
     except RuntimeError as e:
         log(f"  skills: {e}")
         return {}, {}
-    id_by_name = {v: int(k) for k, v in ability_ids.items()}
+    # Ключи бывают вида «3060,1617»: одна способность под несколькими id.
+    name_by_id = {}
+    for k, v in ability_ids.items():
+        for part in str(k).split(","):
+            if part.strip().isdigit():
+                name_by_id[int(part)] = v
+    id_by_name = {}
+    for i, v in sorted(name_by_id.items()):
+        id_by_name.setdefault(v, i)
     npc = {h["id"]: h.get("name") for h in heroes}
 
     by_hero = {}
@@ -254,9 +266,11 @@ def collect_skills(where, heroes):
         for t in info.get("talents") or []:
             if t.get("name") in id_by_name:
                 talents[id_by_name[t["name"]]] = int(t.get("level") or 0)
+        # В матчах талант может прийти под другим id того же имени — сводим к основному.
+        canon = {i: id_by_name[n] for i, n in name_by_id.items() if id_by_name.get(n) in talents}
 
         def is_skill(a):
-            return a not in talents and not ability_ids.get(str(a), "").startswith("special_bonus")
+            return a not in talents and not name_by_id.get(a, "").startswith("special_bonus")
 
         # Самая частая последовательность первых повышений (без талантов).
         seqs = {}
@@ -274,7 +288,7 @@ def collect_skills(where, heroes):
         # Выбор таланта на каждом уровне: сколько раз взяли и сколько из этих игр выиграли.
         tcount = {}
         for arr, win in games:
-            for a in set(arr):
+            for a in {canon.get(x, x) for x in arr}:
                 if a in talents:
                     cur = tcount.setdefault(a, [0, 0])
                     cur[0] += 1
@@ -290,7 +304,7 @@ def collect_skills(where, heroes):
 
     abilities = {}
     for a in used:
-        name = ability_ids.get(str(a), "")
+        name = name_by_id.get(a, "")
         v = abil.get(name) or {}
         dname = fill_template(v, name)
         abilities[str(a)] = [dname.strip(), v.get("img") or ""]
