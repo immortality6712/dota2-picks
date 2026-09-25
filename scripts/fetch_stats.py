@@ -283,18 +283,34 @@ def events(node, path):
 
 
 def fold(evs, found):
+    """Сводит строки Stratz (предмет × минута × номер покупки) в итог по предмету.
+
+    Номер покупки считаем только первый из встретившихся у предмета: с какого
+    числа Stratz начинает нумерацию, в схеме не сказано.
+    """
     _, item, count, win, inst = found
+    first = {}
+    if inst:
+        for e in evs:
+            if e.get(item) and e.get(inst) is not None:
+                first[e[item]] = min(first.get(e[item], e[inst]), e[inst])
     acc = {}
     for e in evs:
-        if inst and e.get(inst) not in (None, 1):
-            continue  # вторую покупку того же предмета не считаем
         iid = e.get(item)
-        if not iid:
+        if not iid or (iid in first and e.get(inst) != first[iid]):
             continue
         cur = acc.setdefault(iid, [iid, 0, 0])
         cur[1] += e.get(count) or 0
         cur[2] += (e.get(win) or 0) if win else 0
     return sorted(acc.values(), key=lambda x: -x[1])[:TOP]
+
+
+def debug_sample(hid, evs, found):
+    _, item, count, win, inst = found
+    insts = sorted({e.get(inst) for e in evs}, key=str) if inst else []
+    log(f"  sample hero {hid}: {len(evs)} rows, {len({e.get(item) for e in evs})} items, instances {insts[:10]}")
+    for e in sorted(evs, key=lambda e: -(e.get(count) or 0))[:8]:
+        log(f"    {e}")
 
 
 def collect_stratz(hero_ids):
@@ -315,6 +331,8 @@ def collect_stratz(hero_ids):
         except RuntimeError as e:
             log(f"  stratz hero {hid}: {e}")
             continue
+        if hid == hero_ids[0]:
+            debug_sample(hid, events(d.get("b0"), path), found)
         folded = {bv: fold(events(d.get(f"b{i}"), path), found) for i, bv in enumerate(uniq)}
         ranks[str(hid)] = {str(n): {"list": folded[bv]} for n, bv in brackets.items()}
         pos[str(hid)] = {str(n): {"list": fold(events(d.get(f"p{n}"), path), found)} for n in positions}
