@@ -411,6 +411,13 @@
   .mu b { font-size: 12px; grid-row: span 2; }
   .mu small { font-size: 10px; color: var(--muted); grid-column: 2; }
 
+  .minis { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mini { position: relative; width: 76px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+          padding: 6px 4px 8px; background: var(--panel2); border-radius: 8px; overflow: hidden; text-align: center; }
+  .mini img { width: 48px; height: 35px; border-radius: 5px; }
+  .mini small { font-size: 10px; color: var(--muted); line-height: 1.2; }
+  .mini i { position: absolute; left: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--red2)); }
+
   /* Порядок сборки */
   .timeline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
   .timeline .arrow { color: var(--muted); font-size: 22px; }
@@ -857,7 +864,7 @@ async function loadLive() {
 }
 
 function fromCache(d) {
-  items = Object.fromEntries(Object.entries(d.items || {}).map(([id, [name, img]]) => [id, { name, img }]));
+  items = Object.fromEntries(Object.entries(d.items || {}).map(([id, [name, img, parts]]) => [id, { name, img, parts: parts || [] }]));
   const it = id => ({ id, ...(items[id] || { name: '', img: '' }) });
   for (const [hid, ph] of Object.entries(d.pro || {})) {
     builds[hid] = BUILD_PHASES.map(p => ({
@@ -1043,7 +1050,32 @@ const TIERS_DEF = [
 const TIER_K = 300;         // сглаживание винрейта: редких героев тянем к среднему
 const TIER_MIN_RATE = 0.5;  // % матчей — реже героя берут слишком мало, в конец списка
 
+// Ежедневные снимки heroStats для стрелок тренда (data/history.json).
+let heroHistory;  // undefined — не загружали, null — нет файла
+function loadHistory() {
+  heroHistory = fetch('data/history.json', { cache: 'no-cache' })
+    .then(r => r.ok ? r.json() : null).catch(() => null)
+    .then(d => { heroHistory = d; if (tab === 'tier') render(); });
+}
+
+// Снимок примерно недельной давности, а если истории меньше — самый старый, но не сегодняшний.
+function pastSnapshot() {
+  const days = Object.keys(heroHistory?.days || {}).sort();
+  const today = new Date().toISOString().slice(0, 10);
+  const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  const day = days.filter(d => d <= weekAgo).pop() || days.find(d => d < today);
+  return day ? { day, data: heroHistory.days[day] } : null;
+}
+
+const TREND_MIN = 0.3;  // п.п. винрейта — меньше считаем шумом
+function trendMark(h) {
+  if (h.dWr == null || Math.abs(h.dWr) < TREND_MIN) return '';
+  const up = h.dWr > 0;
+  return ` <span class="${up ? 'wr-hi' : 'wr-lo'}" title="Винрейт ${up ? '+' : ''}${h.dWr.toFixed(1)} п.п., популярность ${h.dRate >= 0 ? '+' : ''}${h.dRate.toFixed(1)} п.п.">${up ? '▲' : '▼'}${Math.abs(h.dWr).toFixed(1)}</span>`;
+}
+
 function renderTier() {
+  if (heroHistory === undefined) loadHistory();
   const ranks = tierRank ? [tierRank] : RANKS.map(r => r.n);
   const q = el.search.value.trim().toLowerCase();
   const all = Object.values(heroes).map(h => {
@@ -1058,6 +1090,22 @@ function renderTier() {
     h.rate = h.picks / games * 100;
     h.score = (h.wins + mean * TIER_K) / (h.picks + TIER_K) * 100;
   }
+  const past = heroHistory && typeof heroHistory.then !== 'function' ? pastSnapshot() : null;
+  if (past) {
+    const idx = ranks.map(n => n - 1);
+    let pastGames = 0;
+    const pastBy = {};
+    for (const [hid, arr] of Object.entries(past.data)) {
+      const p = idx.reduce((a, i) => [a[0] + (arr[i]?.[0] || 0), a[1] + (arr[i]?.[1] || 0)], [0, 0]);
+      pastBy[hid] = p;
+      pastGames += p[0];
+    }
+    pastGames /= 10;
+    for (const h of all) {
+      const [pp, pw] = pastBy[h.hero] || [0, 0];
+      if (pp) { h.dWr = h.wr - pw / pp * 100; h.dRate = h.rate - pp / pastGames * 100; }
+    }
+  }
   const ranked = all.filter(h => h.rate >= TIER_MIN_RATE).sort((a, b) => b.score - a.score);
   const rare = all.filter(h => h.rate < TIER_MIN_RATE);
   ranked.forEach((h, i) => { h.tier = TIERS_DEF.find(t => i / ranked.length < t.upto).t; });
@@ -1068,7 +1116,8 @@ function renderTier() {
   el.stats.innerHTML = `
     <div>Ранг: <b>${rk ? rk.name : 'все'}</b></div>
     <div>Матчей в выборке: <b>${Math.round(games).toLocaleString('ru-RU')}</b></div>
-    <div>Героев в S-тире: <b>${ranked.filter(h => h.tier === 'S').length}</b></div>`;
+    <div>Героев в S-тире: <b>${ranked.filter(h => h.tier === 'S').length}</b></div>
+    <div>Тренд: <b style="font-size:16px">${past ? 'с ' + new Date(past.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : 'появится завтра'}</b></div>`;
 
   const chips = `<div class="acts">
     <button data-tier="0" class="${tierRank ? '' : 'on'}">Все ранги</button>
@@ -1094,7 +1143,7 @@ function renderTier() {
         <div class="tier-hero hero clickable" data-hero="${h.hero}" title="${esc(h.name)}: ${h.wins} из ${h.picks}">
           <img src="${heroImg(h.hero)}" alt="" loading="lazy">
           <span>${esc(h.name)}</span>
-          <small><b class="${wrClass(h.wr)}">${h.wr.toFixed(1)}%</b> · ${h.rate.toFixed(1)}%</small>
+          <small><b class="${wrClass(h.wr)}">${h.wr.toFixed(1)}%</b> · ${h.rate.toFixed(1)}%${trendMark(h)}</small>
         </div>`).join('')}</div>
     </div>`;
   }).join('') + '</div>' +
@@ -1102,7 +1151,8 @@ function renderTier() {
       Место в списке — винрейт, сглаженный к среднему (${(mean * 100).toFixed(1)}%): чем реже героя берут,
       тем сильнее его тянет к середине, чтобы случайная серия не выводила его в топ.
       S — лучшие 10% героев, A — следующие 20%, B — 30%, C — 25%, D — остальные.
-      Под именем — винрейт и доля матчей с героем. Героев реже ${TIER_MIN_RATE}% матчей
+      Под именем — винрейт и доля матчей с героем; стрелка — как изменился винрейт
+      ${past ? `с ${new Date(past.day).toLocaleDateString('ru-RU')}` : 'за неделю (история копится с сегодняшнего дня)'}. Героев реже ${TIER_MIN_RATE}% матчей
       отправляем в D: данных слишком мало. Клик по герою открывает его сборку на этом ранге.</div>`;
   el.msg.hidden = true;
 }
@@ -1344,7 +1394,10 @@ async function loadItems() {
   if (itemsFull) return;
   const raw = await fetch(`${API}/constants/items`).then(r => r.json());
   items = items || {};
-  for (const v of Object.values(raw)) items[v.id] = { name: v.dname || '', img: v.img || '' };
+  const idByName = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v.id]));
+  for (const v of Object.values(raw)) {
+    items[v.id] = { name: v.dname || '', img: v.img || '', parts: (v.components || []).map(c => idByName[c]).filter(Boolean) };
+  }
   itemsFull = true;
 }
 
@@ -1446,6 +1499,7 @@ function fromBuildsCache(b, source) {
     games: b.games ?? null,
     wins: b.wins ?? 0,
     list: b.list.map(([id, n, w, t]) => ({ id, n, w, t, ...(items?.[id] || { name: '', img: '' }) })).filter(i => i.name),
+    all: b.list,
   };
 }
 
@@ -1642,10 +1696,8 @@ function posPanel(id) {
 }
 
 // С кем герой выигрывает чаще обычного и против кого проседает.
-function matchupPanel(id) {
-  const m = matchups[id];
-  if (!m) return '';
-  const base = m.wr * 100;
+function matchupPanel(id, m = matchups[id], subtitle = null) {
+  if (!m || !m.vs) return '';
   const list = (arr, cls) => arr.map(([o, n, w]) => {
     const wr = w / n * 100;
     return `<div class="mu hero clickable" data-build="${o}" title="${esc(heroName(o))}: ${w} из ${n}">
@@ -1657,7 +1709,7 @@ function matchupPanel(id) {
   const col = (title, arr, cls) => `<div class="mucol"><h4>${title}</h4>${list(arr, cls)}</div>`;
   return `<div class="bgroup" style="margin-bottom:18px">
     <h3>Матчапы</h3>
-    <p>Про-матчи патча · общий винрейт героя ${base.toFixed(1)}%</p>
+    <p>${subtitle || `Про-матчи патча · общий винрейт героя ${(m.wr * 100).toFixed(1)}%`}</p>
     <div class="mugrid">
       ${col('Хорош против', m.vs.best, 'wr-hi')}
       ${col('Слаб против', m.vs.worst, 'wr-lo')}
@@ -1701,14 +1753,43 @@ function renderRankBuild(id, rank, box, top) {
     return;
   }
 
-  renderInventory(box, top + stats, `Сборка на ранге «${rank.name}»`, b, b.source === 'stratz' ? rankScope(rank.n) : rank.name);
+  const scope = b.source === 'stratz' ? rankScope(rank.n) : rank.name;
+  const bv = buildsCacheValue?.rank_bracket?.[rank.n];
+  const mu = bv && buildsCacheValue?.matchups?.[id]?.[bv];
+  renderInventory(box, top + stats, `Сборка на ранге «${rank.name}»`, b, scope,
+    extrasHtml(id, bv) + matchupPanel(id, mu, `Публичные матчи Stratz · ${esc(scope)}`));
+}
+
+// Стартовые предметы, сапоги и нейтралки ранга (Stratz).
+const EXTRA_TITLES = { start: 'Стартовые предметы', boots: 'Сапоги', neutral: 'Нейтральные предметы' };
+function extrasHtml(id, bv) {
+  const e = bv && buildsCacheValue?.extras?.[id]?.[bv];
+  if (!e) return '';
+  return Object.entries(EXTRA_TITLES).map(([key, title]) => {
+    const list = (e[key] || []).map(([iid, n, w]) => ({ id: iid, n, w, ...(items?.[iid] || { name: '', img: '' }) }))
+      .filter(i => i.name);
+    if (!list.length) return '';
+    const top = Math.max(...list.map(i => i.n));
+    return `<div class="bgroup"><h3>${title}</h3>
+      <div class="minis">${list.map(i => {
+        const wr = i.n ? i.w / i.n * 100 : 0;
+        return `<div class="mini" title="${esc(i.name)} — ${i.n.toLocaleString('ru-RU')} матчей, ${wr.toFixed(0)}% побед">
+          <img src="${CDN}${esc(i.img)}" alt="" loading="lazy">
+          <small>${esc(shorten(i.name, 14))}</small>
+          <i style="width:${i.n / top * 100}%"></i>
+        </div>`;
+      }).join('')}</div></div>`;
+  }).join('');
 }
 
 // Итоговые предметы из выборки по рангу или позиции.
 // Порядок сборки: самые популярные предметы, выстроенные по средней минуте покупки.
 const TIMELINE_ITEMS = 8;
 function timelineHtml(list) {
-  const timed = list.filter(i => i.t != null).slice(0, TIMELINE_ITEMS).sort((a, b) => a.t - b.t);
+  // Компонент убираем, если в выборке есть предмет, в который его собирают
+  // (Yasha при Manta Style): иначе лента показывает одну покупку дважды.
+  const isPart = i => list.some(o => o !== i && (o.parts || []).includes(Number(i.id)) && o.n >= i.n * 0.3);
+  const timed = list.filter(i => i.t != null && !isPart(i)).slice(0, TIMELINE_ITEMS).sort((a, b) => a.t - b.t);
   if (timed.length < 3) return '';
   return `<div class="bgroup">
     <h3>Порядок сборки</h3>
@@ -1723,7 +1804,7 @@ function timelineHtml(list) {
   </div>`;
 }
 
-function renderInventory(box, head, title, b, scope) {
+function renderInventory(box, head, title, b, scope, extra = '') {
   const top = Math.max(1, ...b.list.map(i => i.n));
   const wr = b.games ? b.wins / b.games * 100 : 0;
   const src = SOURCE_NAME[b.source] || 'OpenDota';
@@ -1739,7 +1820,7 @@ function renderInventory(box, head, title, b, scope) {
       return b.games
         ? itemSlot(i, sub, i.n / b.games * 100)
         : itemSlot(i, `${i.n.toLocaleString('ru-RU')} ${plural(i.n, 'матч', 'матча', 'матчей')}<br>${sub}`, null, i.n / top * 100);
-    }).join('') + '</div></div>' + timelineHtml(b.list) + '</div>' +
+    }).join('') + '</div></div>' + timelineHtml(b.list) + extra + '</div>' +
     `<div class="note">Публичные матчи, источник — ${src}.
       ${b.games ? 'Процент в углу — в какой доле матчей предмет был в слотах к концу игры, ниже — винрейт матчей с этим предметом.'
         : 'Под предметом — в скольких матчах его купили и какой в них винрейт; полоска — популярность относительно самого частого предмета.'}

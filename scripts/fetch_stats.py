@@ -184,6 +184,18 @@ def collect_stats():
     }
 
 
+def rank_pairs(lst, base=None):
+    """Лучшие и худшие пары по винрейту, сглаженному к общему винрейту героя."""
+    if base is None:
+        n = sum(x[1] for x in lst)
+        base = sum(x[2] for x in lst) / n if n else 0.5
+    ok = [x for x in lst if x[1] >= MATCHUP_MIN]
+    # Пара из пяти игр не должна выглядеть лучше пары из пятидесяти.
+    ok.sort(key=lambda x: -((x[2] + base * MATCHUP_K) / (x[1] + MATCHUP_K)))
+    best = ok[:MATCHUP_TOP]
+    return {"best": best, "worst": [x for x in ok[::-1] if x not in best][:MATCHUP_TOP]}
+
+
 MATCHUP_MIN = 5   # меньше матчей на пару — не показываем
 MATCHUP_K = 10    # сглаживание винрейта к среднему героя
 MATCHUP_TOP = 6
@@ -226,12 +238,7 @@ def collect_matchups(where):
         # Общий винрейт героя: против каждого соперника он играет ровно пять раз за матч.
         n = sum(x[1] for x in kinds["vs"])
         base = sum(x[2] for x in kinds["vs"]) / n if n else 0.5
-        out[h] = {}
-        for kind, lst in kinds.items():
-            ok = [x for x in lst if x[1] >= MATCHUP_MIN]
-            # Сглаживаем к винрейту героя: пара из пяти игр не должна выглядеть лучше пары из пятидесяти.
-            ok.sort(key=lambda x: -((x[2] + base * MATCHUP_K) / (x[1] + MATCHUP_K)))
-            out[h][kind] = {"best": ok[:MATCHUP_TOP], "worst": ok[::-1][:MATCHUP_TOP]}
+        out[h] = {kind: rank_pairs(lst, base) for kind, lst in kinds.items()}
         out[h]["wr"] = round(base, 4)
     log(f"matchups for {len(out)} heroes from {len(by_match)} matches")
     return out
@@ -295,8 +302,44 @@ def stratz_schema():
             if v.startswith("POSITION_") and v[-1] in "12345":
                 positions[int(v[-1])] = v
 
-    # Поля ответа: ищем (до трёх уровней вглубь) объект с id предмета и числом матчей.
-    ret = unwrap(fp["type"])["name"]
+    sel, found = item_shape(unwrap(fp["type"])["name"])
+    log(f"stratz: brackets {brackets}, positions {positions}, selection {{ {sel} }}")
+
+    # Дополнительные поля того же вида: старт, сапоги, нейтралки — и матчапы.
+    by_name = {f["name"]: f for f in fields}
+    extras = {}
+    for key, name in EXTRA_FIELDS.items():
+        f = by_name.get(name)
+        if not f:
+            log(f"stratz: поля {name} нет")
+            continue
+        fargs = {a["name"] for a in f["args"]}
+        arg = brackets[1][0] if brackets else None
+        if arg not in fargs or "heroId" not in fargs:
+            log(f"stratz: {name} без фильтра по рангу: {sorted(fargs)}")
+            continue
+        try:
+            extras[key] = (name,) + item_shape(unwrap(f["type"])["name"])
+        except RuntimeError as e:
+            log(f"stratz: {name}: {e}")
+    mu = None
+    f = next((f for f in fields if "matchup" in f["name"].lower()), None)
+    if f:
+        fargs = {a["name"] for a in f["args"]}
+        try:
+            mu = (f["name"], "take" in fargs) + matchup_shape(unwrap(f["type"])["name"])
+        except RuntimeError as e:
+            log(f"stratz: {f['name']}: {e}")
+    else:
+        log("stratz: поля матчапов нет: " + ", ".join(sorted(by_name)))
+    return brackets, positions, sel, found, extras, mu
+
+
+EXTRA_FIELDS = {"start": "itemStartingPurchase", "boots": "itemBootPurchase", "neutral": "itemNeutral"}
+
+
+def item_shape(ret):
+    """Ищет (до трёх уровней вглубь) объект с id предмета и числом матчей и строит выборку полей."""
     tree = []
     queue = [(ret, [])]
     found = None
@@ -324,8 +367,47 @@ def stratz_schema():
     sel = " ".join(x for x in (item, count, win, inst, tm) if x)
     for name in reversed(path):
         sel = f"{name} {{ {sel} }}"
-    log(f"stratz: brackets {brackets}, positions {positions}, selection {{ {sel} }}")
-    return brackets, positions, sel, found
+    return sel, found
+
+
+def matchup_shape(ret):
+    """Находит списки vs/with с парами героев: второй герой, число матчей и побед."""
+    tree, paths = [], {}
+    queue = [(ret, [])]
+    while queue:
+        tname, path = queue.pop(0)
+        fields = gql(TYPE_Q, {"n": tname})["__type"]["fields"] or []
+        names = {f["name"] for f in fields}
+        tree.append(f"{'.'.join([ret] + path)}: {sorted(names)}")
+        if path and path[-1] in ("vs", "with") and "heroId2" in names and "matchCount" in names:
+            win = next((x for x in WIN_KEYS if x in names), None)
+            paths.setdefault(path[-1], []).append((path, win))
+            continue
+        if len(path) < 3:
+            for f in fields:
+                t = unwrap(f["type"])
+                if t.get("kind") == "OBJECT":
+                    queue.append((t["name"], path + [f["name"]]))
+    log("stratz matchup schema:\n  " + "\n  ".join(tree))
+    if not paths:
+        raise RuntimeError(f"не нашёл списки vs/with в {ret}")
+
+    def tree_sel(plist):
+        # Собираем выборку из всех путей: {a {vs {…}} b {vs {…}}}
+        root = {}
+        for path, win in plist:
+            node = root
+            for name in path:
+                node = node.setdefault(name, {})
+            node["__leaf"] = " ".join(x for x in ("heroId2", "matchCount", win) if x)
+
+        def render(n):
+            return " ".join(v if k == "__leaf" else f"{k} {{ {render(v)} }}" for k, v in n.items())
+        return render(root)
+
+    allp = [x for v in paths.values() for x in v]
+    log(f"stratz matchups: {[('.'.join(p), w) for p, w in allp]}")
+    return tree_sel(allp), paths
 
 
 ITEM_KEYS = ("itemId", "item_id")
@@ -386,7 +468,7 @@ def debug_sample(hid, evs, found):
 
 def collect_stratz(hero_ids):
     try:
-        brackets, positions, sel, found = stratz_schema()
+        brackets, positions, sel, found, extras, mu = stratz_schema()
     except RuntimeError as e:
         # Бесплатный ключ Stratz пускает не больше чем с двух IP за 15 минут,
         # а у каждого запуска Actions свой адрес — ждём, пока место освободится.
@@ -396,11 +478,11 @@ def collect_stratz(hero_ids):
         wait = (int(m.group(1)) + 1) * 60 if m else 16 * 60
         log(f"stratz: лимит по IP, жду {wait // 60} мин")
         time.sleep(wait)
-        brackets, positions, sel, found = stratz_schema()
+        brackets, positions, sel, found, extras, mu = stratz_schema()
     path = found[0]
     if not brackets:
         raise RuntimeError("Stratz не принимает фильтр по рангу")
-    ranks, pos = {}, {}
+    ranks, pos, ext, mus = {}, {}, {}, {}
     for hid in hero_ids:
         # При парных рангах (Рекрут+Страж и т.п.) запрашиваем каждую пару один раз.
         uniq = sorted(set(brackets.values()))
@@ -418,7 +500,51 @@ def collect_stratz(hero_ids):
         folded = {bv: fold(events(d.get(f"b{i}"), path), found) for i, bv in enumerate(uniq)}
         ranks[str(hid)] = {str(n): {"list": folded[bv]} for n, bv in brackets.items()}
         pos[str(hid)] = {str(n): {"list": fold(events(d.get(f"p{n}"), path), found)} for n in positions}
-    return ranks, pos, {str(n): v for n, (_, v) in brackets.items()}
+
+        # Старт, сапоги и нейтралки по каждой паре рангов — отдельным запросом, чтобы не упереться в сложность.
+        if extras:
+            parts = [f'{key}{i}: {name}(heroId: {hid}, {arg}: [{val}]) {{ {esel} }}'
+                     for key, (name, esel, _) in extras.items() for i, (arg, val) in enumerate(uniq)]
+            try:
+                d = gql("{ heroStats { " + " ".join(parts) + " } }")["heroStats"]
+                ext[str(hid)] = {bv: {key: fold(events(d.get(f"{key}{i}"), ef[0]), ef)[:EXTRA_TOP]
+                                      for key, (_, _, ef) in extras.items()}
+                                 for i, (_, bv) in enumerate(uniq)}
+            except RuntimeError as e:
+                log(f"  stratz extras {hid}: {e}")
+
+        # Матчапы по рангам: с кем и против кого герой выигрывает.
+        if mu:
+            mname, take, msel, mpaths = mu
+            extra_arg = ", take: 200" if take else ""
+            parts = [f'm{i}: {mname}(heroId: {hid}, {arg}: [{val}]{extra_arg}) {{ {msel} }}'
+                     for i, (arg, val) in enumerate(uniq)]
+            try:
+                d = gql("{ heroStats { " + " ".join(parts) + " } }")["heroStats"]
+                mus[str(hid)] = {bv: fold_matchups(d.get(f"m{i}"), mpaths) for i, (_, bv) in enumerate(uniq)}
+                if hid == hero_ids[0]:
+                    log(f"  matchups sample: {json.dumps(mus[str(hid)])[:400]}")
+            except RuntimeError as e:
+                log(f"  stratz matchups {hid}: {e}")
+    return ranks, pos, {str(n): v for n, (_, v) in brackets.items()}, ext, mus
+
+
+EXTRA_TOP = 8
+
+
+def fold_matchups(node, paths):
+    """Пары героя из ответа Stratz → лучшие и худшие соперники и союзники (как в про-матчапах)."""
+    out = {}
+    for kind in ("vs", "with"):
+        best = {}
+        for path, win in paths.get(kind, []):
+            for e in events(node, path):
+                o, n = e.get("heroId2"), e.get("matchCount") or 0
+                w = (e.get(win) or 0) if win else None
+                if o and n and w is not None and n > best.get(o, [0, 0, 0])[1]:
+                    best[o] = [o, n, w]
+        out[kind] = rank_pairs(list(best.values()))
+    return out
 
 
 def write(name, data):
@@ -431,10 +557,10 @@ def main():
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     stats = collect_stats()
 
-    ranks, positions, source, rank_bracket = {}, {}, "", {}
+    ranks, positions, source, rank_bracket, extras, rank_mu = {}, {}, "", {}, {}, {}
     if STRATZ_TOKEN:
         try:
-            ranks, positions, rank_bracket = collect_stratz([h["id"] for h in stats["heroes"]])
+            ranks, positions, rank_bracket, extras, rank_mu = collect_stratz([h["id"] for h in stats["heroes"]])
             source = "stratz" if ranks else ""
         except (RuntimeError, StopIteration, KeyError, TypeError) as e:
             log(f"stratz failed: {e!r}")
@@ -453,6 +579,7 @@ def main():
             log(f"stratz недоступен — оставляю сборки от {prev.get('updated')}")
             ranks, positions = prev["ranks"], prev.get("positions", {})
             source, rank_bracket = prev.get("source", ""), prev.get("rank_bracket", {})
+            extras, rank_mu = prev.get("extras", {}), prev.get("matchups", {})
             builds_updated = prev.get("updated", now)
 
     # Словарь предметов — только те, что встречаются в сборках.
@@ -466,13 +593,38 @@ def main():
         for per in table.values():
             for b in per.values():
                 used.update(i[0] for i in b["list"])
+    for per in extras.values():
+        for kinds in per.values():
+            for lst in kinds.values():
+                used.update(i[0] for i in lst)
     raw = od("/constants/items")
-    items = {str(v["id"]): [v.get("dname") or "", v.get("img") or ""]
+    # Третье поле — из каких предметов собирается этот: чтобы убирать компоненты из ленты сборки.
+    id_by_name = {k: v.get("id") for k, v in raw.items()}
+    items = {str(v["id"]): [v.get("dname") or "", v.get("img") or "",
+                            [id_by_name[c] for c in (v.get("components") or []) if id_by_name.get(c)]]
              for v in raw.values() if v.get("id") in used and v.get("dname")}
 
     write("stats.json", {"updated": now, **stats, "items": items})
     write("builds.json", {"updated": builds_updated, "source": source, "rank_bracket": rank_bracket,
-                          "ranks": ranks, "positions": positions})
+                          "ranks": ranks, "positions": positions, "extras": extras, "matchups": rank_mu})
+    write_history(stats["heroes"], now)
+
+
+HISTORY_DAYS = 21
+
+
+def write_history(heroes, now):
+    """Снимок винрейта и пиков по рангам раз в сутки — для стрелок тренда в тир-листе."""
+    try:
+        hist = json.loads((OUT / "history.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        hist = {"days": {}}
+    day = now[:10]
+    hist["days"][day] = {str(h["id"]): [[h.get(f"{n}_pick") or 0, h.get(f"{n}_win") or 0] for n in range(1, 8)]
+                         for h in heroes}
+    for d in sorted(hist["days"])[:-HISTORY_DAYS]:
+        del hist["days"][d]
+    write("history.json", hist)
 
 
 if __name__ == "__main__":
