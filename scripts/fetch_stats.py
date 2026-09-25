@@ -27,7 +27,7 @@ STRATZ_TOKEN = os.environ.get("STRATZ_TOKEN", "").strip()
 SEASON_START = "extract(epoch from date '2026-01-01')"
 TIERS = "l.tier IN ('premium', 'professional')"
 PHASES = ["start_game_items", "early_game_items", "mid_game_items", "late_game_items"]
-RANK_KEYS = ["HERALD", "GUARDIAN", "CRUSADER", "ARCHON", "LEGEND", "ANCIENT", "DIVINE", "IMMORTAL"]
+RANK_KEYS = ["HERALD", "GUARDIAN", "CRUSADER", "ARCHON", "LEGEND", "ANCIENT", "DIVINE"]  # без Титана
 TOP = 12
 
 
@@ -72,7 +72,7 @@ def sql(query):
 def collect_stats():
     hero_list = od("/heroStats")
     keep = ["id", "localized_name", "img", "primary_attr", "attack_type", "roles", "pro_pick", "pro_win"]
-    keep += [f"{n}_{k}" for n in range(1, 9) for k in ("pick", "win")]
+    keep += [f"{n}_{k}" for n in range(1, 8) for k in ("pick", "win")]
     heroes = [{k: h.get(k) for k in keep} for h in hero_list]
 
     patch = sql("""SELECT mp.patch, count(*) AS n

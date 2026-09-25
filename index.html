@@ -430,7 +430,7 @@
   }
   .medal.lg { width: 34px; height: 34px; font-size: 15px; }
   .ranks {
-    display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -693,7 +693,8 @@ const BUILD_PHASES = [
   { key: 'mid_game_items', title: 'Середина', note: 'Основной костяк' },
   { key: 'late_game_items', title: 'Поздняя игра', note: 'Что собирают в конце' },
 ];
-// Ранги по порядку rank_tier OpenDota: 1 — Рекрут … 8 — Титан.
+// Ранги по порядку rank_tier OpenDota: 1 — Рекрут … 7 — Божество.
+// Титана (8) нет: OpenDota не публикует по нему статистику.
 const RANKS = [
   { n: 1, name: 'Рекрут', c: '#a88a6c' },
   { n: 2, name: 'Страж', c: '#8fb07a' },
@@ -702,7 +703,6 @@ const RANKS = [
   { n: 5, name: 'Легенда', c: '#a07be0' },
   { n: 6, name: 'Властелин', c: '#e0b35a' },
   { n: 7, name: 'Божество', c: '#dfe6ee' },
-  { n: 8, name: 'Титан', c: '#ec5c4e' },
 ];
 const POSITIONS = [
   { n: 1, name: 'Керри' },
@@ -1487,7 +1487,7 @@ function buildTabs(active) {
 function ranksPanel(id, active) {
   const list = rankStats(id);
   if (!list.some(r => r.picks)) return '';
-  // Ранги без данных (OpenDota не отдаёт Титанов) в масштаб не берём.
+  // Ранги без данных в масштаб не берём.
   const known = list.filter(r => r.picks);
   const lo = Math.min(...known.map(r => r.wr)) - 2;
   const hi = Math.max(...known.map(r => r.wr)) + 1;
@@ -2054,10 +2054,10 @@ function readHash() {
   if (pending.group && el.group.options.length) el.group.innerHTML = '';
   if (p.get('hero') && heroes[p.get('hero')]) el.hero.value = p.get('hero');
   el.role.value = [...el.role.options].some(o => o.value === p.get('role')) ? p.get('role') : '';
-  tierRank = /^[1-8]$/.test(p.get('rank') || '') ? Number(p.get('rank')) : 0;
+  tierRank = /^[1-7]$/.test(p.get('rank') || '') ? Number(p.get('rank')) : 0;
   const b = Number(p.get('build'));
   const src = p.get('src') || 'all';
-  buildSrc = /^(all|ti|r[1-8]|p[1-5])$/.test(src) ? src : 'all';
+  buildSrc = /^(all|ti|r[1-7]|p[1-5])$/.test(src) ? src : 'all';
   render();
   if (b && heroes[b]) openBuild(b);
   else if (buildHero != null) closeBuild();
