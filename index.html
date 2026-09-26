@@ -767,7 +767,7 @@
     .picker-left { display: contents; }
     .rb-attrs { order: 1; }
     .ribbon { order: 2; }
-    .picker-info { order: 3; position: static; border-left: none; border-top: 1px solid #2c261c; margin-top: 12px; }
+    .picker-info { order: 3; position: static; align-self: stretch; border-left: none; border-top: 1px solid #2c261c; margin-top: 12px; }
     .picker-top input { width: 100%; order: 3; }
     .picker-top { flex-wrap: wrap; }
     .player-cols { grid-template-columns: 1fr; }
@@ -786,7 +786,10 @@
   }
 
   /* ===================== Y2K ===================== */
-  body {
+  /* Фон — на html: фон body рисуется поверх слоёв с отрицательным z-index (3D-сцена, сетка). */
+  body { background: transparent !important; }
+  html {
+    min-height: 100%;
     background:
       radial-gradient(900px 500px at 10% -80px, rgba(255, 79, 184, .28), transparent 60%),
       radial-gradient(900px 520px at 95% -60px, rgba(111, 243, 255, .22), transparent 60%),
@@ -966,9 +969,59 @@
   @media (max-width: 720px) { header .wrap::after { display: none; } }
   a { color: var(--cyan); border-bottom-color: rgba(111, 243, 255, .4); }
   .msg::before { border-color: var(--line2); border-top-color: var(--pink); }
+
+  /* ===================== 3D ===================== */
+  #bg3d { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; transition: opacity .2s; }
+  body::before { z-index: -2; }
+
+  /* Объёмный хромированный заголовок: слои тени дают «выдавленные» буквы */
+  h1 {
+    filter:
+      drop-shadow(0 1px 0 #6d63c9) drop-shadow(0 1px 0 #5249a8) drop-shadow(0 1px 0 #3d3588)
+      drop-shadow(0 1px 0 #2c2568) drop-shadow(0 6px 10px rgba(0, 0, 0, .6)) drop-shadow(0 0 18px rgba(111, 243, 255, .35));
+  }
+
+  /* Наклон карточек за курсором */
+  .stats > div, .tier-hero, .slot, .mini, .poscell, .player-card, .tl-item {
+    transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s, border-color .25s;
+    transform-style: preserve-3d;
+  }
+  .tilt {
+    transform: perspective(700px) rotateX(var(--rx, 0)) rotateY(var(--ry, 0)) translateZ(6px) !important;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 24px rgba(111, 243, 255, .3) !important;
+    z-index: 2;
+  }
+  .stats > div::after { background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgba(255, 255, 255, .16), transparent 55%); height: 100%; }
+  .tier-hero, .slot, .poscell, .player-card { position: relative; }
+  .tier-hero::before, .slot::before, .poscell::before, .player-card::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .25s;
+    background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, .22), transparent 50%);
+  }
+  .tilt::before { opacity: 1; }
+
+  /* 3D-карусель героев: соседи развёрнуты в глубину, как coverflow */
+  .rb-view { perspective: 1100px; }
+  .rb-track { transform-style: preserve-3d; }
+  .rb-item { transform-style: preserve-3d; }
+  .rb-item[data-d="0"] { transform: translateZ(90px) scale(1.3); }
+  .rb-item[data-d="1"][data-side="l"] { transform: rotateY(48deg) translateZ(-30px) scale(1.02); }
+  .rb-item[data-d="1"][data-side="r"] { transform: rotateY(-48deg) translateZ(-30px) scale(1.02); }
+  .rb-item[data-d="2"][data-side="l"] { transform: rotateY(58deg) translateZ(-120px) scale(.9); }
+  .rb-item[data-d="2"][data-side="r"] { transform: rotateY(-58deg) translateZ(-120px) scale(.9); }
+  .rb-item[data-d="3"][data-side="l"] { transform: rotateY(64deg) translateZ(-200px) scale(.82); }
+  .rb-item[data-d="3"][data-side="r"] { transform: rotateY(-64deg) translateZ(-200px) scale(.82); }
+  .rb-item[data-d="4"][data-side="l"] { transform: rotateY(68deg) translateZ(-260px) scale(.76); }
+  .rb-item[data-d="4"][data-side="r"] { transform: rotateY(-68deg) translateZ(-260px) scale(.76); }
+  /* Отражение под центральным портретом, как на глянцевом полу */
+  .rb-item[data-d="0"] img { -webkit-box-reflect: below 4px linear-gradient(transparent 55%, rgba(255, 255, 255, .25)); }
+  @media (prefers-reduced-motion: reduce) {
+    .tilt { transform: none !important; }
+    header .wrap::after { animation: none; }
+  }
 </style>
 </head>
 <body>
+<canvas id="bg3d" aria-hidden="true"></canvas>
 
 <header>
   <div class="wrap">
@@ -1056,6 +1109,137 @@
   Данные кэшируются и обновляются каждые шесть часов.
 </p></footer>
 
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module">
+// Фоновая 3D-сцена: переливающийся хромированный «жидкий» шар с кольцами и осколками.
+// Декорация: без WebGL или при «уменьшить движение» — статичный кадр или ничего, сайт работает как был.
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const canvas = document.getElementById('bg3d');
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+} catch {
+  canvas.remove();
+}
+if (renderer) {
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  camera.position.set(0, 0, 9);
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  // Шар: икосаэдр, вершины которого «дышат» вдоль нормалей.
+  // Общие вершины объединяем — иначе нормали по граням и шар выглядит гранёным.
+  const geo = mergeVertices(new THREE.IcosahedronGeometry(1.35, 6).deleteAttribute('normal').deleteAttribute('uv'));
+  const base = geo.attributes.position.array.slice();
+  const blob = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({
+    color: 0xdfe4ff, metalness: 0.95, roughness: 0.06,
+    iridescence: 1, iridescenceIOR: 2.2, iridescenceThicknessRange: [250, 1100],
+    clearcoat: 1, clearcoatRoughness: 0.05,
+  }));
+  group.add(blob);
+
+  const ringMat = (c) => new THREE.MeshPhysicalMaterial({ color: c, metalness: 1, roughness: 0.15, emissive: c, emissiveIntensity: 0.25 });
+  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(2.25, 0.03, 16, 220), ringMat(0x6ff3ff));
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.7, 0.022, 16, 220), ringMat(0xff4fb8));
+  ring1.rotation.set(1.2, 0.3, 0);
+  ring2.rotation.set(1.9, -0.5, 0.4);
+  group.add(ring1, ring2);
+
+  // Осколки-кристаллы на орбите.
+  const shards = [];
+  const shardMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.1, iridescence: 1, iridescenceIOR: 2 });
+  for (let i = 0; i < 7; i++) {
+    const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.12 + (i % 3) * 0.05), shardMat);
+    m.userData = { r: 2.2 + (i % 4) * 0.35, speed: 0.15 + i * 0.03, phase: i * 0.9, tilt: (i % 2 ? 1 : -1) * 0.5 };
+    shards.push(m);
+    group.add(m);
+  }
+
+  const pink = new THREE.PointLight(0xff4fb8, 30, 20);
+  const cyan = new THREE.PointLight(0x6ff3ff, 30, 20);
+  pink.position.set(-4, 2, 3);
+  cyan.position.set(4, -2, 4);
+  scene.add(pink, cyan);
+
+  // Шар справа от заголовка на широком экране, сверху по центру — на телефоне.
+  function layout() {
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const wide = w > 900;
+    // Держим шар у правого края, чтобы он не заходил на заголовок.
+    const halfW = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
+    baseY = wide ? 1.35 : 3.1;
+    group.position.set(wide ? halfW - 1.9 : halfW - 0.2, baseY, 0);
+    group.scale.setScalar(wide ? 0.72 : 0.42);
+    canvas.style.setProperty('--dim', wide ? '1' : '.6');
+  }
+  let baseY = 1.35;
+  layout();
+  addEventListener('resize', layout);
+
+  const mouse = { x: 0, y: 0 };
+  addEventListener('pointermove', e => { mouse.x = e.clientX / innerWidth - 0.5; mouse.y = e.clientY / innerHeight - 0.5; });
+
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  function frame(t) {
+    const time = t / 1000;
+    for (let i = 0; i < pos.count; i++) {
+      v.set(base[i * 3], base[i * 3 + 1], base[i * 3 + 2]);
+      const n = v.clone().normalize();
+      const d = 0.16 * Math.sin(n.x * 3 + time * 0.9) * Math.sin(n.y * 3.3 + time * 1.1) * Math.sin(n.z * 2.7 + time * 0.7)
+              + 0.06 * Math.sin(n.x * 7 + n.y * 5 + time * 1.7);
+      v.addScaledVector(n, d);
+      pos.setXYZ(i, v.x, v.y, v.z);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+
+    group.rotation.y += ((mouse.x * 0.8 + time * 0.12) - group.rotation.y) * 0.05;
+    group.rotation.x += ((mouse.y * 0.5) - group.rotation.x) * 0.05;
+    ring1.rotation.z = time * 0.25;
+    ring2.rotation.z = -time * 0.18;
+    shards.forEach(m => {
+      const { r, speed, phase, tilt } = m.userData, a = time * speed + phase;
+      m.position.set(Math.cos(a) * r, Math.sin(a * 1.3) * tilt, Math.sin(a) * r);
+      m.rotation.set(a * 2, a * 3, 0);
+    });
+    // При прокрутке шар уплывает вверх и тает, чтобы не мешать таблицам.
+    const k = Math.min(1, scrollY / 700);
+    group.position.y = baseY + k * 1.5;
+    canvas.style.opacity = String((1 - k * 0.75) * (innerWidth > 900 ? 1 : 0.6));
+    renderer.render(scene, camera);
+  }
+
+  if (still) frame(0);
+  else {
+    let raf = 0;
+    const loop = t => { frame(t); raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+    document.addEventListener('visibilitychange', () => {
+      cancelAnimationFrame(raf);
+      if (!document.hidden) raf = requestAnimationFrame(loop);
+    });
+  }
+}
+</script>
 <script>
 const API = 'https://api.opendota.com/api';
 const CDN = 'https://cdn.cloudflare.steamstatic.com';
@@ -3210,6 +3394,7 @@ function placeRibbon(animate = true) {
   picker.track.querySelectorAll('.rb-item').forEach((node, k) => {
     const d = i < 0 ? 9 : Math.abs(k - i);
     node.dataset.d = Math.min(d, 4);
+    node.dataset.side = i < 0 || k === i ? 'c' : k < i ? 'l' : 'r';
   });
   if (!animate) requestAnimationFrame(() => { picker.track.style.transition = ''; });
 }
@@ -3286,6 +3471,25 @@ picker.search.addEventListener('input', () => {
   if (picker.order.length && !picker.order.includes(picker.id)) setPickerFocus(picker.order[0], { fromRibbon: true });
   else placeRibbon(false);
 });
+
+// Наклон карточек за курсором с бегущим бликом — только там, где есть мышь.
+const TILT = '.stats > div, .tier-hero, .slot, .mini, .poscell, .player-card, .tl-item';
+if (matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  let tilted = null;
+  document.addEventListener('pointermove', e => {
+    const card = e.target.closest?.(TILT);
+    if (tilted && tilted !== card) { tilted.classList.remove('tilt'); tilted = null; }
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    card.style.setProperty('--rx', ((0.5 - y) * 12).toFixed(2) + 'deg');
+    card.style.setProperty('--ry', ((x - 0.5) * 14).toFixed(2) + 'deg');
+    card.style.setProperty('--gx', (x * 100).toFixed(1) + '%');
+    card.style.setProperty('--gy', (y * 100).toFixed(1) + '%');
+    card.classList.add('tilt');
+    tilted = card;
+  });
+}
 
 init();
 </script>
