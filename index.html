@@ -432,7 +432,7 @@
     animation: fade .18s ease-out;
   }
   .picker-box {
-    width: 100%; max-width: 1360px;
+    width: 100%; max-width: 1180px;
     background: linear-gradient(180deg, #16191e, #0c0e12);
     border: 1px solid #3b3122;
     box-shadow: 0 0 0 1px #000, 0 30px 80px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 220, 160, .08);
@@ -447,33 +447,7 @@
   .picker-top input { margin-left: auto; width: 240px; background: #0a0b0e; border-color: #3b3122; }
   .picker-x { position: static; flex: none; }
   .picker-main { display: grid; grid-template-columns: 1fr 300px; }
-  .picker-grid { padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; align-content: start; }
-  .pk-group h3 {
-    display: flex; align-items: center; gap: 8px; margin: 0 0 8px;
-    font: 700 15px/1 var(--head); text-transform: uppercase; letter-spacing: .1em; color: var(--c);
-    padding-bottom: 6px; border-bottom: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
-  }
-  .pk-group h3 img { width: 20px; height: 20px; }
-  .pk-cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 3px; }
-  .pk {
-    position: relative; padding: 0; border: 1px solid #000; background: #000; cursor: pointer;
-    aspect-ratio: 16 / 9; overflow: visible;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
-    transition: transform .12s, box-shadow .12s, filter .12s;
-  }
-  .pk img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.85) brightness(.85); }
-  .pk span { display: none; }
-  .pk:hover { transform: scale(1.35); z-index: 3; box-shadow: 0 0 0 1px #d9ad62, 0 6px 18px rgba(0, 0, 0, .8); }
-  .pk:hover img { filter: none; }
-  .pk:hover span {
-    display: block; position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
-    margin-top: 2px; padding: 1px 6px; white-space: nowrap; font-size: 9px; font-weight: 600;
-    background: #000; color: #f1e2c0; border: 1px solid #3b3122; pointer-events: none;
-  }
-  .pk.on { box-shadow: 0 0 0 2px #e8b85a, 0 0 14px rgba(232, 184, 90, .7); z-index: 2; }
-  .pk.on img { filter: none; }
-  .pk.dim img { filter: grayscale(1) brightness(.35); }
-  .picker-left { min-width: 0; }
+  .picker-left { min-width: 0; display: flex; flex-direction: column; }
   .rb-attrs { display: flex; gap: 6px; flex-wrap: wrap; padding: 14px 14px 0; }
   .rb-attrs button {
     background: #0e1013; border: 1px solid #2c261c; color: var(--c); cursor: pointer;
@@ -481,7 +455,7 @@
   }
   .rb-attrs button.on { background: color-mix(in srgb, var(--c) 18%, #0e1013); border-color: var(--c); }
   .ribbon {
-    position: relative; margin: 10px 14px 0; height: 190px;
+    position: relative; margin: 14px 14px 18px; flex: 1; min-height: 320px;
     background: radial-gradient(ellipse at 50% 60%, rgba(232, 184, 90, .10), transparent 60%),
                 linear-gradient(180deg, #07080a, #111317 50%, #07080a);
     border: 1px solid #2c261c; box-shadow: inset 0 0 30px rgba(0, 0, 0, .9);
@@ -493,22 +467,22 @@
   .rb-view::before { left: 0; background: linear-gradient(90deg, #0b0c0f, transparent); }
   .rb-view::after { right: 0; background: linear-gradient(-90deg, #0b0c0f, transparent); }
   .rb-track {
-    position: absolute; left: 0; top: 50%; display: flex; gap: 10px; align-items: center;
-    transform: translateX(0); margin-top: -46px;
+    position: absolute; left: 0; top: 50%; display: flex; gap: 14px; align-items: center;
+    transform: translateX(0); margin-top: -62px;
     transition: transform .35s cubic-bezier(.2, .8, .2, 1);
   }
   .rb-item {
-    flex: none; width: 132px; padding: 0; border: 1px solid #000; background: #000; cursor: pointer;
+    flex: none; width: 180px; padding: 0; border: 1px solid #000; background: #000; cursor: pointer;
     position: relative; transform-origin: 50% 50%;
     transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .35s, filter .35s, box-shadow .35s;
   }
   .rb-item img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
   .rb-item span {
-    position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; text-align: center;
-    font-size: 11px; color: #cdbb95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    position: absolute; left: 0; right: 0; top: 100%; margin-top: 6px; text-align: center;
+    font-size: 12px; color: #cdbb95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .rb-item[data-d="0"] { transform: scale(1.45); z-index: 4; box-shadow: 0 0 0 2px #e8b85a, 0 0 26px rgba(232, 184, 90, .55); }
-  .rb-item[data-d="0"] span { font: 700 12px/1.2 var(--head); text-transform: uppercase; color: #f4e6c6; letter-spacing: .06em; }
+  .rb-item[data-d="0"] span { font: 700 15px/1.2 var(--head); text-transform: uppercase; color: #f4e6c6; letter-spacing: .06em; }
   .rb-item[data-d="1"] { transform: scale(1.05); z-index: 3; filter: brightness(.85); }
   .rb-item[data-d="2"] { transform: scale(.9); z-index: 2; filter: brightness(.6); }
   .rb-item[data-d="3"] { transform: scale(.8); filter: brightness(.45); opacity: .8; }
@@ -527,11 +501,6 @@
     border-left: 1px solid #2c261c; padding: 18px; background: linear-gradient(180deg, #121418, #0b0c0f);
     display: flex; flex-direction: column; gap: 10px; position: sticky; top: 0; align-self: start;
   }
-  .pk-portrait {
-    border: 1px solid #000; box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 60%, #000), 0 0 26px color-mix(in srgb, var(--c) 30%, transparent);
-    aspect-ratio: 16 / 9; overflow: hidden; background: #000;
-  }
-  .pk-portrait img { width: 100%; height: 100%; object-fit: cover; }
   .picker-info h2 { margin: 4px 0 0; font: 700 28px/1 var(--head); text-transform: uppercase; color: #f4e6c6; }
   .pk-attr { font-size: 13px; font-weight: 600; }
   .pk-stats { display: flex; flex-direction: column; border-top: 1px solid #2c261c; }
@@ -762,7 +731,7 @@
     .posgrid { grid-template-columns: repeat(3, 1fr); }
     .picker { padding: 0; }
     .picker-main { grid-template-columns: 1fr; }
-    .ribbon { height: 150px; margin: 10px 8px 0; }
+    .ribbon { height: 260px; margin: 10px 8px 0; }
     .rb-view { inset: 0 32px; }
     .rb-arrow { width: 32px; font-size: 26px; }
     /* На телефоне: атрибуты, лента, карточка, сетка — лента сверху, портрет в карточке не нужен. */
@@ -771,8 +740,6 @@
     .rb-attrs { order: 1; }
     .ribbon { order: 2; }
     .picker-info { order: 3; position: static; border-left: none; border-top: 1px solid #2c261c; margin-top: 12px; }
-    .picker-grid { order: 4; }
-    .pk-portrait { display: none; }
     .picker-top input { width: 100%; order: 3; }
     .picker-top { flex-wrap: wrap; }
     .player-cols { grid-template-columns: 1fr; }
@@ -853,7 +820,6 @@
           <div class="rb-view"><div class="rb-track"></div></div>
           <button class="rb-arrow next" aria-label="Следующий герой">›</button>
         </div>
-        <div class="picker-grid"></div>
       </div>
       <aside class="picker-info"></aside>
     </div>
@@ -2802,7 +2768,6 @@ const ATTR_GROUPS = [
 ];
 const picker = {
   el: document.getElementById('picker'),
-  grid: document.querySelector('#picker .picker-grid'),
   info: document.querySelector('#picker .picker-info'),
   search: document.getElementById('picker-search'),
   view: document.querySelector('#picker .rb-view'),
@@ -2821,12 +2786,9 @@ function openPicker(id, src = 'all') {
   picker.attr = '';
   picker.el.hidden = false;
   document.body.style.overflow = 'hidden';
-  renderPickerGrid();
   buildRibbon();
   renderPickerInfo();
-  // На телефоне карточка героя стоит над сеткой — её и показываем первой.
-  if (window.innerWidth > 720) picker.grid.querySelector('.pk.on')?.scrollIntoView({ block: 'center' });
-  else picker.el.scrollTop = 0;
+  picker.el.scrollTop = 0;
 }
 
 function closePicker() {
@@ -2839,24 +2801,6 @@ function pickerOpenBuild() {
   closePicker();
   buildSrc = picker.src;
   openBuild(id);
-}
-
-function renderPickerGrid() {
-  const q = picker.search.value.trim().toLowerCase();
-  picker.grid.innerHTML = ATTR_GROUPS.map(g => {
-    const list = Object.values(heroes).filter(h => (h.primary_attr || 'all') === g.key)
-      .sort((a, b) => a.localized_name.localeCompare(b.localized_name));
-    if (!list.length) return '';
-    return `<section class="pk-group" style="--c:${g.c}">
-      <h3><img src="${CDN}/apps/dota2/images/dota_react/icons/${g.icon}.png" alt="" onerror="this.remove()">${g.name}</h3>
-      <div class="pk-cells">${list.map(h => {
-        const dim = q && !h.localized_name.toLowerCase().includes(q);
-        return `<button class="pk ${h.id === picker.id ? 'on' : ''} ${dim ? 'dim' : ''}" data-pick="${h.id}" title="${esc(h.localized_name)}">
-          <img src="${heroImg(h.id)}" alt="" loading="lazy"><span>${esc(h.localized_name)}</span>
-        </button>`;
-      }).join('')}</div>
-    </section>`;
-  }).join('');
 }
 
 function renderPickerInfo() {
@@ -2872,9 +2816,6 @@ function renderPickerInfo() {
   const mainPos = pos && pos.some(Boolean) ? pos.indexOf(Math.max(...pos)) + 1 : null;
   const stat = (label, value, cls = '') => `<div class="pk-stat"><span>${label}</span><b class="${cls}">${value}</b></div>`;
   picker.info.innerHTML = `
-    <div class="pk-portrait" style="--c:${g?.c || '#888'}">
-      <img src="${heroImg(id)}" alt="">
-    </div>
     <h2>${esc(h.localized_name)}</h2>
     <div class="pk-attr" style="color:${g?.c}">${g ? g.name : ''} · ${h.attack_type === 'Melee' ? 'ближний бой' : 'дальний бой'}</div>
     <div class="tags">${(h.roles || []).map(r => `<span>${esc(r)}</span>`).join('')}</div>
@@ -2890,7 +2831,7 @@ function renderPickerInfo() {
 }
 
 // ---- Лента героев: выбранный по центру, соседи меньше, листается колесом, стрелками и свайпом.
-const RB_W = 132, RB_GAP = 10;
+const RB_W = 180, RB_GAP = 14;  // ширина портрета в ленте — совпадает с .rb-item в CSS
 
 function ribbonList() {
   const q = picker.search.value.trim().toLowerCase();
@@ -2930,8 +2871,6 @@ function placeRibbon(animate = true) {
 
 function setPickerFocus(id, { fromRibbon = false } = {}) {
   picker.id = id;
-  picker.grid.querySelectorAll('.pk.on').forEach(x => x.classList.remove('on'));
-  picker.grid.querySelector(`.pk[data-pick="${id}"]`)?.classList.add('on');
   if (!picker.order.includes(id)) { picker.attr = ''; buildRibbon(); }
   placeRibbon(true);
   renderPickerInfo();
@@ -2997,7 +2936,6 @@ window.addEventListener('resize', () => { if (!picker.el.hidden) placeRibbon(fal
 picker.search.addEventListener('input', () => {
   // Ищем среди всех героев, а не только в выбранном атрибуте.
   if (picker.search.value.trim()) picker.attr = '';
-  renderPickerGrid();
   buildRibbon();
   // Лента показывает только найденных; фокус — на первого из них, если прежний выпал.
   if (picker.order.length && !picker.order.includes(picker.id)) setPickerFocus(picker.order[0], { fromRibbon: true });
