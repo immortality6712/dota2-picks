@@ -2123,8 +2123,31 @@ function rankTalents(id, bv, scope) {
   const tiers = heroSkills[id]?.talents;
   if (!list?.length || !tiers?.length) return '';
   const got = new Map(list.map(([a, n, w]) => [Number(a), [n, w]]));
-  const mapped = tiers.map(([lvl, opts]) => [lvl, opts.map(([a]) => [a, ...(got.get(Number(a)) || [0, 0])])])
-    .filter(([, opts]) => opts.some(o => o[1]));
+  const mapped = tiers.map(([lvl, opts]) => [lvl, opts.map(([a]) => [a, ...(got.get(Number(a)) || [0, 0])])]);
+  // Бывает, что Stratz отдаёт талант под другим id, чем OpenDota. Если неопознанный талант
+  // ровно один и пустая ячейка в дереве ровно одна — это он и есть.
+  // Неопознанные ставим на уровень, где среднее время выбора ближе всего (талант 10-го
+  // берут раньше, чем 25-го); если времени нет — только однозначный случай «один к одному».
+  const known = new Set(tiers.flatMap(([, opts]) => opts.map(([a]) => Number(a))));
+  const stray = list.filter(([a]) => !known.has(Number(a))).sort((a, b) => b[1] - a[1]);
+  const timeOf = new Map(list.map(([a, , , t]) => [Number(a), t]));
+  const empties = () => mapped.flatMap(([lvl, opts]) => opts.filter(o => !o[1]).map(o => ({ lvl, o })));
+  if (stray.length === 1 && empties().length === 1) {
+    const { o } = empties()[0];
+    [o[1], o[2]] = [stray[0][1], stray[0][2]];
+  } else if (stray.length && stray.every(x => x[3])) {
+    const tierTime = Object.fromEntries(mapped.map(([lvl, opts]) => {
+      const ts = opts.map(([a]) => timeOf.get(Number(a))).filter(Boolean);
+      return [lvl, ts.length ? ts.reduce((p, c) => p + c, 0) / ts.length : null];
+    }));
+    for (const [, n, w, t] of stray) {
+      const free = empties().filter(e => tierTime[e.lvl] != null);
+      if (!free.length) break;
+      const best = free.reduce((a, b) => Math.abs(tierTime[a.lvl] - t) <= Math.abs(tierTime[b.lvl] - t) ? a : b);
+      [best.o[1], best.o[2]] = [n, w];
+    }
+  }
+  mapped.splice(0, mapped.length, ...mapped.filter(([, opts]) => opts.some(o => o[1])));
   return talentsPanel(mapped, 'Таланты на ранге', `Публичные матчи Stratz · ${esc(scope)}`);
 }
 

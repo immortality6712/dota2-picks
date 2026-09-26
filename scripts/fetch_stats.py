@@ -224,12 +224,16 @@ def canon_talents(extras):
             if not lst:
                 continue
             acc = {}
-            for a, n, w, *_ in lst:
+            for a, n, w, *rest in lst:
                 a = TALENT_CANON.get(a, a)
-                cur = acc.setdefault(a, [a, 0, 0])
+                cur = acc.setdefault(a, [a, 0, 0, 0])
                 cur[1] += n
                 cur[2] += w
-            kinds["talent"] = sorted(acc.values(), key=lambda x: -x[1])
+                cur[3] += (rest[0] or 0) * n if rest else 0
+            # Четвёртое число — среднее время выбора: по нему сайт определяет уровень таланта,
+            # если Stratz отдал его под id, которого нет в дереве OpenDota.
+            kinds["talent"] = sorted(([a, n, w, round(t / n, 1) if n else 0] for a, n, w, t in acc.values()),
+                                     key=lambda x: -x[1])
 
 
 def fill_template(v, name):
