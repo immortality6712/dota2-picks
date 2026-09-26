@@ -473,6 +473,56 @@
   .pk.on { box-shadow: 0 0 0 2px #e8b85a, 0 0 14px rgba(232, 184, 90, .7); z-index: 2; }
   .pk.on img { filter: none; }
   .pk.dim img { filter: grayscale(1) brightness(.35); }
+  .picker-left { min-width: 0; }
+  .rb-attrs { display: flex; gap: 6px; flex-wrap: wrap; padding: 14px 14px 0; }
+  .rb-attrs button {
+    background: #0e1013; border: 1px solid #2c261c; color: var(--c); cursor: pointer;
+    font: 700 13px/1 var(--head); text-transform: uppercase; letter-spacing: .08em; padding: 7px 12px;
+  }
+  .rb-attrs button.on { background: color-mix(in srgb, var(--c) 18%, #0e1013); border-color: var(--c); }
+  .ribbon {
+    position: relative; margin: 10px 14px 0; height: 190px;
+    background: radial-gradient(ellipse at 50% 60%, rgba(232, 184, 90, .10), transparent 60%),
+                linear-gradient(180deg, #07080a, #111317 50%, #07080a);
+    border: 1px solid #2c261c; box-shadow: inset 0 0 30px rgba(0, 0, 0, .9);
+  }
+  .rb-view { position: absolute; inset: 0 44px; overflow: hidden; touch-action: pan-y; cursor: grab; }
+  .rb-view::before, .rb-view::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 90px; z-index: 5; pointer-events: none;
+  }
+  .rb-view::before { left: 0; background: linear-gradient(90deg, #0b0c0f, transparent); }
+  .rb-view::after { right: 0; background: linear-gradient(-90deg, #0b0c0f, transparent); }
+  .rb-track {
+    position: absolute; left: 0; top: 50%; display: flex; gap: 10px; align-items: center;
+    transform: translateX(0); margin-top: -46px;
+    transition: transform .35s cubic-bezier(.2, .8, .2, 1);
+  }
+  .rb-item {
+    flex: none; width: 132px; padding: 0; border: 1px solid #000; background: #000; cursor: pointer;
+    position: relative; transform-origin: 50% 50%;
+    transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .35s, filter .35s, box-shadow .35s;
+  }
+  .rb-item img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .rb-item span {
+    position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; text-align: center;
+    font-size: 11px; color: #cdbb95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rb-item[data-d="0"] { transform: scale(1.45); z-index: 4; box-shadow: 0 0 0 2px #e8b85a, 0 0 26px rgba(232, 184, 90, .55); }
+  .rb-item[data-d="0"] span { font: 700 12px/1.2 var(--head); text-transform: uppercase; color: #f4e6c6; letter-spacing: .06em; }
+  .rb-item[data-d="1"] { transform: scale(1.05); z-index: 3; filter: brightness(.85); }
+  .rb-item[data-d="2"] { transform: scale(.9); z-index: 2; filter: brightness(.6); }
+  .rb-item[data-d="3"] { transform: scale(.8); filter: brightness(.45); opacity: .8; }
+  .rb-item[data-d="4"] { transform: scale(.75); filter: brightness(.35) grayscale(.3); opacity: .6; }
+  .rb-item[data-d="1"] span, .rb-item[data-d="2"] span { opacity: .7; }
+  .rb-item[data-d="3"] span, .rb-item[data-d="4"] span { opacity: 0; }
+  .rb-arrow {
+    position: absolute; top: 0; bottom: 0; width: 44px; z-index: 6; cursor: pointer;
+    background: linear-gradient(180deg, #2a2116, #16110b); border: none; color: #e8b85a;
+    font: 700 34px/1 var(--head);
+  }
+  .rb-arrow:hover { background: linear-gradient(180deg, #3a2e1e, #221a10); color: #ffd98a; }
+  .rb-arrow.prev { left: 0; border-right: 1px solid #3b3122; }
+  .rb-arrow.next { right: 0; border-left: 1px solid #3b3122; }
   .picker-info {
     border-left: 1px solid #2c261c; padding: 18px; background: linear-gradient(180deg, #121418, #0b0c0f);
     display: flex; flex-direction: column; gap: 10px; position: sticky; top: 0; align-self: start;
@@ -707,7 +757,17 @@
     .posgrid { grid-template-columns: repeat(3, 1fr); }
     .picker { padding: 0; }
     .picker-main { grid-template-columns: 1fr; }
-    .picker-info { position: static; border-left: none; border-top: 1px solid #2c261c; order: -1; }
+    .ribbon { height: 150px; margin: 10px 8px 0; }
+    .rb-view { inset: 0 32px; }
+    .rb-arrow { width: 32px; font-size: 26px; }
+    /* На телефоне: атрибуты, лента, карточка, сетка — лента сверху, портрет в карточке не нужен. */
+    .picker-main { display: flex; flex-direction: column; }
+    .picker-left { display: contents; }
+    .rb-attrs { order: 1; }
+    .ribbon { order: 2; }
+    .picker-info { order: 3; position: static; border-left: none; border-top: 1px solid #2c261c; margin-top: 12px; }
+    .picker-grid { order: 4; }
+    .pk-portrait { display: none; }
     .picker-top input { width: 100%; order: 3; }
     .picker-top { flex-wrap: wrap; }
     .player-cols { grid-template-columns: 1fr; }
@@ -781,7 +841,15 @@
       <button class="modal-x picker-x" aria-label="Закрыть">×</button>
     </div>
     <div class="picker-main">
-      <div class="picker-grid"></div>
+      <div class="picker-left">
+        <div class="rb-attrs"></div>
+        <div class="ribbon">
+          <button class="rb-arrow prev" aria-label="Предыдущий герой">‹</button>
+          <div class="rb-view"><div class="rb-track"></div></div>
+          <button class="rb-arrow next" aria-label="Следующий герой">›</button>
+        </div>
+        <div class="picker-grid"></div>
+      </div>
       <aside class="picker-info"></aside>
     </div>
   </div>
@@ -2649,6 +2717,11 @@ el.modal.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !el.modal.hidden) return closeBuild();
   if (!picker.el.hidden) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      if (document.activeElement === picker.search && picker.search.value) return;
+      e.preventDefault();
+      return stepRibbon(e.key === 'ArrowLeft' ? -1 : 1);
+    }
     if (e.key === 'Escape') closePicker();
     else if (e.key === 'Enter' && document.activeElement !== picker.search) pickerOpenBuild();
   }
@@ -2667,17 +2740,24 @@ const picker = {
   grid: document.querySelector('#picker .picker-grid'),
   info: document.querySelector('#picker .picker-info'),
   search: document.getElementById('picker-search'),
+  view: document.querySelector('#picker .rb-view'),
+  track: document.querySelector('#picker .rb-track'),
+  attrs: document.querySelector('#picker .rb-attrs'),
   id: null,
   src: 'all',
+  attr: '',      // фильтр ленты по атрибуту, '' — все
+  order: [],     // герои в ленте по порядку
 };
 
 function openPicker(id, src = 'all') {
   picker.id = id;
   picker.src = src;
   picker.search.value = '';
+  picker.attr = '';
   picker.el.hidden = false;
   document.body.style.overflow = 'hidden';
   renderPickerGrid();
+  buildRibbon();
   renderPickerInfo();
   // На телефоне карточка героя стоит над сеткой — её и показываем первой.
   if (window.innerWidth > 720) picker.grid.querySelector('.pk.on')?.scrollIntoView({ block: 'center' });
@@ -2744,31 +2824,119 @@ function renderPickerInfo() {
     <small class="dim">Enter — открыть сборки, Esc — закрыть</small>`;
 }
 
+// ---- Лента героев: выбранный по центру, соседи меньше, листается колесом, стрелками и свайпом.
+const RB_W = 132, RB_GAP = 10;
+
+function ribbonList() {
+  const q = picker.search.value.trim().toLowerCase();
+  const rank = Object.fromEntries(ATTR_GROUPS.map((g, i) => [g.key, i]));
+  return Object.values(heroes)
+    .filter(h => (!picker.attr || (h.primary_attr || 'all') === picker.attr)
+      && (!q || h.localized_name.toLowerCase().includes(q)))
+    .sort((a, b) => (rank[a.primary_attr || 'all'] - rank[b.primary_attr || 'all'])
+      || a.localized_name.localeCompare(b.localized_name))
+    .map(h => h.id);
+}
+
+function buildRibbon() {
+  picker.attrs.innerHTML = [{ key: '', name: 'Все', c: '#e8d3a8' }, ...ATTR_GROUPS].map(g =>
+    `<button data-rb-attr="${g.key}" class="${picker.attr === g.key ? 'on' : ''}" style="--c:${g.c}">${g.name}</button>`).join('');
+  picker.order = ribbonList();
+  picker.track.innerHTML = picker.order.map(id => `
+    <button class="rb-item" data-rb="${id}" style="--c:${ATTR_GROUPS.find(g => g.key === (heroes[id].primary_attr || 'all'))?.c}">
+      <img src="${heroImg(id)}" alt="" loading="lazy"><span>${esc(heroName(id))}</span>
+    </button>`).join('') || '<div class="dim" style="padding:40px">Никого не нашлось</div>';
+  placeRibbon(false);
+}
+
+// Сдвигаем ленту так, чтобы выбранный герой встал по центру, и раздаём размеры по расстоянию.
+function placeRibbon(animate = true) {
+  const i = picker.order.indexOf(picker.id);
+  const center = picker.view.clientWidth / 2;
+  const x = center - (Math.max(i, 0) * (RB_W + RB_GAP) + RB_W / 2);
+  picker.track.style.transition = animate ? '' : 'none';
+  picker.track.style.transform = `translateX(${x}px)`;
+  picker.track.querySelectorAll('.rb-item').forEach((node, k) => {
+    const d = i < 0 ? 9 : Math.abs(k - i);
+    node.dataset.d = Math.min(d, 4);
+  });
+  if (!animate) requestAnimationFrame(() => { picker.track.style.transition = ''; });
+}
+
+function setPickerFocus(id, { fromRibbon = false } = {}) {
+  picker.id = id;
+  picker.grid.querySelectorAll('.pk.on').forEach(x => x.classList.remove('on'));
+  picker.grid.querySelector(`.pk[data-pick="${id}"]`)?.classList.add('on');
+  if (!picker.order.includes(id)) { picker.attr = ''; buildRibbon(); }
+  placeRibbon(true);
+  renderPickerInfo();
+  if (!fromRibbon && window.innerWidth <= 720) picker.el.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function stepRibbon(delta) {
+  if (!picker.order.length) return;
+  const i = Math.max(0, picker.order.indexOf(picker.id));
+  const next = picker.order[Math.min(picker.order.length - 1, Math.max(0, i + delta))];
+  if (next !== picker.id) setPickerFocus(next, { fromRibbon: true });
+}
+
 picker.el.addEventListener('click', e => {
   if (e.target === picker.el || e.target.closest('.picker-x')) return closePicker();
   if (e.target.closest('.pk-go')) return pickerOpenBuild();
-  const cell = e.target.closest('[data-pick]');
-  if (!cell) return;
-  const id = Number(cell.dataset.pick);
+  if (e.target.closest('.rb-arrow')) return stepRibbon(e.target.closest('.prev') ? -1 : 1);
+  const attr = e.target.closest('[data-rb-attr]');
+  if (attr) {
+    picker.attr = attr.dataset.rbAttr;
+    buildRibbon();
+    // Выбранный не подходит под атрибут — берём первого в ленте.
+    if (!picker.order.includes(picker.id) && picker.order.length) setPickerFocus(picker.order[0], { fromRibbon: true });
+    return;
+  }
+  const cell = e.target.closest('[data-pick], [data-rb]');
+  if (!cell || (rbDragged && cell.dataset.rb)) return;
+  const id = Number(cell.dataset.pick || cell.dataset.rb);
   // Второй клик по уже выбранному герою — как «Выбрать» в игре: открываем сборки.
   if (id === picker.id) return pickerOpenBuild();
-  picker.id = id;
-  picker.grid.querySelectorAll('.pk.on').forEach(x => x.classList.remove('on'));
-  cell.classList.add('on');
-  renderPickerInfo();
-  if (window.innerWidth <= 720) picker.el.scrollTo({ top: 0, behavior: 'smooth' });
+  setPickerFocus(id, { fromRibbon: !!cell.dataset.rb });
 });
-picker.el.addEventListener('dblclick', e => { if (e.target.closest('[data-pick]')) pickerOpenBuild(); });
-picker.search.addEventListener('input', () => {
-  renderPickerGrid();
-  // Если под поиск попал один герой — сразу фокус на нём.
-  const hits = [...picker.grid.querySelectorAll('.pk:not(.dim)')];
-  if (hits.length === 1) {
-    picker.id = Number(hits[0].dataset.pick);
-    picker.grid.querySelectorAll('.pk.on').forEach(x => x.classList.remove('on'));
-    hits[0].classList.add('on');
-    renderPickerInfo();
+picker.el.addEventListener('dblclick', e => { if (e.target.closest('[data-pick], [data-rb]')) pickerOpenBuild(); });
+
+// Колесо над лентой листает героев, а не страницу; редкие шаги, чтобы тачпад не проматывал десяток.
+let rbWheelAt = 0;
+document.querySelector('#picker .ribbon').addEventListener('wheel', e => {
+  e.preventDefault();
+  const now = Date.now();
+  if (now - rbWheelAt < 110) return;
+  const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  if (Math.abs(d) < 4) return;
+  rbWheelAt = now;
+  stepRibbon(d > 0 ? 1 : -1);
+}, { passive: false });
+
+// Свайп пальцем или перетаскивание мышью.
+let rbDrag = null;
+let rbDragged = false;  // после перетаскивания отпускание не должно считаться кликом
+picker.view.addEventListener('pointerdown', e => { rbDrag = { x: e.clientX, id: picker.id }; });
+window.addEventListener('pointerup', e => {
+  if (!rbDrag) return;
+  const dx = e.clientX - rbDrag.x;
+  rbDrag = null;
+  if (Math.abs(dx) > 40) {
+    rbDragged = true;
+    setTimeout(() => { rbDragged = false; }, 0);
+    stepRibbon(-Math.round(dx / (RB_W + RB_GAP)) || (dx > 0 ? -1 : 1));
   }
+});
+window.addEventListener('resize', () => { if (!picker.el.hidden) placeRibbon(false); });
+
+picker.search.addEventListener('input', () => {
+  // Ищем среди всех героев, а не только в выбранном атрибуте.
+  if (picker.search.value.trim()) picker.attr = '';
+  renderPickerGrid();
+  buildRibbon();
+  // Лента показывает только найденных; фокус — на первого из них, если прежний выпал.
+  if (picker.order.length && !picker.order.includes(picker.id)) setPickerFocus(picker.order[0], { fromRibbon: true });
+  else placeRibbon(false);
 });
 
 init();
