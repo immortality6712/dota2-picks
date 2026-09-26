@@ -17,6 +17,8 @@ APPID = 570
 CURRENCIES = {"rub": 5}
 UA = "dota2-picks price bot (github.com/immortality6712/dota2-picks)"
 OUT = pathlib.Path(__file__).resolve().parent.parent / "prices.json"
+HISTORY = OUT.parent / "data" / "price_history.json"
+HISTORY_DAYS = 180
 
 # Гемы, подходящие к аркане Terrorblade — по гайду
 # https://steamcommunity.com/sharedfiles/filedetails/?id=3336022190
@@ -261,6 +263,33 @@ def write(items, rates=None, socket_list=None):
     )
 
 
+def update_history(items, day=None):
+    """Цена в долларах на каждый день — для графиков на сайте. Второй прогон за сутки
+    перезаписывает первый: в истории остаётся последняя цена дня."""
+    day = day or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    try:
+        hist = json.loads(HISTORY.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        hist = {"days": [], "items": {}}
+    days, series = hist["days"], hist["items"]
+    if day not in days:
+        days.append(day)
+        days.sort()
+        for vals in series.values():
+            vals.insert(days.index(day), None)
+    i = days.index(day)
+    for item in items.values():
+        usd = to_number((item.get("prices") or {}).get("usd", {}).get("low"))
+        if not usd or item.get("stale"):
+            continue
+        vals = series.setdefault(item["name"], [None] * len(days))
+        vals[i] = round(usd, 2)
+    cut = max(0, len(days) - HISTORY_DAYS)
+    hist = {"days": days[cut:], "items": {k: v[cut:] for k, v in series.items() if any(x is not None for x in v[cut:])}}
+    HISTORY.parent.mkdir(exist_ok=True)
+    HISTORY.write_text(json.dumps(hist, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+
+
 def collect_sockets(items):
     """Самая дешёвая аркана с каждым гемом внутри. Не критично: не вышло — идём дальше."""
     pages = int(os.environ.get("SOCKET_PAGES", 5))
@@ -379,6 +408,7 @@ def main():
         print(f"{code}: курс Steam {rate:.2f}, пересчитано {filled} (из них протухших {dropped})", file=sys.stderr)
 
     write(items, rates, collect_sockets(items))
+    update_history(items)
     real = sum(1 for i in items.values() if not i["prices"].get("rub", {}).get("approx"))
     print(f"wrote {OUT}: {len(items)} предметов, живых рублёвых цен {real}", file=sys.stderr)
 
