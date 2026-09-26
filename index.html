@@ -423,6 +423,78 @@
   .price { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
   .price small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
 
+  /* Выбор героя в стиле старой Dota 2 */
+  .picker {
+    position: fixed; inset: 0; z-index: 60;
+    background: radial-gradient(ellipse at 50% 0%, rgba(40, 30, 18, .92), rgba(4, 5, 8, .96) 70%);
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 24px 16px; overflow-y: auto;
+    animation: fade .18s ease-out;
+  }
+  .picker-box {
+    width: 100%; max-width: 1360px;
+    background: linear-gradient(180deg, #16191e, #0c0e12);
+    border: 1px solid #3b3122;
+    box-shadow: 0 0 0 1px #000, 0 30px 80px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 220, 160, .08);
+    border-radius: 6px;
+  }
+  .picker-top {
+    display: flex; align-items: center; gap: 16px; padding: 14px 18px;
+    border-bottom: 1px solid #2c261c;
+    background: linear-gradient(180deg, #1f1a13, #121014);
+  }
+  .picker-top h2 { margin: 0; font: 700 22px/1 var(--head); text-transform: uppercase; letter-spacing: .08em; color: #e8d3a8; }
+  .picker-top input { margin-left: auto; width: 240px; background: #0a0b0e; border-color: #3b3122; }
+  .picker-x { position: static; flex: none; }
+  .picker-main { display: grid; grid-template-columns: 1fr 300px; }
+  .picker-grid { padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; align-content: start; }
+  .pk-group h3 {
+    display: flex; align-items: center; gap: 8px; margin: 0 0 8px;
+    font: 700 15px/1 var(--head); text-transform: uppercase; letter-spacing: .1em; color: var(--c);
+    padding-bottom: 6px; border-bottom: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+  }
+  .pk-group h3 img { width: 20px; height: 20px; }
+  .pk-cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 3px; }
+  .pk {
+    position: relative; padding: 0; border: 1px solid #000; background: #000; cursor: pointer;
+    aspect-ratio: 16 / 9; overflow: visible;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+    transition: transform .12s, box-shadow .12s, filter .12s;
+  }
+  .pk img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.85) brightness(.85); }
+  .pk span { display: none; }
+  .pk:hover { transform: scale(1.35); z-index: 3; box-shadow: 0 0 0 1px #d9ad62, 0 6px 18px rgba(0, 0, 0, .8); }
+  .pk:hover img { filter: none; }
+  .pk:hover span {
+    display: block; position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+    margin-top: 2px; padding: 1px 6px; white-space: nowrap; font-size: 9px; font-weight: 600;
+    background: #000; color: #f1e2c0; border: 1px solid #3b3122; pointer-events: none;
+  }
+  .pk.on { box-shadow: 0 0 0 2px #e8b85a, 0 0 14px rgba(232, 184, 90, .7); z-index: 2; }
+  .pk.on img { filter: none; }
+  .pk.dim img { filter: grayscale(1) brightness(.35); }
+  .picker-info {
+    border-left: 1px solid #2c261c; padding: 18px; background: linear-gradient(180deg, #121418, #0b0c0f);
+    display: flex; flex-direction: column; gap: 10px; position: sticky; top: 0; align-self: start;
+  }
+  .pk-portrait {
+    border: 1px solid #000; box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 60%, #000), 0 0 26px color-mix(in srgb, var(--c) 30%, transparent);
+    aspect-ratio: 16 / 9; overflow: hidden; background: #000;
+  }
+  .pk-portrait img { width: 100%; height: 100%; object-fit: cover; }
+  .picker-info h2 { margin: 4px 0 0; font: 700 28px/1 var(--head); text-transform: uppercase; color: #f4e6c6; }
+  .pk-attr { font-size: 13px; font-weight: 600; }
+  .pk-stats { display: flex; flex-direction: column; border-top: 1px solid #2c261c; }
+  .pk-stat { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid #1d1a15; font-size: 13px; }
+  .pk-stat span { color: var(--muted); }
+  .pk-go {
+    margin-top: 6px; padding: 12px; cursor: pointer;
+    font: 700 16px/1 var(--head); text-transform: uppercase; letter-spacing: .1em; color: #fff;
+    background: linear-gradient(180deg, #4d8a2c, #2f5c18); border: 1px solid #1a3009;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 0 16px rgba(80, 160, 40, .3);
+  }
+  .pk-go:hover { background: linear-gradient(180deg, #5fa336, #397020); }
+
   /* Тир-лист */
   .tiers { display: flex; flex-direction: column; gap: 10px; }
   .tier-row {
@@ -633,6 +705,11 @@
     .stats { grid-template-columns: 1fr 1fr; }
     .ranks { grid-template-columns: repeat(4, 1fr); }
     .posgrid { grid-template-columns: repeat(3, 1fr); }
+    .picker { padding: 0; }
+    .picker-main { grid-template-columns: 1fr; }
+    .picker-info { position: static; border-left: none; border-top: 1px solid #2c261c; order: -1; }
+    .picker-top input { width: 100%; order: 3; }
+    .picker-top { flex-wrap: wrap; }
     .player-cols { grid-template-columns: 1fr; }
     .player-rank { margin-left: 0; }
     .mugrid { grid-template-columns: 1fr 1fr; }
@@ -694,6 +771,20 @@
     <div id="msg" class="msg">Загрузка данных…</div>
     <div id="view"></div>
   </main>
+</div>
+
+<div id="picker" class="picker" hidden>
+  <div class="picker-box">
+    <div class="picker-top">
+      <h2>Выбор героя</h2>
+      <input id="picker-search" type="search" placeholder="Поиск героя…" autocomplete="off">
+      <button class="modal-x picker-x" aria-label="Закрыть">×</button>
+    </div>
+    <div class="picker-main">
+      <div class="picker-grid"></div>
+      <aside class="picker-info"></aside>
+    </div>
+  </div>
 </div>
 
 <div id="modal" class="modal" hidden>
@@ -2513,10 +2604,7 @@ el.view.addEventListener('click', e => {
   const tierBtn = e.target.closest('button[data-tier]');
   if (tierBtn) { tierRank = Number(tierBtn.dataset.tier); return render(); }
   const hero = e.target.closest('.hero.clickable[data-hero]');
-  if (hero) {
-    if (tab === 'tier') buildSrc = tierRank ? 'r' + tierRank : 'all';
-    return openBuild(Number(hero.dataset.hero));
-  }
+  if (hero) return openPicker(Number(hero.dataset.hero), tab === 'tier' && tierRank ? 'r' + tierRank : 'all');
   const b = e.target.closest('.acts button');
   if (!b || !teams) return;
   if (b.dataset.act === 'clear') predict = {};
@@ -2559,7 +2647,128 @@ el.modal.addEventListener('click', e => {
   }
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && !el.modal.hidden) closeBuild();
+  if (e.key === 'Escape' && !el.modal.hidden) return closeBuild();
+  if (!picker.el.hidden) {
+    if (e.key === 'Escape') closePicker();
+    else if (e.key === 'Enter' && document.activeElement !== picker.search) pickerOpenBuild();
+  }
+});
+
+// ---------- Выбор героя в духе старой Dota 2 ----------
+// Сетка портретов по атрибутам; герой, по которому кликнули, в фокусе, сбоку — его карточка.
+const ATTR_GROUPS = [
+  { key: 'str', name: 'Сила', c: '#e0513f', icon: 'hero_strength' },
+  { key: 'agi', name: 'Ловкость', c: '#4fc36b', icon: 'hero_agility' },
+  { key: 'int', name: 'Интеллект', c: '#46a6e8', icon: 'hero_intelligence' },
+  { key: 'all', name: 'Универсальные', c: '#c89bf0', icon: 'hero_universal' },
+];
+const picker = {
+  el: document.getElementById('picker'),
+  grid: document.querySelector('#picker .picker-grid'),
+  info: document.querySelector('#picker .picker-info'),
+  search: document.getElementById('picker-search'),
+  id: null,
+  src: 'all',
+};
+
+function openPicker(id, src = 'all') {
+  picker.id = id;
+  picker.src = src;
+  picker.search.value = '';
+  picker.el.hidden = false;
+  document.body.style.overflow = 'hidden';
+  renderPickerGrid();
+  renderPickerInfo();
+  // На телефоне карточка героя стоит над сеткой — её и показываем первой.
+  if (window.innerWidth > 720) picker.grid.querySelector('.pk.on')?.scrollIntoView({ block: 'center' });
+  else picker.el.scrollTop = 0;
+}
+
+function closePicker() {
+  picker.el.hidden = true;
+  if (el.modal.hidden) document.body.style.overflow = '';
+}
+
+function pickerOpenBuild() {
+  const id = picker.id;
+  closePicker();
+  buildSrc = picker.src;
+  openBuild(id);
+}
+
+function renderPickerGrid() {
+  const q = picker.search.value.trim().toLowerCase();
+  picker.grid.innerHTML = ATTR_GROUPS.map(g => {
+    const list = Object.values(heroes).filter(h => (h.primary_attr || 'all') === g.key)
+      .sort((a, b) => a.localized_name.localeCompare(b.localized_name));
+    if (!list.length) return '';
+    return `<section class="pk-group" style="--c:${g.c}">
+      <h3><img src="${CDN}/apps/dota2/images/dota_react/icons/${g.icon}.png" alt="" onerror="this.remove()">${g.name}</h3>
+      <div class="pk-cells">${list.map(h => {
+        const dim = q && !h.localized_name.toLowerCase().includes(q);
+        return `<button class="pk ${h.id === picker.id ? 'on' : ''} ${dim ? 'dim' : ''}" data-pick="${h.id}" title="${esc(h.localized_name)}">
+          <img src="${heroImg(h.id)}" alt="" loading="lazy"><span>${esc(h.localized_name)}</span>
+        </button>`;
+      }).join('')}</div>
+    </section>`;
+  }).join('');
+}
+
+function renderPickerInfo() {
+  const id = picker.id;
+  const h = heroes[id];
+  if (!h) { picker.info.innerHTML = ''; return; }
+  const g = ATTR_GROUPS.find(x => x.key === (h.primary_attr || 'all'));
+  const pro = aggregateHeroes(idsOf(leagues)).find(x => x.hero === id);
+  let pp = 0, pw = 0;
+  for (const r of RANKS) { pp += +h[`${r.n}_pick`] || 0; pw += +h[`${r.n}_win`] || 0; }
+  const pubWr = pp ? pw / pp * 100 : null;
+  const pos = heroPos[id];
+  const mainPos = pos && pos.some(Boolean) ? pos.indexOf(Math.max(...pos)) + 1 : null;
+  const stat = (label, value, cls = '') => `<div class="pk-stat"><span>${label}</span><b class="${cls}">${value}</b></div>`;
+  picker.info.innerHTML = `
+    <div class="pk-portrait" style="--c:${g?.c || '#888'}">
+      <img src="${heroImg(id)}" alt="">
+    </div>
+    <h2>${esc(h.localized_name)}</h2>
+    <div class="pk-attr" style="color:${g?.c}">${g ? g.name : ''} · ${h.attack_type === 'Melee' ? 'ближний бой' : 'дальний бой'}</div>
+    <div class="tags">${(h.roles || []).map(r => `<span>${esc(r)}</span>`).join('')}</div>
+    <div class="pk-stats">
+      ${pubWr != null ? stat('Винрейт в пабах', pubWr.toFixed(1) + '%', wrClass(pubWr)) : ''}
+      ${pro && pro.picks ? stat('Пиков на турнирах', pro.picks) : ''}
+      ${pro && pro.picks ? stat('Винрейт у про', pro.wr.toFixed(1) + '%', wrClass(pro.wr)) : ''}
+      ${pro ? stat('Банов', pro.bans) : ''}
+      ${mainPos ? stat('Основная позиция', `${mainPos} — ${POSITIONS[mainPos - 1].name}`) : ''}
+    </div>
+    <button class="pk-go">Смотреть сборки</button>
+    <small class="dim">Enter — открыть сборки, Esc — закрыть</small>`;
+}
+
+picker.el.addEventListener('click', e => {
+  if (e.target === picker.el || e.target.closest('.picker-x')) return closePicker();
+  if (e.target.closest('.pk-go')) return pickerOpenBuild();
+  const cell = e.target.closest('[data-pick]');
+  if (!cell) return;
+  const id = Number(cell.dataset.pick);
+  // Второй клик по уже выбранному герою — как «Выбрать» в игре: открываем сборки.
+  if (id === picker.id) return pickerOpenBuild();
+  picker.id = id;
+  picker.grid.querySelectorAll('.pk.on').forEach(x => x.classList.remove('on'));
+  cell.classList.add('on');
+  renderPickerInfo();
+  if (window.innerWidth <= 720) picker.el.scrollTo({ top: 0, behavior: 'smooth' });
+});
+picker.el.addEventListener('dblclick', e => { if (e.target.closest('[data-pick]')) pickerOpenBuild(); });
+picker.search.addEventListener('input', () => {
+  renderPickerGrid();
+  // Если под поиск попал один герой — сразу фокус на нём.
+  const hits = [...picker.grid.querySelectorAll('.pk:not(.dim)')];
+  if (hits.length === 1) {
+    picker.id = Number(hits[0].dataset.pick);
+    picker.grid.querySelectorAll('.pk.on').forEach(x => x.classList.remove('on'));
+    hits[0].classList.add('on');
+    renderPickerInfo();
+  }
 });
 
 init();

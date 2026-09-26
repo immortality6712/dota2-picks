@@ -209,7 +209,27 @@ MATCHUP_K = 10    # сглаживание винрейта к среднему 
 MATCHUP_TOP = 6
 
 
+DOTACONSTANTS = "https://raw.githubusercontent.com/odota/dotaconstants/master/build/"
 SKILL_PREFIX = 10  # сколько первых повышений способностей сравниваем между матчами
+
+
+TALENT_CANON = {}
+
+
+def canon_talents(extras):
+    """Приводит id талантов Stratz к основным id OpenDota и сводит дубли."""
+    for per in extras.values():
+        for kinds in per.values():
+            lst = kinds.get("talent")
+            if not lst:
+                continue
+            acc = {}
+            for a, n, w, *_ in lst:
+                a = TALENT_CANON.get(a, a)
+                cur = acc.setdefault(a, [a, 0, 0])
+                cur[1] += n
+                cur[2] += w
+            kinds["talent"] = sorted(acc.values(), key=lambda x: -x[1])
 
 
 def fill_template(v, name):
@@ -237,7 +257,13 @@ def collect_skills(where, heroes):
                        JOIN leagues l ON l.leagueid = m.leagueid
                        {where} AND pm.ability_upgrades_arr IS NOT NULL""")
         ability_ids = od("/constants/ability_ids")
-        abil = od("/constants/abilities")
+        # В сборке dotaconstants на GitHub числа в названиях талантов уже подставлены
+        # («+200 Mana Void Radius»), а API отдаёт шаблоны — берём GitHub, API про запас.
+        try:
+            abil = request(DOTACONSTANTS + "abilities.json")
+        except RuntimeError as e:
+            log(f"  dotaconstants: {e}")
+            abil = od("/constants/abilities")
         hero_abil = od("/constants/hero_abilities")
     except RuntimeError as e:
         log(f"  skills: {e}")
@@ -309,6 +335,9 @@ def collect_skills(where, heroes):
         dname = fill_template(v, name)
         abilities[str(a)] = [dname.strip(), v.get("img") or ""]
     log(f"skills for {len(out)} heroes, abilities {len(abilities)}")
+    # Любой id таланта → основной id с тем же именем: Stratz иногда отдаёт другой.
+    TALENT_CANON.update({i: id_by_name[n] for i, n in name_by_id.items()
+                         if n.startswith("special_bonus") and id_by_name.get(n) != i})
     return out, abilities
 
 
@@ -689,6 +718,7 @@ def main():
     else:
         log("STRATZ_TOKEN не задан — сборки по рангам пропускаю")
 
+    canon_talents(extras)
     builds_updated = now
     if not ranks:
         # Stratz не ответил — оставляем прошлые сборки (с их датой, чтобы сайт
