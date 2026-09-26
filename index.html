@@ -629,6 +629,11 @@
   .player-cols { display: grid; grid-template-columns: 1fr 1.2fr; gap: 18px; }
   .player-cols .bgroup { min-width: 0; }
   .ptable td, .ptable th { padding: 6px 6px; background: none; }
+  .refresh-box { max-width: none; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; line-height: 1.7; }
+  .refresh-box b { color: var(--text); }
+  .refresh-btn { background: var(--panel3); color: var(--text); border: 1px solid var(--line2); border-radius: 8px;
+                 padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
   .ptable .hero img { width: 44px; height: 25px; }
 
   /* Порядок сборки */
@@ -1420,6 +1425,27 @@ const PLAYER_KEY = 'dota2-picks-player';
 let playerId = null;
 try { playerId = localStorage.getItem(PLAYER_KEY); } catch {}
 const players = {};  // id → данные или { error }
+const refreshNote = {};  // id → что ответила OpenDota на запрос обновления
+
+// Просим OpenDota заново забрать матчи игрока и через полминуты перечитываем профиль.
+async function refreshPlayer(id) {
+  refreshNote[id] = 'Запрос отправлен…';
+  render();
+  try {
+    const r = await fetch(`${API}/players/${id}/refresh`, { method: 'POST' });
+    refreshNote[id] = r.ok
+      ? 'OpenDota приняла запрос. Через полминуты перечитаю профиль; полное обновление может занять до нескольких минут.'
+      : `OpenDota ответила ошибкой (HTTP ${r.status}). Попробуйте позже.`;
+    if (r.ok) setTimeout(() => {
+      delete players[id];
+      refreshNote[id] = 'Профиль перечитан. Если данных всё ещё нет, подождите пару минут и нажмите ещё раз.';
+      if (tab === 'player' && playerId === id) render();
+    }, 30000);
+  } catch (e) {
+    refreshNote[id] = `Не удалось отправить запрос: ${e.message}`;
+  }
+  if (tab === 'player' && playerId === id) render();
+}
 
 // Принимает 32-битный ID, 64-битный Steam ID или ссылку на Steam/OpenDota/Dotabuff/Stratz.
 function parsePlayerId(raw) {
@@ -1436,9 +1462,11 @@ async function loadPlayer(id) {
   const get = path => fetch(`${API}/players/${id}${path}`).then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)));
   try {
     const [profile, wl, recent, heroesPlayed] = await Promise.all([
-      get(''), get('/wl'), get('/recentMatches'), get('/heroes'),
+      get(''), get('/wl'), get('/recentMatches').catch(() => []), get('/heroes').catch(() => []),
     ]);
-    players[id] = { profile, wl, recent: recent || [], heroes: heroesPlayed || [] };
+    // recentMatches — короткий кэш OpenDota; если он пуст, берём историю из общей базы матчей.
+    const matches = recent?.length ? recent : await get('/matches?limit=20').catch(() => []);
+    players[id] = { profile, wl, recent: matches || [], heroes: heroesPlayed || [] };
   } catch (e) {
     players[id] = { error: e.message };
   }
@@ -1502,6 +1530,15 @@ function renderPlayer() {
   };
   const top = d.heroes.filter(h => h.games > 0).slice(0, 12);
   const recent = d.recent.slice(0, 20);
+  const empty = !games && !recent.length && !top.length;
+  const refreshBox = `<div class="note refresh-box">
+      ${empty ? `<b>OpenDota пока не видит ни одного вашего матча.</b> Обычно причина одна из двух:<br>
+        1) в Dota 2 выключено «Открыть доступ к данным матчей» — включите: Настройки → Параметры →
+        Социальные → «Expose Public Match Data» / «Открыть доступ к данным матчей»;<br>
+        2) OpenDota давно не обновляла профиль — нажмите кнопку ниже.<br>` : ''}
+      <button class="refresh-btn" data-refresh="${esc(playerId)}">Обновить в OpenDota</button>
+      <span class="refresh-msg dim">${refreshNote[playerId] || 'OpenDota заново заберёт ваши матчи из Steam — это занимает несколько минут.'}</span>
+    </div>`;
 
   el.view.innerHTML = form + `
     <div class="player-card">
@@ -1548,6 +1585,7 @@ function renderPlayer() {
           }).join('')}</tbody></table>` : '<span class="dim">Матчей не видно — возможно, история матчей скрыта в настройках Dota 2.</span>'}
       </div>
     </div>
+    ${refreshBox}
     <div class="note">Данные OpenDota по публичному профилю. Клик по герою открывает его сборки.
       Ранг и матчи обновляются в OpenDota с задержкой; если чего-то не хватает, откройте профиль на
       <a href="https://www.opendota.com/players/${esc(playerId)}" target="_blank" rel="noopener">OpenDota</a> — это запускает обновление.</div>`;
@@ -2123,8 +2161,31 @@ function rankTalents(id, bv, scope) {
   const tiers = heroSkills[id]?.talents;
   if (!list?.length || !tiers?.length) return '';
   const got = new Map(list.map(([a, n, w]) => [Number(a), [n, w]]));
-  const mapped = tiers.map(([lvl, opts]) => [lvl, opts.map(([a]) => [a, ...(got.get(Number(a)) || [0, 0])])])
-    .filter(([, opts]) => opts.some(o => o[1]));
+  const mapped = tiers.map(([lvl, opts]) => [lvl, opts.map(([a]) => [a, ...(got.get(Number(a)) || [0, 0])])]);
+  // Бывает, что Stratz отдаёт талант под другим id, чем OpenDota. Если неопознанный талант
+  // ровно один и пустая ячейка в дереве ровно одна — это он и есть.
+  // Неопознанные ставим на уровень, где среднее время выбора ближе всего (талант 10-го
+  // берут раньше, чем 25-го); если времени нет — только однозначный случай «один к одному».
+  const known = new Set(tiers.flatMap(([, opts]) => opts.map(([a]) => Number(a))));
+  const stray = list.filter(([a]) => !known.has(Number(a))).sort((a, b) => b[1] - a[1]);
+  const timeOf = new Map(list.map(([a, , , t]) => [Number(a), t]));
+  const empties = () => mapped.flatMap(([lvl, opts]) => opts.filter(o => !o[1]).map(o => ({ lvl, o })));
+  if (stray.length === 1 && empties().length === 1) {
+    const { o } = empties()[0];
+    [o[1], o[2]] = [stray[0][1], stray[0][2]];
+  } else if (stray.length && stray.every(x => x[3])) {
+    const tierTime = Object.fromEntries(mapped.map(([lvl, opts]) => {
+      const ts = opts.map(([a]) => timeOf.get(Number(a))).filter(Boolean);
+      return [lvl, ts.length ? ts.reduce((p, c) => p + c, 0) / ts.length : null];
+    }));
+    for (const [, n, w, t] of stray) {
+      const free = empties().filter(e => tierTime[e.lvl] != null);
+      if (!free.length) break;
+      const best = free.reduce((a, b) => Math.abs(tierTime[a.lvl] - t) <= Math.abs(tierTime[b.lvl] - t) ? a : b);
+      [best.o[1], best.o[2]] = [n, w];
+    }
+  }
+  mapped.splice(0, mapped.length, ...mapped.filter(([, opts]) => opts.some(o => o[1])));
   return talentsPanel(mapped, 'Таланты на ранге', `Публичные матчи Stratz · ${esc(scope)}`);
 }
 
@@ -2652,6 +2713,10 @@ el.group.onchange = () => {
   render();
 };
 el.search.oninput = render;
+el.view.addEventListener('click', e => {
+  const b = e.target.closest('[data-refresh]');
+  if (b) refreshPlayer(b.dataset.refresh);
+});
 el.view.addEventListener('submit', e => {
   if (e.target.id !== 'player-form') return;
   e.preventDefault();
