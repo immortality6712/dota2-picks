@@ -1018,6 +1018,30 @@
     .tilt { transform: none !important; }
     header .wrap::after { animation: none; }
   }
+
+  /* Анимированные герои */
+  .hv-wrap { position: relative; display: inline-block; line-height: 0; flex: none; transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
+  .hv-wrap > img { transition: opacity .3s; }
+  .hv-wrap .hvid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 14%;
+                   pointer-events: none; opacity: 0; transition: opacity .3s; }
+  .hv-wrap.live .hvid { opacity: 1; }
+  .hv-wrap.live > img { opacity: 0; }
+  .hv-wrap.live { background: radial-gradient(ellipse at 50% 70%, rgba(127, 176, 255, .45), rgba(12, 17, 28, .95) 75%); }
+  .hv-wrap.pop { transform: scale(1.9); z-index: 6; box-shadow: 0 0 0 1px rgba(207, 227, 255, .6), 0 10px 26px rgba(0, 0, 0, .7); }
+  .tier-hero .hv-wrap, .rb-item .hv-wrap { display: block; width: 100%; }
+  .tier-hero .hv-wrap.pop { transform: scale(1.25); }
+  .rb-item .hv-wrap img { width: 100%; }
+  .head-hv { width: 128px; height: 72px; overflow: hidden; }
+  .head-hv img { width: 100%; height: 100%; }
+  .pk-render { display: block; width: 100%; height: 230px; overflow: hidden;
+               background: radial-gradient(ellipse at 50% 85%, rgba(127, 176, 255, .28), transparent 70%); }
+  .pk-render > img { width: 100%; height: 100%; object-fit: contain; }
+  .pk-render .hvid { object-fit: contain; object-position: 50% 100%; }
+  .pk-render.live { background: radial-gradient(ellipse at 50% 85%, rgba(127, 176, 255, .35), transparent 70%); }
+  @media (max-width: 720px) {
+    .head-hv { width: 88px; height: 50px; }
+    .pk-render { height: 190px; }
+  }
 </style>
 </head>
 <body>
@@ -1653,6 +1677,20 @@ function heroName(id) {
 
 function heroImg(id) {
   return heroes[id]?.img ? CDN + heroes[id].img : '';
+}
+
+// Анимированные модели героев с CDN Valve, как на dota2.com: webm с прозрачным фоном,
+// для Safari — mov (HEVC с прозрачностью). Пока видео не пошло или не загрузилось, видна обычная картинка.
+const RENDER = CDN + '/apps/dota2/videos/dota_react/heroes/renders/';
+const noMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function heroVideo(id) {
+  const short = (heroes[id]?.name || '').replace('npc_dota_hero_', '');
+  if (!short || noMotion) return '';
+  return `<video class="hvid" autoplay muted loop playsinline aria-hidden="true"
+      onplaying="this.parentNode.classList.add('live')">
+    <source src="${RENDER}${short}.mov" type='video/mp4; codecs="hvc1"'>
+    <source src="${RENDER}${short}.webm" type="video/webm" onerror="this.parentNode.remove()">
+  </video>`;
 }
 
 function aggregateHeroes(ids) {
@@ -2425,7 +2463,7 @@ function renderBuildModal() {
   const box = el.modal.querySelector('.modal-body');
   el.modal.querySelector('.modal-head').innerHTML =
     `<div class="bg" style="background-image:url('${heroImg(id)}')"></div>
-     <img src="${heroImg(id)}" alt="">
+     <span class="hv-wrap head-hv"><img src="${heroImg(id)}" alt="">${heroVideo(id)}</span>
      <div><h2>${esc(heroName(id))}</h2>
        <div class="sub2">Сборки предметов — про-сцена, TI 2026 и каждый ранг</div>
        <div class="tags">
@@ -3389,6 +3427,7 @@ function renderPickerInfo() {
   const mainPos = pos && pos.some(Boolean) ? pos.indexOf(Math.max(...pos)) + 1 : null;
   const stat = (label, value, cls = '') => `<div class="pk-stat"><span>${label}</span><b class="${cls}">${value}</b></div>`;
   picker.info.innerHTML = `
+    <span class="hv-wrap pk-render"><img src="${heroImg(id)}" alt="">${heroVideo(id)}</span>
     <h2>${esc(h.localized_name)}</h2>
     <div class="pk-attr" style="color:${g?.c}">${g ? g.name : ''} · ${h.attack_type === 'Melee' ? 'ближний бой' : 'дальний бой'}</div>
     <div class="tags">${(h.roles || []).map(r => `<span>${esc(r)}</span>`).join('')}</div>
@@ -3423,7 +3462,7 @@ function buildRibbon() {
   picker.order = ribbonList();
   picker.track.innerHTML = picker.order.map(id => `
     <button class="rb-item" data-rb="${id}" style="--c:${ATTR_GROUPS.find(g => g.key === (heroes[id].primary_attr || 'all'))?.c}">
-      <img src="${heroImg(id)}" alt="" loading="lazy"><span>${esc(heroName(id))}</span>
+      <span class="hv-wrap"><img src="${heroImg(id)}" alt="" loading="lazy"></span><span>${esc(heroName(id))}</span>
     </button>`).join('') || '<div class="dim" style="padding:40px">Никого не нашлось</div>';
   placeRibbon(false);
 }
@@ -3439,6 +3478,11 @@ function placeRibbon(animate = true) {
     const d = i < 0 ? 9 : Math.abs(k - i);
     node.dataset.d = Math.min(d, 4);
     node.dataset.side = i < 0 || k === i ? 'c' : k < i ? 'l' : 'r';
+    // Оживает только герой в центре: у остальных видео убираем, чтобы не грузить лишнее.
+    const wrap = node.querySelector('.hv-wrap');
+    const vid = wrap?.querySelector('.hvid');
+    if (d === 0 && wrap && !vid) wrap.insertAdjacentHTML('beforeend', heroVideo(Number(node.dataset.rb)));
+    if (d !== 0 && vid) { vid.remove(); wrap.classList.remove('live'); }
   });
   if (!animate) requestAnimationFrame(() => { picker.track.style.transition = ''; });
 }
@@ -3532,6 +3576,33 @@ if (matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(pr
     card.style.setProperty('--gy', (y * 100).toFixed(1) + '%');
     card.classList.add('tilt');
     tilted = card;
+  });
+}
+
+// Иконки героев в таблицах, тир-листе и матчапах оживают при наведении.
+if (matchMedia('(hover: hover) and (pointer: fine)').matches && !noMotion) {
+  document.addEventListener('pointerover', e => {
+    const hero = e.target.closest?.('.hero[data-hero], .hero[data-build]');
+    if (!hero || hero.querySelector('.hvid')) return;
+    let wrap = hero.querySelector(':scope > .hv-wrap');
+    const img = hero.querySelector(':scope > img');
+    if (!wrap && img) {
+      wrap = document.createElement('span');
+      wrap.className = 'hv-wrap';
+      img.replaceWith(wrap);
+      wrap.append(img);
+    }
+    if (!wrap) return;
+    wrap.classList.add('pop');
+    wrap.insertAdjacentHTML('beforeend', heroVideo(Number(hero.dataset.hero || hero.dataset.build)));
+  });
+  document.addEventListener('pointerout', e => {
+    const hero = e.target.closest?.('.hero[data-hero], .hero[data-build]');
+    if (!hero || hero.contains(e.relatedTarget)) return;
+    const wrap = hero.querySelector(':scope > .hv-wrap');
+    if (!wrap) return;
+    wrap.querySelector('.hvid')?.remove();
+    wrap.classList.remove('pop', 'live');
   });
 }
 
