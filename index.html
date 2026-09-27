@@ -733,13 +733,6 @@
     font-size: 12.5px;
     max-width: 90ch;
   }
-  footer {
-    padding: 26px 20px 56px;
-    color: var(--muted);
-    font-size: 12px;
-    border-top: 1px solid var(--line);
-  }
-  footer p { max-width: 90ch; margin: 0; }
   a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(190, 214, 255, .4); }
   a:hover { color: var(--text); border-bottom-color: currentColor; }
   @media (max-width: 720px) {
@@ -965,7 +958,6 @@
   ::-webkit-scrollbar-button:single-button:hover { background-color: #34405c; }
   @supports (-moz-appearance: none) { html { scrollbar-color: #c9cef5 #0b1020; } }
 
-  footer { border-top: 1px solid; border-image: var(--holo) 1; }
   @media (max-width: 720px) { header .wrap::after { display: none; } }
   a { color: var(--cyan); border-bottom-color: rgba(190, 214, 255, .4); }
   .msg::before { border-color: var(--line2); border-top-color: var(--pink); }
@@ -1121,17 +1113,6 @@
   </div>
 </div>
 
-<footer class="wrap"><p>
-  Данные: <a href="https://www.opendota.com" target="_blank" rel="noopener">OpenDota API</a>.
-  Учитываются только матчи 2026 года на актуальном патче, турниры уровня premium и professional.
-  Контест = доля матчей, где герой был выбран или забанен.
-  Цены — <a href="https://steamcommunity.com/market/search?appid=570" target="_blank" rel="noopener">Steam Community Market</a>,
-  обновляются раз в сутки.
-  Статистика по рангам — публичные матчи из
-  <a href="https://docs.opendota.com/#tag/hero-stats" target="_blank" rel="noopener">heroStats</a> OpenDota,
-  сборки по рангам и позициям — <a href="https://stratz.com" target="_blank" rel="noopener">Stratz</a>.
-  Данные кэшируются и обновляются каждые шесть часов.
-</p></footer>
 
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
