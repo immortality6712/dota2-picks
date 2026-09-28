@@ -1,12 +1,16 @@
-// Посредник между сайтом и ИИ для Cloudflare Workers: OpenRouter и/или Google Gemini.
-// Ключи лежат в секретах воркера и на сайт не попадают. Инструкция — worker/README.md.
+// Посредник между сайтом и ИИ для Cloudflare Workers.
+// Ключи лежат в переменных воркера и на сайт не попадают. Инструкция — worker/README.md.
 //
-// Переменные воркера (достаточно одного ключа; если заданы оба — сначала OpenRouter, потом Gemini):
-//   OPENROUTER_API_KEY — секрет, ключ с openrouter.ai;
-//   OPENROUTER_MODELS  — через запятую, бесплатные модели по порядку (есть значение по умолчанию);
-//   GEMINI_API_KEY     — секрет, ключ из Google AI Studio;
-//   GEMINI_MODEL       — модель Gemini, по умолчанию gemini-2.5-flash;
-//   ALLOWED_ORIGINS    — через запятую, с каких сайтов принимать запросы.
+// Имя переменной с ключом не важно: воркер сам находит ключи среди своих переменных
+// и по началу ключа понимает, чей он:
+//   sk-or-…  — OpenRouter (бесплатные модели :free);
+//   AIza…    — Google Gemini;
+//   gsk_…    — Groq;
+//   sk-ant-… — Anthropic Claude;
+//   sk-…     — DeepSeek (sk- и 32 шестнадцатеричных символа) или OpenAI (остальные sk-…).
+// Если ключей несколько, пробуются по порядку списка выше.
+// Необязательные настройки: OPENROUTER_MODELS, GEMINI_MODEL, GROQ_MODEL, OPENAI_MODEL,
+// DEEPSEEK_MODEL, ANTHROPIC_MODEL, ALLOWED_ORIGINS (через запятую, с каких сайтов принимать запросы).
 
 const DEFAULT_ORIGINS = 'https://immortality6712.github.io';
 // Бесплатные модели OpenRouter меняются; актуальный список — openrouter.ai/models?q=free.
@@ -25,48 +29,101 @@ function tooMany(ip) {
   return list.length > PER_MINUTE;
 }
 
-async function openRouter(env, system, prompt, referer) {
-  const models = (env.OPENROUTER_MODELS || DEFAULT_OPENROUTER).split(',').map(s => s.trim()).filter(Boolean);
-  const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+// Порядок важен: более узкие шаблоны раньше общего sk-.
+const KINDS = [
+  ['openrouter', /^sk-or-/],
+  ['gemini', /^AIza[\w-]{30,}$/],
+  ['groq', /^gsk_/],
+  ['anthropic', /^sk-ant-/],
+  ['deepseek', /^sk-[a-f0-9]{32}$/],
+  ['openai', /^sk-(proj-|svcacct-|admin-)?[\w-]{20,}$/],
+];
+
+function findKeys(env) {
+  const found = {};
+  for (const value of Object.values(env)) {
+    if (typeof value !== 'string') continue;
+    const v = value.trim();
+    const kind = KINDS.find(([, re]) => re.test(v))?.[0];
+    if (kind && !found[kind]) found[kind] = v;
+  }
+  return KINDS.map(([k]) => k).filter(k => found[k]).map(k => [k, found[k]]);
+}
+
+async function readJson(r, name) {
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const msg = data.error?.message || data.error?.type || (typeof data.error === 'string' ? data.error : '') || `HTTP ${r.status}`;
+    throw Object.assign(new Error(`${name}: ${msg}`), { status: r.status });
+  }
+  return data;
+}
+
+// OpenAI-совместимые API: OpenRouter, Groq, OpenAI, DeepSeek.
+async function chat({ name, url, key, model, extra = {}, headers = {} }, system, prompt) {
+  const r = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-      'HTTP-Referer': referer,
-      'X-Title': 'Dota 2 picks',
-    },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, ...headers },
     body: JSON.stringify({
-      model: models[0],
-      models,
+      model,
       messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
       temperature: 0.6,
       max_tokens: 2000,
+      ...extra,
     }),
   });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw Object.assign(new Error(data.error?.message || `OpenRouter ответил HTTP ${r.status}`), { status: r.status });
+  const data = await readJson(r, name);
   const text = (data.choices?.[0]?.message?.content || '').trim();
-  if (!text) throw new Error('OpenRouter вернул пустой ответ');
-  return { text, provider: 'OpenRouter', model: data.model || models[0] };
+  if (!text) throw new Error(`${name}: пустой ответ`);
+  return { text, provider: name, model: data.model || model };
 }
 
-async function gemini(env, system, prompt) {
-  const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.6, maxOutputTokens: 4096 },
-    }),
-  });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw Object.assign(new Error(data.error?.message || `Gemini ответил HTTP ${r.status}`), { status: r.status });
-  const text = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('').trim();
-  if (!text) throw new Error('Gemini вернул пустой ответ');
-  return { text, provider: 'Gemini', model };
-}
+const PROVIDERS = {
+  openrouter(key, env, s, p, referer) {
+    const models = (env.OPENROUTER_MODELS || DEFAULT_OPENROUTER).split(',').map(x => x.trim()).filter(Boolean);
+    return chat({
+      name: 'OpenRouter', url: 'https://openrouter.ai/api/v1/chat/completions', key, model: models[0],
+      extra: { models }, headers: { 'HTTP-Referer': referer, 'X-Title': 'Dota 2 picks' },
+    }, s, p);
+  },
+  groq: (key, env, s, p) => chat({
+    name: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', key, model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  }, s, p),
+  deepseek: (key, env, s, p) => chat({
+    name: 'DeepSeek', url: 'https://api.deepseek.com/chat/completions', key, model: env.DEEPSEEK_MODEL || 'deepseek-chat',
+  }, s, p),
+  openai: (key, env, s, p) => chat({
+    name: 'OpenAI', url: 'https://api.openai.com/v1/chat/completions', key, model: env.OPENAI_MODEL || 'gpt-4o-mini',
+  }, s, p),
+  async gemini(key, env, system, prompt) {
+    const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.6, maxOutputTokens: 4096 },
+      }),
+    });
+    const data = await readJson(r, 'Gemini');
+    const text = (data.candidates?.[0]?.content?.parts || []).map(x => x.text || '').join('').trim();
+    if (!text) throw new Error('Gemini: пустой ответ');
+    return { text, provider: 'Gemini', model };
+  },
+  async anthropic(key, env, system, prompt) {
+    const model = env.ANTHROPIC_MODEL || 'claude-haiku-4-5';
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model, max_tokens: 2000, system, messages: [{ role: 'user', content: prompt }] }),
+    });
+    const data = await readJson(r, 'Claude');
+    const text = (data.content || []).map(x => x.text || '').join('').trim();
+    if (!text) throw new Error('Claude: пустой ответ');
+    return { text, provider: 'Claude', model: data.model || model };
+  },
+};
 
 export default {
   async fetch(req, env) {
@@ -81,16 +138,14 @@ export default {
     const reply = (data, status = 200) => new Response(JSON.stringify(data), {
       status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' },
     });
-    const providers = [
-      ...(env.OPENROUTER_API_KEY ? [(s, p) => openRouter(env, s, p, allowed[0])] : []),
-      ...(env.GEMINI_API_KEY ? [(s, p) => gemini(env, s, p)] : []),
-    ];
+    const keys = findKeys(env);
 
     if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
-    if (req.method === 'GET') return reply({ ok: true, openrouter: !!env.OPENROUTER_API_KEY, gemini: !!env.GEMINI_API_KEY });
+    // Только названия найденных провайдеров — сами ключи наружу не отдаём.
+    if (req.method === 'GET') return reply({ ok: true, providers: keys.map(([k]) => k) });
     if (req.method !== 'POST') return reply({ error: 'нужен POST' }, 405);
     if (!allowed.includes(origin)) return reply({ error: 'запросы принимаются только с сайта' }, 403);
-    if (!providers.length) return reply({ error: 'в воркере не задан ни OPENROUTER_API_KEY, ни GEMINI_API_KEY' }, 500);
+    if (!keys.length) return reply({ error: 'в переменных воркера не нашлось ни одного ключа ИИ' }, 500);
     if (tooMany(req.headers.get('CF-Connecting-IP') || 'unknown')) return reply({ error: 'слишком много запросов, подождите минуту' }, 429);
 
     let body;
@@ -101,9 +156,9 @@ export default {
 
     const errors = [];
     let limited = false;
-    for (const ask of providers) {
+    for (const [kind, key] of keys) {
       try {
-        return reply(await ask(system, prompt));
+        return reply(await PROVIDERS[kind](key, env, system, prompt, allowed[0]));
       } catch (e) {
         errors.push(e.message);
         limited ||= e.status === 429;

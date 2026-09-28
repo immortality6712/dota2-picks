@@ -1,4 +1,4 @@
-# Мгновенный разбор от ИИ: OpenRouter или Google Gemini
+# Мгновенный разбор от ИИ: OpenRouter, Gemini, Groq и другие
 
 Кнопка «Разбор от ИИ» на сайте может спрашивать OpenRouter (десятки бесплатных моделей) или Google Gemini.
 Их ключи нельзя класть в страницу, их сразу украдут. Поэтому между сайтом и ИИ стоит маленький посредник
@@ -22,14 +22,15 @@
 1. Зарегистрируйтесь на <https://dash.cloudflare.com> (бесплатный план).
 2. **Workers & Pages → Create → Create Worker**, назовите, например, `dota2-ai`, и нажмите **Deploy**.
 3. Нажмите **Edit code**, удалите всё, вставьте содержимое [`ai-proxy.js`](ai-proxy.js) и нажмите **Deploy**.
-4. В воркере: **Settings → Variables and Secrets → Add**, тип **Secret**:
-   - `OPENROUTER_API_KEY` — ключ OpenRouter, и/или
-   - `GEMINI_API_KEY` — ключ Gemini.
+4. В воркере: **Settings → Variables and Secrets → Add**, тип **Secret**, имя любое (например, `AI_KEY`),
+   значение — ключ. Воркер сам поймёт по началу ключа, чей он: `sk-or-…` OpenRouter, `AIza…` Gemini,
+   `gsk_…` Groq, `sk-ant-…` Claude, остальные `sk-…` — DeepSeek или OpenAI. Можно добавить несколько
+   ключей, тогда они пробуются по очереди.
    - Необязательно: `OPENROUTER_MODELS` — свой список бесплатных моделей через запятую
      (актуальные — <https://openrouter.ai/models?q=free>, у них в конце `:free`).
    - Если сайт открыт не на `https://immortality6712.github.io`, добавьте `ALLOWED_ORIGINS` с его адресом.
 5. Нажмите **Deploy**.
-6. Откройте адрес воркера (`https://dota2-ai.ИМЯ.workers.dev`). Должно появиться `"openrouter":true` или `"gemini":true`.
+6. Откройте адрес воркера (`https://dota2-ai.ИМЯ.workers.dev`). В `"providers"` должен быть найденный ИИ, например `["openrouter"]`.
 
 ## 3. Подключить к сайту
 
