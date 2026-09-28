@@ -2788,18 +2788,31 @@ async function askProxy(summary) {
   return { text: data.text, by: [data.provider, data.model].filter(Boolean).join(' · ') };
 }
 
+// У Pollinations несколько входов, и правила у них меняются: пробуем по очереди,
+// от OpenAI-совместимого к самому простому — GET с текстом в адресе.
 async function askPollinations(summary) {
-  const r = await fetch(AI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'openai', messages: [{ role: 'system', content: AI_SYSTEM }, { role: 'user', content: summary }] }),
-  });
-  if (!r.ok) throw new Error(r.status === 429 ? 'слишком много запросов, попробуйте через минуту' : 'HTTP ' + r.status);
-  const raw = await r.text();
-  let text = raw;
-  try { text = JSON.parse(raw).choices?.[0]?.message?.content || raw; } catch {}
-  if (!text.trim()) throw new Error('пустой ответ');
-  return text;
+  const messages = [{ role: 'system', content: AI_SYSTEM }, { role: 'user', content: summary }];
+  const tries = [
+    () => fetch(AI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'openai', messages }) }),
+    () => fetch(AI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }) }),
+    () => fetch('https://text.pollinations.ai/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }) }),
+    () => fetch(`https://text.pollinations.ai/${encodeURIComponent(summary.slice(0, 1800))}?system=${encodeURIComponent(AI_SYSTEM)}`),
+  ];
+  let last = '';
+  for (const go of tries) {
+    try {
+      const r = await go();
+      if (!r.ok) { last = r.status === 429 ? 'слишком много запросов, попробуйте через минуту' : 'HTTP ' + r.status; continue; }
+      const raw = await r.text();
+      let text = raw;
+      try { text = JSON.parse(raw).choices?.[0]?.message?.content || raw; } catch {}
+      if (text.trim()) return text;
+      last = 'пустой ответ';
+    } catch (e) {
+      last = e.message;
+    }
+  }
+  throw new Error(last);
 }
 
 async function askAi(key, summary) {
