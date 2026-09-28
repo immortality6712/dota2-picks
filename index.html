@@ -1169,6 +1169,21 @@
     .mt-score b { font-size: 19px; }
   }
 
+  .ai-box { margin-top: 14px; padding: 14px 16px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(111, 168, 255, .12), rgba(200, 155, 240, .08)); border: 1px solid rgba(156, 195, 255, .3); }
+  .ai-box h4 { margin: 0 0 8px !important; }
+  .ai-box p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
+  .ai-text ul { margin: 0 0 10px; padding-left: 20px; }
+  .ai-text li { margin: 4px 0; font-size: 14px; line-height: 1.5; }
+  .ai-btn { all: unset; cursor: pointer; padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 13px;
+    background: linear-gradient(180deg, #f4f7ff, #aeb8cc); color: #0c1220; box-shadow: 0 4px 14px rgba(111, 168, 255, .35); }
+  .ai-btn:hover { filter: brightness(1.08); }
+  .ai-btn:focus-visible { outline: 2px solid #9cc3ff; outline-offset: 2px; }
+  .ai-wait { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+  .ai-wait i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(156, 195, 255, .3); border-top-color: #9cc3ff; animation: aiSpin .8s linear infinite; }
+  @keyframes aiSpin { to { transform: rotate(360deg); } }
+  .ai-note { font-size: 11px !important; color: var(--muted); margin: 10px 0 0 !important; }
+
   /* Эфир */
   .live-acts { align-items: center; }
   .live-acts button small { opacity: .6; margin-left: 4px; }
@@ -2707,6 +2722,109 @@ function matchTeamTable(m, radiant, roles) {
   </div>`;
 }
 
+// ---- Разбор матча бесплатным ИИ (Pollinations.ai, без ключа) ----
+const AI_URL = 'https://text.pollinations.ai/openai';
+const AI_KEY = 'dota2-picks-ai';
+let aiCache = {};  // «матч:слот» → { status, text }
+try { aiCache = JSON.parse(localStorage.getItem(AI_KEY) || '{}'); } catch {}
+function saveAi() {
+  // Храним только готовые разборы и не больше 30 последних.
+  const done = Object.entries(aiCache).filter(([, v]) => v.status === 'done').slice(-30);
+  try { localStorage.setItem(AI_KEY, JSON.stringify(Object.fromEntries(done))); } catch {}
+}
+
+// Сжатая сводка матча: ИИ получает только цифры, по которым можно судить об игре.
+function matchSummary(m, p, roles) {
+  const side = r => r ? 'Силы Света' : 'Силы Тьмы';
+  const team = r => m.players.filter(x => x.isRadiant === r)
+    .map(x => `${heroName(x.hero_id)} (${roles[x.player_slot] === 'core' ? 'кор' : 'поддержка'}, ${x.kills}/${x.deaths}/${x.assists}, ценность ${x.net_worth || 0})`).join('; ');
+  const b = p.benchmarks || {};
+  const bench = BENCH.filter(([k]) => b[k]?.pct != null)
+    .map(([k, label]) => `${label}: ${b[k].raw < 10 ? b[k].raw.toFixed(2) : Math.round(b[k].raw)} (лучше ${Math.round(b[k].pct * 100)}% игроков на герое)`).join('; ');
+  const adv = m.radiant_gold_adv;
+  const advAt = t => adv?.[t] != null ? `${t} мин: ${adv[t] > 0 ? '+' : ''}${adv[t]}` : null;
+  const buys = (p.purchase_log || []).filter(x => (itemByKey[x.key]?.cost || 0) >= 1000 && x.time > 0)
+    .filter((x, i, arr) => arr.findIndex(y => y.key === x.key) === i).slice(0, 10)
+    .map(x => `${itemByKey[x.key].name} на ${fmtDur(x.time)}`).join(', ');
+  const finalItems = [0, 1, 2, 3, 4, 5].map(i => items?.[p['item_' + i]]?.name).filter(Boolean).join(', ');
+  return [
+    `Матч ${m.match_id}, длительность ${fmtDur(m.duration)}, победили ${side(m.radiant_win)}, счёт ${m.radiant_score}:${m.dire_score}.`,
+    `Разбираемый игрок: ${heroName(p.hero_id)} за ${side(p.isRadiant)}, роль ${roles[p.player_slot] === 'core' ? 'кор' : 'поддержка'}, ${p.isRadiant === m.radiant_win ? 'победа' : 'поражение'}.`,
+    `K/D/A ${p.kills}/${p.deaths}/${p.assists}, ценность ${p.net_worth || 0}, GPM ${p.gold_per_min}, XPM ${p.xp_per_min}, добито ${p.last_hits}, не отдано ${p.denies}, урон по героям ${p.hero_damage || 0}, по строениям ${p.tower_damage || 0}, лечение ${p.hero_healing || 0}.`,
+    bench && `Сравнение с другими игроками на этом герое: ${bench}.`,
+    p.lh_t?.[10] != null && `Добито к 10-й минуте: ${p.lh_t[10]}, не отдано: ${p.dn_t?.[10] ?? 0}.`,
+    p.lane_efficiency_pct != null && `Эффективность на линии: ${p.lane_efficiency_pct}%.`,
+    p.teamfight_participation != null && `Участие в драках: ${Math.round(p.teamfight_participation * 100)}%.`,
+    p.obs_placed != null && `Поставлено обсерверов ${p.obs_placed}, сентри ${p.sen_placed || 0}.`,
+    p.stuns != null && `Станы: ${Math.round(p.stuns)} с. Выкупов: ${p.buyback_count || 0}.`,
+    buys && `Ключевые покупки: ${buys}.`,
+    finalItems && `Итоговые предметы: ${finalItems}.`,
+    adv?.length && `Преимущество Сил Света по золоту: ${[10, 20, 30, 40].map(advAt).filter(Boolean).join(', ')}.`,
+    `Силы Света: ${team(true)}.`,
+    `Силы Тьмы: ${team(false)}.`,
+  ].filter(Boolean).join('\n');
+}
+
+async function askAi(key, summary) {
+  aiCache[key] = { status: 'loading' };
+  render();
+  try {
+    const r = await fetch(AI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai',
+        messages: [
+          { role: 'system', content: 'Ты опытный тренер по Dota 2. Разбираешь матч игрока по цифрам. Пиши по-русски, коротко и по делу, обращайся на «ты». ' +
+            'Не выдумывай событий, которых нет в данных. Структура ответа: одна строка «Итог:» с общей оценкой; затем «Что получилось:» — 2–3 пункта; ' +
+            '«Ошибки:» — 2–4 пункта с объяснением почему это важно; «Что делать в следующей игре:» — 3 конкретных совета для этого героя и роли. Пункты начинай с «- ».' },
+          { role: 'user', content: summary },
+        ],
+      }),
+    });
+    if (!r.ok) throw new Error(r.status === 429 ? 'слишком много запросов, попробуйте через минуту' : 'HTTP ' + r.status);
+    const raw = await r.text();
+    let text = raw;
+    try { text = JSON.parse(raw).choices?.[0]?.message?.content || raw; } catch {}
+    if (!text.trim()) throw new Error('пустой ответ');
+    aiCache[key] = { status: 'done', text: text.trim() };
+    saveAi();
+  } catch (e) {
+    aiCache[key] = { status: 'error', text: e.message };
+  }
+  if (tab === 'player' && matchId) render();
+}
+
+// Ответ ИИ — простой текст с «- » и **жирным**; всё экранируем и размечаем сами.
+function aiHtml(text) {
+  const lines = esc(text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n+/);
+  let html = '', list = false;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    const item = line.match(/^(?:[-•*]|\d+[.)])\s+(.*)/);
+    if (item) { if (!list) { html += '<ul>'; list = true; } html += `<li>${item[1]}</li>`; continue; }
+    if (list) { html += '</ul>'; list = false; }
+    const head = line.match(/^#*\s*([^:]{2,40}):\s*(.*)$/);
+    html += head ? `<p><b>${head[1].replace(/<\/?b>/g, '')}:</b> ${head[2]}</p>` : `<p>${line}</p>`;
+  }
+  return html + (list ? '</ul>' : '');
+}
+
+function aiBox(m, p, roles) {
+  const key = `${m.match_id}:${p.player_slot}`;
+  const st = aiCache[key];
+  const btn = label => `<button class="ai-btn" data-ai="${key}">🤖 ${label}</button>`;
+  let body;
+  if (!st) body = `<p class="dim">ИИ прочитает цифры матча и напишет разбор как тренер: что получилось, где ошибки и что делать в следующей игре.</p>${btn('Разбор от ИИ')}`;
+  else if (st.status === 'loading') body = '<p class="ai-wait"><i></i>ИИ разбирает матч… обычно 10–30 секунд</p>';
+  else if (st.status === 'error') body = `<p class="wr-lo">Не получилось: ${esc(st.text)}</p>${btn('Попробовать ещё раз')}`;
+  else body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}`;
+  return `<div class="ai-box"><h4>Разбор от ИИ</h4>${body}
+    <p class="ai-note">Бесплатный ИИ <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>. Он видит только цифры матча, а не саму игру, и может ошибаться.
+      ${m.version ? '' : 'Реплей не разобран — после разбора у ИИ будет больше данных.'}</p></div>`;
+}
+
 function renderMatchView(form) {
   const back = `<button class="mt-back" data-match-back>← ${playerId ? 'К профилю' : 'Назад'}</button>`;
   const m = matchCache[matchId];
@@ -2759,6 +2877,7 @@ function renderMatchView(form) {
         ${score != null ? `<div class="mt-score" style="--s:${score}"><b>${score}</b><small>оценка<br>из 100</small></div>` : ''}
       </div>
       <ul class="an-tips-list">${tips.map(([kind, text]) => `<li class="${kind}">${text}</li>`).join('')}</ul>
+      ${aiBox(m, p, roles)}
       ${benchRows.length ? `<h4>Сравнение с другими игроками на ${esc(heroName(p.hero_id))}</h4>
         <div class="an-bars">${benchRows.map(([k, label]) => {
           const v = b[k].pct * 100;
@@ -4185,6 +4304,12 @@ el.view.addEventListener('click', e => {
   const open = e.target.closest('[data-match]');
   if (open) { e.preventDefault(); matchId = open.dataset.match; matchFocus = null; scrollTo(0, 0); return render(); }
   if (e.target.closest('[data-match-back]')) { matchId = null; return render(); }
+  const ai = e.target.closest('[data-ai]');
+  if (ai) {
+    const m = matchCache[matchId], p = m?.players?.find(x => x.player_slot === matchFocus);
+    if (p) askAi(ai.dataset.ai, matchSummary(m, p, matchRoles(m.players)));
+    return;
+  }
   const parse = e.target.closest('[data-parse]');
   if (parse) return requestParse(parse.dataset.parse);
   const row = e.target.closest('tr[data-focus]');
