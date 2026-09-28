@@ -2730,7 +2730,7 @@ function matchTeamTable(m, radiant, roles) {
 // ---- Разбор матча бесплатным ИИ (Pollinations.ai, без ключа) ----
 const AI_URL = 'https://text.pollinations.ai/openai';
 // Адрес воркера с OpenRouter/Gemini (см. worker/README.md). Пусто — сразу бесплатный Pollinations.
-const AI_PROXY = '';
+const AI_PROXY = 'https://dota-ai.ilaterentev70991.workers.dev';
 const AI_KEY = 'dota2-picks-ai';
 let aiCache = {};  // «матч:слот» → { status, text }
 try { aiCache = JSON.parse(localStorage.getItem(AI_KEY) || '{}'); } catch {}
