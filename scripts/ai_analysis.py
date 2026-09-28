@@ -12,6 +12,7 @@ import pathlib
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -19,6 +20,8 @@ OUT_DIR = ROOT / "data" / "ai"
 COMMENT = ROOT / "comment.md"
 MODEL = os.environ.get("AI_MODEL", "openai/gpt-4.1")
 ENDPOINT = "https://models.github.ai/inference/chat/completions"
+# Если основная модель не ответила — пробуем попроще; у лёгких моделей бесплатный лимит больше.
+FALLBACKS = [(ENDPOINT, MODEL), (ENDPOINT, "openai/gpt-4.1-mini"), (ENDPOINT, "openai/gpt-4o-mini")]
 UA = "dota2-picks ai bot (github.com/immortality6712/dota2-picks)"
 SITE = "https://immortality6712.github.io/dota2-picks/"
 
@@ -45,6 +48,63 @@ def get_json(url, data=None, headers=None):
     req = urllib.request.Request(url, data=data, headers={"User-Agent": UA, **(headers or {})})
     with urllib.request.urlopen(req, timeout=90) as r:
         return json.load(r)
+
+
+class KeepPost(urllib.request.HTTPRedirectHandler):
+    """urllib на переадресации превращает POST в пустой GET — так запрос к модели терялся.
+    Не следуем за переадресацией сами: ask_model повторит POST по новому адресу."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+OPENER = urllib.request.build_opener(KeepPost)
+
+
+def post_json(url, body, headers):
+    for _ in range(3):
+        req = urllib.request.Request(url, data=body, method="POST", headers=headers)
+        try:
+            with OPENER.open(req, timeout=120) as r:
+                return r.status, r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            if e.code in (301, 302, 303, 307, 308) and e.headers.get("Location"):
+                url = urllib.parse.urljoin(url, e.headers["Location"])
+                print(f"переадресация на {url}", file=sys.stderr)
+                continue
+            raise
+    raise RuntimeError("слишком много переадресаций")
+
+
+def ask_model(prompt):
+    errors = []
+    for url, model in FALLBACKS:
+        body = json.dumps({
+            "model": model,
+            "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}],
+            "temperature": 0.6,
+        }).encode()
+        headers = {
+            "User-Agent": UA,
+            "Content-Type": "application/json",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "Authorization": "Bearer " + os.environ["GITHUB_TOKEN"],
+        }
+        try:
+            status, raw = post_json(url, body, headers)
+        except urllib.error.HTTPError as e:
+            errors.append(f"{model}: HTTP {e.code} {e.read().decode('utf-8', 'replace')[:200]}")
+            continue
+        except (urllib.error.URLError, TimeoutError, RuntimeError) as e:
+            errors.append(f"{model}: {e}")
+            continue
+        try:
+            return json.loads(raw)["choices"][0]["message"]["content"].strip(), model
+        except (ValueError, KeyError, IndexError, TypeError):
+            errors.append(f"{model}: неожиданный ответ (HTTP {status}): {raw[:200]!r}")
+    for e in errors:
+        print(e, file=sys.stderr)
+    raise RuntimeError("; ".join(errors))
 
 
 def say(text):
@@ -142,36 +202,32 @@ def main():
 
     prompt = summary(m, p, heroes, items)
     print(prompt, file=sys.stderr)
-    body = json.dumps({
-        "model": MODEL,
-        "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}],
-        "temperature": 0.6,
-    }).encode()
     try:
-        res = get_json(ENDPOINT, data=body, headers={
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + os.environ["GITHUB_TOKEN"],
-        })
-        answer = res["choices"][0]["message"]["content"].strip()
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode("utf-8", "replace")[:300]
-        say(f"GitHub Models не ответил (HTTP {e.code}). "
-            + ("Похоже, закончился бесплатный дневной лимит — попробуйте завтра или используйте кнопку «Разбор от ИИ» на сайте."
-               if e.code == 429 else f"Подробности: `{detail}`"))
+        answer, model = ask_model(prompt)
+    except RuntimeError as e:
+        limit = "429" in str(e)
+        say("GitHub Models не ответил. " + (
+            "Похоже, закончился бесплатный лимит — попробуйте позже или используйте кнопку «Разбор от ИИ» на сайте."
+            if limit else f"Подробности:\n\n```\n{str(e)[:900]}\n```"))
         return 1
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / f"{match_id}-{slot}.json").write_text(json.dumps({
-        "match": int(match_id), "slot": slot, "hero": p["hero_id"], "model": MODEL, "text": answer,
+        "match": int(match_id), "slot": slot, "hero": p["hero_id"], "model": model, "text": answer,
         "parsed": bool(m.get("version")),
     }, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     hero = heroes.get(p["hero_id"], "")
     say(f"## Разбор матча {match_id} — {hero}\n\n{answer}\n\n---\n"
-        f"Модель `{MODEL}` из GitHub Models. ИИ видит только цифры матча из OpenDota, а не саму игру, и может ошибаться.\n"
+        f"Модель `{model}` из GitHub Models. ИИ видит только цифры матча из OpenDota, а не саму игру, и может ошибаться.\n"
         f"{'' if m.get('version') else 'Реплей матча не разобран OpenDota — после разбора у ИИ будет больше данных. '}"
         f"Разбор появится на сайте через минуту-две: {SITE}#tab=player&match={match_id}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        code = main()
+    except Exception as e:  # что бы ни случилось — в заявке должна быть причина, а не молчание
+        say(f"Бот споткнулся: `{type(e).__name__}: {str(e)[:500]}`. Попробуйте ещё раз позже.")
+        raise
+    sys.exit(code)
