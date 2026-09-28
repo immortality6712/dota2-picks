@@ -11,7 +11,7 @@
 //   sk-…     — DeepSeek (sk- и 32 шестнадцатеричных символа) или OpenAI (остальные sk-…).
 // Если ключей несколько, пробуются по порядку списка выше.
 // Необязательные настройки: OPENROUTER_MODELS, GEMINI_MODEL, GROQ_MODEL, OPENAI_MODEL,
-// DEEPSEEK_MODEL, ANTHROPIC_MODEL, SVRTR_MODEL, ALLOWED_ORIGINS (через запятую, с каких сайтов принимать запросы).
+// DEEPSEEK_MODEL, ANTHROPIC_MODEL, SVRTR_MODEL (можно несколько через запятую), ALLOWED_ORIGINS (через запятую, с каких сайтов принимать запросы).
 
 const DEFAULT_ORIGINS = 'https://immortality6712.github.io';
 // Бесплатные модели OpenRouter меняются; актуальный список — openrouter.ai/models?q=free.
@@ -116,9 +116,19 @@ const PROVIDERS = {
   anthropic: (key, env, s, p) => messages({
     name: 'Claude', url: 'https://api.anthropic.com/v1/messages', key, model: env.ANTHROPIC_MODEL || 'claude-haiku-4-5',
   }, s, p),
-  svrtr: (key, env, s, p) => messages({
-    name: 'Claude (svrtr)', url: 'https://api.svrtr.org/v1/messages', key, model: env.SVRTR_MODEL || 'claude-opus-5',
-  }, s, p),
+  // У svrtr без пополнения модели бывают перегружены — пробуем по очереди от сильной к лёгкой.
+  async svrtr(key, env, s, p) {
+    const models = (env.SVRTR_MODEL || 'claude-opus-5,claude-sonnet-5,claude-haiku-4-5').split(',').map(x => x.trim()).filter(Boolean);
+    const errors = [];
+    for (const model of models) {
+      try {
+        return await messages({ name: 'Claude (svrtr)', url: 'https://api.svrtr.org/v1/messages', key, model }, s, p);
+      } catch (e) {
+        errors.push(`${model}: ${e.message.replace(/^Claude \(svrtr\): /, '')}`);
+      }
+    }
+    throw new Error('Claude (svrtr): ' + errors.join(' | '));
+  },
 };
 
 // API в формате Anthropic Messages: сам Anthropic и совместимые посредники.
