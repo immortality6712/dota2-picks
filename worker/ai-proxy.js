@@ -80,6 +80,30 @@ async function chat({ name, url, key, model, extra = {}, headers = {} }, system,
   return { text, provider: name, model: data.model || model };
 }
 
+// Какие модели доступны этому ключу — спрашиваем у Google, а не угадываем названия.
+// Берём текстовые flash-модели (быстрые и с бесплатным лимитом), новые первыми, потом pro.
+let geminiList = null, geminiListAt = 0;
+async function geminiModels(key) {
+  if (geminiList && Date.now() - geminiListAt < 3600e3) return [...geminiList];
+  const fallback = ['gemini-3.8-flash', 'gemini-flash-latest'];
+  try {
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', { headers: { 'x-goog-api-key': key } });
+    const data = await r.json();
+    const names = (data.models || [])
+      .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+      .map(m => m.name.replace(/^models\//, ''))
+      .filter(n => /^gemini-/.test(n) && !/(image|tts|audio|live|embed|vision|thinking|computer|robotics|native)/i.test(n));
+    const version = n => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0);
+    const rank = n => (/flash/.test(n) ? 0 : 1) + (/lite/.test(n) ? 0.5 : 0) + (/(preview|exp)/.test(n) ? 0.2 : 0);
+    const sorted = names.sort((a, b) => rank(a) - rank(b) || version(b) - version(a) || a.length - b.length);
+    geminiList = sorted.length ? sorted.slice(0, 6) : fallback;
+  } catch {
+    geminiList = fallback;
+  }
+  geminiListAt = Date.now();
+  return [...geminiList];
+}
+
 const PROVIDERS = {
   openrouter(key, env, s, p, referer) {
     const models = (env.OPENROUTER_MODELS || DEFAULT_OPENROUTER).split(',').map(x => x.trim()).filter(Boolean);
@@ -100,10 +124,11 @@ const PROVIDERS = {
   // Google регулярно снимает старые модели. Пробуем модели по списку, а если Google
   // в ошибке сам называет замену («use models/…»), повторяем запрос с ней.
   async gemini(key, env, system, prompt) {
-    const queue = (env.GEMINI_MODEL || 'gemini-3.8-flash,gemini-3.8-flash-lite').split(',').map(x => x.trim()).filter(Boolean);
+    const own = (env.GEMINI_MODEL || '').split(',').map(x => x.trim()).filter(Boolean);
+    const queue = own.length ? own : await geminiModels(key);
     const tried = new Set(), errors = [];
     let retries = 2;  // перегрузка у Google обычно на секунды — повторяем с паузой
-    while (queue.length && tried.size < 5) {
+    while (queue.length && tried.size < 6) {
       const model = queue.shift();
       if (tried.has(model)) continue;
       tried.add(model);
