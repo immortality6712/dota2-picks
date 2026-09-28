@@ -7,10 +7,11 @@
 //   AIza…    — Google Gemini;
 //   gsk_…    — Groq;
 //   sk-ant-… — Anthropic Claude;
+//   sk-sr-…  — Claude через svrtr.org (сторонний посредник с API как у Anthropic);
 //   sk-…     — DeepSeek (sk- и 32 шестнадцатеричных символа) или OpenAI (остальные sk-…).
 // Если ключей несколько, пробуются по порядку списка выше.
 // Необязательные настройки: OPENROUTER_MODELS, GEMINI_MODEL, GROQ_MODEL, OPENAI_MODEL,
-// DEEPSEEK_MODEL, ANTHROPIC_MODEL, ALLOWED_ORIGINS (через запятую, с каких сайтов принимать запросы).
+// DEEPSEEK_MODEL, ANTHROPIC_MODEL, SVRTR_MODEL, ALLOWED_ORIGINS (через запятую, с каких сайтов принимать запросы).
 
 const DEFAULT_ORIGINS = 'https://immortality6712.github.io';
 // Бесплатные модели OpenRouter меняются; актуальный список — openrouter.ai/models?q=free.
@@ -35,6 +36,7 @@ const KINDS = [
   ['gemini', /^AIza[\w-]{30,}$/],
   ['groq', /^gsk_/],
   ['anthropic', /^sk-ant-/],
+  ['svrtr', /^sk-sr-/],
   ['deepseek', /^sk-[a-f0-9]{32}$/],
   ['openai', /^sk-(proj-|svcacct-|admin-)?[\w-]{20,}$/],
 ];
@@ -111,19 +113,26 @@ const PROVIDERS = {
     if (!text) throw new Error('Gemini: пустой ответ');
     return { text, provider: 'Gemini', model };
   },
-  async anthropic(key, env, system, prompt) {
-    const model = env.ANTHROPIC_MODEL || 'claude-haiku-4-5';
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model, max_tokens: 2000, system, messages: [{ role: 'user', content: prompt }] }),
-    });
-    const data = await readJson(r, 'Claude');
-    const text = (data.content || []).map(x => x.text || '').join('').trim();
-    if (!text) throw new Error('Claude: пустой ответ');
-    return { text, provider: 'Claude', model: data.model || model };
-  },
+  anthropic: (key, env, s, p) => messages({
+    name: 'Claude', url: 'https://api.anthropic.com/v1/messages', key, model: env.ANTHROPIC_MODEL || 'claude-haiku-4-5',
+  }, s, p),
+  svrtr: (key, env, s, p) => messages({
+    name: 'Claude (svrtr)', url: 'https://api.svrtr.org/v1/messages', key, model: env.SVRTR_MODEL || 'claude-opus-5',
+  }, s, p),
 };
+
+// API в формате Anthropic Messages: сам Anthropic и совместимые посредники.
+async function messages({ name, url, key, model }, system, prompt) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model, max_tokens: 2000, system, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const data = await readJson(r, name);
+  const text = (data.content || []).map(x => x.text || '').join('').trim();
+  if (!text) throw new Error(`${name}: пустой ответ`);
+  return { text, provider: name, model: data.model || model };
+}
 
 export default {
   async fetch(req, env) {
