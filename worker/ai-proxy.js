@@ -100,9 +100,10 @@ const PROVIDERS = {
   // Google регулярно снимает старые модели. Пробуем модели по списку, а если Google
   // в ошибке сам называет замену («use models/…»), повторяем запрос с ней.
   async gemini(key, env, system, prompt) {
-    const queue = (env.GEMINI_MODEL || 'gemini-3.8-flash,gemini-2.5-flash').split(',').map(x => x.trim()).filter(Boolean);
+    const queue = (env.GEMINI_MODEL || 'gemini-3.8-flash,gemini-3.8-flash-lite').split(',').map(x => x.trim()).filter(Boolean);
     const tried = new Set(), errors = [];
-    while (queue.length && tried.size < 4) {
+    let retries = 2;  // перегрузка у Google обычно на секунды — повторяем с паузой
+    while (queue.length && tried.size < 5) {
       const model = queue.shift();
       if (tried.has(model)) continue;
       tried.add(model);
@@ -121,9 +122,16 @@ const PROVIDERS = {
         if (!text) throw new Error('Gemini: пустой ответ');
         return { text, provider: 'Gemini', model };
       } catch (e) {
-        errors.push(`${model}: ${e.message.replace(/^Gemini: /, '')}`);
         const hint = e.message.match(/use (?:models\/)?(gemini-[\w.-]+)/i);
         if (hint) queue.unshift(hint[1].replace(/[.,]+$/, ''));
+        if ((e.status === 503 || /high demand|overloaded|UNAVAILABLE/i.test(e.message)) && retries > 0) {
+          retries--;
+          tried.delete(model);
+          queue.unshift(model);
+          await new Promise(res => setTimeout(res, retries ? 1500 : 3500));
+          continue;
+        }
+        errors.push(`${model}: ${e.message.replace(/^Gemini: /, '')}`);
       }
     }
     throw Object.assign(new Error('Gemini: ' + errors.join(' | ')), { status: /429|quota|RESOURCE_EXHAUSTED/i.test(errors.join()) ? 429 : 502 });
