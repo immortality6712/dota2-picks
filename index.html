@@ -1182,6 +1182,10 @@
   .ai-wait { display: flex; align-items: center; gap: 10px; color: var(--muted); }
   .ai-wait i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(156, 195, 255, .3); border-top-color: #9cc3ff; animation: aiSpin .8s linear infinite; }
   @keyframes aiSpin { to { transform: rotate(360deg); } }
+  .ai-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .ai-btn.gh { background: linear-gradient(180deg, #2b3445, #161c28); color: #e6edf7; border: 1px solid rgba(190, 214, 255, .35); box-shadow: none; }
+  .ai-link { all: unset; cursor: pointer; font-size: 12px; color: var(--muted); text-decoration: underline; }
+  .ai-link:hover { color: var(--text); }
   .ai-by { margin-left: 12px; font-size: 11px; color: var(--muted); }
   .ai-note { font-size: 11px !important; color: var(--muted); margin: 10px 0 0 !important; }
 
@@ -2836,17 +2840,44 @@ function aiHtml(text) {
   return html + (list ? '</ul>' : '');
 }
 
+// Разбор через GitHub Models: кнопка открывает заявку, бот (.github/workflows/ai-analysis.yml)
+// отвечает в ней и кладёт разбор в data/ai/<матч>-<слот>.json — его и показываем.
+const GH_REPO = 'immortality6712/dota2-picks';
+const ghAi = {};  // «матч:слот» → 'loading' | null | { text, model }
+function loadGhAi(key) {
+  ghAi[key] = 'loading';
+  fetch(`data/ai/${key.replace(':', '-')}.json`, { cache: 'no-cache' })
+    .then(r => r.ok ? r.json() : null).catch(() => null)
+    .then(d => { ghAi[key] = d?.text ? d : null; if (tab === 'player' && matchId) render(); });
+}
+function ghIssueUrl(m, p) {
+  const title = `Разбор матча ${m.match_id} — ${heroName(p.hero_id)}`;
+  const body = `match: ${m.match_id}\nslot: ${p.player_slot}\n\nЗаявка создана с сайта. Нажмите «Create» — бот разберёт матч `
+    + `с помощью GitHub Models и ответит здесь через минуту, а разбор появится на сайте.`;
+  return `https://github.com/${GH_REPO}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+}
+
 function aiBox(m, p, roles) {
   const key = `${m.match_id}:${p.player_slot}`;
+  if (ghAi[key] === undefined) loadGhAi(key);
+  const gh = ghAi[key] && ghAi[key] !== 'loading' ? ghAi[key] : null;
   const st = aiCache[key];
   const btn = label => `<button class="ai-btn" data-ai="${key}">🤖 ${label}</button>`;
+  const ghBtn = gh ? '' : `<a class="ai-btn gh" href="${ghIssueUrl(m, p)}" target="_blank" rel="noopener"
+      title="Откроется заявка на GitHub — нужен аккаунт GitHub">🐙 Разбор через GitHub</a>
+    <button class="ai-link" data-gh-check="${key}">Проверить, готов ли</button>`;
   let body;
-  if (!st) body = `<p class="dim">ИИ прочитает цифры матча и напишет разбор как тренер: что получилось, где ошибки и что делать в следующей игре.</p>${btn('Разбор от ИИ')}`;
-  else if (st.status === 'loading') body = '<p class="ai-wait"><i></i>ИИ разбирает матч… обычно 10–30 секунд</p>';
-  else if (st.status === 'error') body = `<p class="wr-lo">Не получилось: ${esc(st.text)}</p>${btn('Попробовать ещё раз')}`;
-  else body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}${st.by ? `<span class="ai-by">Ответил ${esc(st.by)}</span>` : ''}`;
+  if (st?.status === 'loading') body = '<p class="ai-wait"><i></i>ИИ разбирает матч… обычно 10–30 секунд</p>';
+  else if (st?.status === 'done') body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}${st.by ? `<span class="ai-by">Ответил ${esc(st.by)}</span>` : ''}`;
+  else if (gh) body = `<div class="ai-text">${aiHtml(gh.text)}</div><span class="ai-by">Ответил GitHub Models · ${esc(gh.model || '')}</span>
+    <div class="ai-acts">${btn('Спросить быстрый ИИ')}</div>`;
+  else body = (st?.status === 'error' ? `<p class="wr-lo">Не получилось: ${esc(st.text)}</p>`
+      : '<p class="dim">ИИ прочитает цифры матча и напишет разбор как тренер: что получилось, где ошибки и что делать в следующей игре.</p>')
+    + `<div class="ai-acts">${btn(st?.status === 'error' ? 'Попробовать ещё раз' : 'Разбор от ИИ')}${ghBtn}</div>
+    <p class="ai-note">«Разбор от ИИ» — сразу, бесплатным ${AI_PROXY ? 'Gemini (запасной — Pollinations)' : '<a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>'}.
+      «Через GitHub» — модель GPT-4.1 из GitHub Models: откроется заявка, бот ответит в ней и выложит разбор сюда через 1–2 минуты. Нужен аккаунт GitHub.</p>`;
   return `<div class="ai-box"><h4>Разбор от ИИ</h4>${body}
-    <p class="ai-note">${AI_PROXY ? 'Google Gemini, запасной вариант — ' : 'Бесплатный ИИ '}<a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>. ИИ видит только цифры матча, а не саму игру, и может ошибаться.
+    <p class="ai-note">ИИ видит только цифры матча, а не саму игру, и может ошибаться.
       ${m.version ? '' : 'Реплей не разобран — после разбора у ИИ будет больше данных.'}</p></div>`;
 }
 
@@ -4329,6 +4360,8 @@ el.view.addEventListener('click', e => {
   const open = e.target.closest('[data-match]');
   if (open) { e.preventDefault(); matchId = open.dataset.match; matchFocus = null; scrollTo(0, 0); return render(); }
   if (e.target.closest('[data-match-back]')) { matchId = null; return render(); }
+  const check = e.target.closest('[data-gh-check]');
+  if (check) { check.textContent = 'Проверяю…'; return loadGhAi(check.dataset.ghCheck); }
   const ai = e.target.closest('[data-ai]');
   if (ai) {
     const m = matchCache[matchId], p = m?.players?.find(x => x.player_slot === matchFocus);

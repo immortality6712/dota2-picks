@@ -1,0 +1,52 @@
+name: AI match analysis
+
+# Заявка «Разбор матча …» (её создаёт кнопка на сайте) → разбор моделью из GitHub Models.
+# Бесплатно: модели доступны по встроенному токену, нужен только доступ models: read.
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+  models: read
+
+concurrency:
+  group: ai-analysis
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    if: startsWith(github.event.issue.title, 'Разбор матча')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Analyze
+        id: ai
+        # Текст заявки пишет кто угодно — передаём его только через переменные, не подставляя в команду.
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 -u scripts/ai_analysis.py
+        continue-on-error: true
+      - name: Save for the site
+        if: steps.ai.outcome == 'success'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ai
+          git diff --cached --quiet && exit 0
+          git commit -m "AI analysis for issue #${{ github.event.issue.number }}"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push && exit 0; sleep 5; done
+          exit 1
+      - name: Reply
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          [ -f comment.md ] || echo "Не получилось разобрать матч — посмотрите лог запуска." > comment.md
+          gh issue comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          gh issue close "$NUMBER" --repo "$GITHUB_REPOSITORY"
