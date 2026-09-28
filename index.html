@@ -2850,6 +2850,46 @@ function loadGhAi(key) {
     .then(r => r.ok ? r.json() : null).catch(() => null)
     .then(d => { ghAi[key] = d?.text ? d : null; if (tab === 'player' && matchId) render(); });
 }
+// После отправки заявки сайт сам ждёт ответ бота: читает файл через API GitHub (без задержки
+// обновления сайта) и заглядывает в заявку, чтобы показать ошибку, если бот не справился.
+const ghWait = {};  // «матч:слот» → { since, error }
+const ghApi = path => fetch(`https://api.github.com/${path}`, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+function fromBase64(b64) {
+  return new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, '')), c => c.charCodeAt(0)));
+}
+async function ghWatch(key) {
+  if (ghWait[key] && !ghWait[key].error) return;
+  const [match] = key.split(':');
+  ghWait[key] = { since: Date.now() };
+  render();
+  for (let i = 0; i < 30 && ghWait[key] && !ghWait[key].error; i++) {
+    await new Promise(res => setTimeout(res, i ? 15000 : 20000));
+    try {
+      const r = await ghApi(`repos/${GH_REPO}/contents/data/ai/${key.replace(':', '-')}.json?ref=main`);
+      if (r.ok) {
+        const d = JSON.parse(fromBase64((await r.json()).content));
+        ghAi[key] = d;
+        delete ghWait[key];
+        break;
+      }
+      // Раз в полминуты смотрим заявку: закрыта без файла — значит, бот ответил ошибкой.
+      if (i % 2) {
+        const q = encodeURIComponent(`repo:${GH_REPO} is:issue in:title "Разбор матча ${match}"`);
+        const found = await ghApi(`search/issues?q=${q}&sort=created&order=desc&per_page=1`).then(x => x.ok ? x.json() : null);
+        const issue = found?.items?.[0];
+        if (issue && issue.state === 'closed' && new Date(issue.closed_at) > ghWait[key].since - 60000) {
+          const comments = await ghApi(`repos/${GH_REPO}/issues/${issue.number}/comments`).then(x => x.ok ? x.json() : []);
+          const last = comments[comments.length - 1]?.body || '';
+          if (!last.startsWith('## Разбор')) ghWait[key] = { error: last || 'бот закрыл заявку без ответа', url: issue.html_url };
+        }
+      }
+    } catch { /* сеть моргнула — попробуем на следующем круге */ }
+    if (tab === 'player' && matchId) render();
+  }
+  if (ghWait[key] && !ghWait[key].error) ghWait[key] = { error: 'Бот не ответил за 8 минут. Проверьте, что заявка отправлена, и загляните в неё на GitHub.' };
+  if (tab === 'player' && matchId) render();
+}
+
 function ghIssueUrl(m, p) {
   const title = `Разбор матча ${m.match_id} — ${heroName(p.hero_id)}`;
   const body = `match: ${m.match_id}\nslot: ${p.player_slot}\n\nЗаявка создана с сайта. Нажмите «Create» — бот разберёт матч `
@@ -2863,7 +2903,8 @@ function aiBox(m, p, roles) {
   const gh = ghAi[key] && ghAi[key] !== 'loading' ? ghAi[key] : null;
   const st = aiCache[key];
   const btn = label => `<button class="ai-btn" data-ai="${key}">🤖 ${label}</button>`;
-  const ghBtn = gh ? '' : `<a class="ai-btn gh" href="${ghIssueUrl(m, p)}" target="_blank" rel="noopener"
+  const wait = ghWait[key];
+  const ghBtn = gh || (wait && !wait.error) ? '' : `<a class="ai-btn gh" data-gh-go="${key}" href="${ghIssueUrl(m, p)}" target="_blank" rel="noopener"
       title="Откроется заявка на GitHub — нужен аккаунт GitHub">🐙 Разбор через GitHub</a>
     <button class="ai-link" data-gh-check="${key}">Проверить, готов ли</button>`;
   let body;
@@ -2871,7 +2912,10 @@ function aiBox(m, p, roles) {
   else if (st?.status === 'done') body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}${st.by ? `<span class="ai-by">Ответил ${esc(st.by)}</span>` : ''}`;
   else if (gh) body = `<div class="ai-text">${aiHtml(gh.text)}</div><span class="ai-by">Ответил GitHub Models · ${esc(gh.model || '')}</span>
     <div class="ai-acts">${btn('Спросить быстрый ИИ')}</div>`;
+  else if (wait && !wait.error) body = `<p class="ai-wait"><i></i>Ждём бота GitHub… Отправьте заявку на открывшейся странице (кнопка «Create»),
+      разбор появится здесь сам через 1–2 минуты.</p><div class="ai-acts">${btn('Не ждать — быстрый ИИ')}</div>`;
   else body = (st?.status === 'error' ? `<p class="wr-lo">Не получилось: ${esc(st.text)}</p>`
+      : wait?.error ? `<p class="wr-lo">Бот GitHub не справился: ${esc(wait.error.slice(0, 300))}${wait.url ? ` · <a href="${esc(wait.url)}" target="_blank" rel="noopener">заявка</a>` : ''}</p>`
       : '<p class="dim">ИИ прочитает цифры матча и напишет разбор как тренер: что получилось, где ошибки и что делать в следующей игре.</p>')
     + `<div class="ai-acts">${btn(st?.status === 'error' ? 'Попробовать ещё раз' : 'Разбор от ИИ')}${ghBtn}</div>
     <p class="ai-note">«Разбор от ИИ» — сразу, бесплатным ${AI_PROXY ? 'Gemini (запасной — Pollinations)' : '<a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>'}.
@@ -4360,6 +4404,8 @@ el.view.addEventListener('click', e => {
   const open = e.target.closest('[data-match]');
   if (open) { e.preventDefault(); matchId = open.dataset.match; matchFocus = null; scrollTo(0, 0); return render(); }
   if (e.target.closest('[data-match-back]')) { matchId = null; return render(); }
+  const go = e.target.closest('[data-gh-go]');
+  if (go) { setTimeout(() => ghWatch(go.dataset.ghGo)); return; }  // ссылка откроет GitHub, а мы начнём ждать ответ
   const check = e.target.closest('[data-gh-check]');
   if (check) { check.textContent = 'Проверяю…'; return loadGhAi(check.dataset.ghCheck); }
   const ai = e.target.closest('[data-ai]');
