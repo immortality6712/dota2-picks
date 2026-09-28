@@ -1034,6 +1034,69 @@
     .head-hv { width: 88px; height: 50px; }
     .pk-render { height: 190px; }
   }
+  .fav {
+    all: unset; cursor: pointer; flex: none; font-size: 16px; line-height: 1;
+    color: rgba(190, 214, 255, .28); transition: color .15s, transform .15s, text-shadow .15s;
+  }
+  .fav:hover { color: #f4c542; transform: scale(1.2); }
+  .fav.on { color: #f4c542; text-shadow: 0 0 10px rgba(244, 197, 66, .7); }
+  .fav:focus-visible { outline: 2px solid #f4c542; outline-offset: 2px; border-radius: 3px; }
+  .fav-cell { display: flex; align-items: center; gap: 8px; }
+  h2 .fav { font-size: .7em; vertical-align: middle; }
+  .tier-hero { position: relative; }
+  .tier-hero .fav { position: absolute; top: 8px; right: 9px; z-index: 7; font-size: 15px; text-shadow: 0 1px 3px #000; }
+  .tier-hero .fav:not(.on) { opacity: 0; }
+  .tier-hero:hover .fav, .tier-hero .fav:focus-visible { opacity: 1; }
+  .tier-hero.is-fav { border-color: rgba(244, 197, 66, .55); }
+  @media (hover: none) { .tier-hero .fav:not(.on) { opacity: .6; } }
+  /* Тренды */
+  .trend-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+  .trend-box > p { max-width: none; }
+  .trend-list { display: flex; flex-direction: column; gap: 4px; }
+  .trend-row { display: grid; grid-template-columns: minmax(0, 1fr) 62px 128px; align-items: center; gap: 10px;
+    padding: 4px 6px; border-radius: 8px; }
+  .trend-row:hover { background: rgba(190, 214, 255, .06); }
+  .trend-row.is-fav { box-shadow: inset 2px 0 0 #f4c542; }
+  .trend-row .hero span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trend-now { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+  .trend-d { position: relative; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+    padding: 4px 8px; border-radius: 6px; overflow: hidden; background: rgba(8, 11, 18, .6); white-space: nowrap; }
+  .trend-d i { position: absolute; inset: 0 auto 0 0; opacity: .28; }
+  .trend-d.up { color: #7fdc8f; } .trend-d.up i { background: #3fb95a; }
+  .trend-d.down { color: #ff8a7a; } .trend-d.down i { background: #e5483d; }
+
+  /* Эфир */
+  .live-h { font-family: var(--head); text-transform: uppercase; letter-spacing: .06em; font-size: 16px; margin: 18px 0 10px; }
+  .live-empty { padding: 6px 0 10px; }
+  .live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+  .live-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(32, 42, 62, .9), rgba(20, 26, 38, .95)); border: 1px solid rgba(190, 214, 255, .16); min-width: 0; }
+  .live-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+  .live-league { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .live-time { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 8px #ff4d4d; animation: livePulse 1.4s infinite; }
+  @keyframes livePulse { 50% { opacity: .35; } }
+  .live-score { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; }
+  .live-score b { font-family: var(--head); font-size: 24px; font-variant-numeric: tabular-nums; }
+  .live-team { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .live-team.rad { color: #7fdc8f; } .live-team.dire { color: #ff8a7a; text-align: right; }
+  .live-lead { position: relative; height: 18px; border-radius: 9px; background: rgba(8, 11, 18, .6); overflow: hidden;
+    font-size: 11px; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .live-lead i { position: absolute; top: 0; bottom: 0; }
+  .live-lead i.rad { background: rgba(63, 185, 90, .45); } .live-lead i.dire { background: rgba(229, 72, 61, .45); }
+  .live-lead span { position: relative; }
+  .live-heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .live-heroes > div { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; align-content: start; }
+  .live-heroes > div:first-child { border-right: 1px solid rgba(190, 214, 255, .12); padding-right: 10px; }
+  .live-hero { flex-direction: column; gap: 2px; min-width: 0; }
+  .live-hero img { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .live-hero small { font-size: 9px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .live-foot { font-size: 11px; }
+  @media (max-width: 720px) {
+    .trend-grid { grid-template-columns: 1fr; }
+    .live-grid { grid-template-columns: 1fr; }
+    .trend-row { grid-template-columns: minmax(0, 1fr) 54px 112px; gap: 6px; }
+  }
 </style>
 </head>
 <body>
@@ -1053,7 +1116,9 @@
   <nav class="tabs">
     <button data-tab="tournaments" class="on">Турниры</button>
     <button data-tab="ti">The International 2026</button>
+    <button data-tab="live">Эфир</button>
     <button data-tab="tier">Тир-лист</button>
+    <button data-tab="trends">Тренды</button>
     <button data-tab="player">Игрок</button>
     <button data-tab="hero">Герой по турнирам</button>
     <button data-tab="matrix">Матрица</button>
@@ -1656,6 +1721,79 @@ function heroName(id) {
   return heroes[id]?.localized_name || `Hero ${id}`;
 }
 
+// Русские названия и прозвища героев для поиска: ключ — имя героя в файлах игры.
+const HERO_ALIASES = {
+  antimage: 'антимаг анти-маг ам am магина', axe: 'акс топор могул', bane: 'бейн бэйн атропос кошмар',
+  bloodseeker: 'бладсикер бс bs блад стригвир', crystal_maiden: 'кристал мейден цм cm рэйлина кристалка',
+  drow_ranger: 'дров ренджер дровка траксекс', earthshaker: 'эртшейкер шейкер es раигор',
+  juggernaut: 'джаггернаут джагер джага юрнеро', mirana: 'мирана потм мира',
+  morphling: 'морфлинг морф', nevermore: 'shadow fiend сф sf шадоу финд невермор',
+  phantom_lancer: 'фантом лансер пл pl лансер', puck: 'пак пук', pudge: 'пудж пудж мясник',
+  razor: 'разор рейзор', sand_king: 'сенд кинг ск sk краб', storm_spirit: 'шторм спирит шторм ss',
+  sven: 'свен', tiny: 'тини тайни камень', vengefulspirit: 'венга вендж венгефул vs шенди',
+  windrunner: 'windranger виндраннер виндра вр wr лиралей', zuus: 'zeus зевс зус', kunkka: 'кунка кунку адмирал',
+  lina: 'лина', lion: 'лион лев', shadow_shaman: 'шадоу шаман шаман рхаста раста шш',
+  slardar: 'слардар', tidehunter: 'тайдхантер тайд левиафан', witch_doctor: 'вич доктор wd вд виччдоктор',
+  lich: 'лич', riki: 'рики рикимару', enigma: 'энигма', tinker: 'тинкер', sniper: 'снайпер кардель',
+  necrolyte: 'necrophos некрофос некр', warlock: 'варлок', beastmaster: 'бистмастер бм bm рексар',
+  queenofpain: 'queen of pain квоп квипа qop акаша королева боли', venomancer: 'веномансер веник',
+  faceless_void: 'войд фв fv фейслесс', skeleton_king: 'wraith king врейс кинг вк wk скелет кинг остарион',
+  death_prophet: 'дезпрофет дп dp крополус', phantom_assassin: 'фантом ассасин пa pa мортред фантомка',
+  pugna: 'пугна', templar_assassin: 'темпларка та ta ланайя темплар', viper: 'вайпер гадюка',
+  luna: 'луна', dragon_knight: 'драгон кнайт дк dk давион', dazzle: 'даззл дазл',
+  rattletrap: 'clockwerk клокверк клок', leshrac: 'лешрак', furion: 'natures prophet фурион профет нп np',
+  life_stealer: 'lifestealer лайфстилер гуль наикс', dark_seer: 'дарк сир ишкафел',
+  clinkz: 'клинкз', omniknight: 'омникнайт омник', enchantress: 'энча энчантресс', huskar: 'хускар хуск',
+  night_stalker: 'найт сталкер нс ns баланар', broodmother: 'бруда бруд паучиха',
+  bounty_hunter: 'баунти хантер бх bh гондар', weaver: 'вивер скитскурр', jakiro: 'джакиро якиро дракон',
+  batrider: 'батрайдер бат', chen: 'чен', spectre: 'спектра спектр', ancient_apparition: 'апп аа aa апарат',
+  doom_bringer: 'doom дум', ursa: 'урса медведь', spirit_breaker: 'спирит брейкер бара барадум сб',
+  gyrocopter: 'гирокоптер гиро', alchemist: 'алхимик алх', invoker: 'инвокер инвок карл',
+  silencer: 'сайленсер сайлик', obsidian_destroyer: 'outworld destroyer od од аутворлд харбинджер',
+  lycan: 'ликан волк', brewmaster: 'брюмастер панда брю', shadow_demon: 'шадоу демон сд sd',
+  lone_druid: 'лон друид лд ld сильван медведь', chaos_knight: 'хаос кнайт ск ck хаос',
+  meepo: 'мипо мипа', treant: 'treant protector треант дерево', ogre_magi: 'огр маги огр',
+  undying: 'андаинг андайинг дирж', rubick: 'рубик', disruptor: 'дизраптор тралл',
+  nyx_assassin: 'никс ассасин никс', naga_siren: 'нага сирена нага', keeper_of_the_light: 'котл kotl кипер эзалор',
+  wisp: 'io ио висп висп', visage: 'визаж', slark: 'сларк', medusa: 'медуза дуза', troll_warlord: 'тролль троль',
+  centaur: 'кентавр центавр цк', magnataur: 'magnus магнус магнатавр', shredder: 'timbersaw тимбер тимбесо ризци',
+  bristleback: 'бристлбек бристл бб', tusk: 'таск', skywrath_mage: 'скайрас скай',
+  abaddon: 'абаддон абадон аба', elder_titan: 'элдер титан тотем', legion_commander: 'легион коммандер легионка лк lc',
+  techies: 'течис минер течиз', ember_spirit: 'эмбер спирит эмбер', earth_spirit: 'эрс спирит земляной эрс',
+  abyssal_underlord: 'underlord андерлорд питлорд', terrorblade: 'терроблейд тб tb', phoenix: 'феникс',
+  oracle: 'оракл оракул', winter_wyvern: 'винтер виверн виверна ww', arc_warden: 'арк варден арк зет',
+  monkey_king: 'манки кинг мк mk обезьяна', dark_willow: 'дарк виллоу виллоу', pangolier: 'панголиер панго',
+  grimstroke: 'гримстрок грим', hoodwink: 'худвинк белка', void_spirit: 'войд спирит вс',
+  snapfire: 'снэпфаер снапфаер бабка', mars: 'марс', ringmaster: 'рингмастер', dawnbreaker: 'даунбрейкер валора',
+  marci: 'марси', primal_beast: 'примал бист прайм', muerta: 'муэрта муерта', kez: 'кез', largo: 'ларго',
+};
+
+// ё и е в запросах путают, «анти-маг» ищут и как «антимаг».
+const normQ = s => s.toLowerCase().replace(/ё/g, 'е').replace(/[-_']/g, '').trim();
+const aliasIndex = {};
+function heroMatch(id, q) {
+  if (!q) return true;
+  const h = heroes[id];
+  if (!h) return false;
+  aliasIndex[id] ??= normQ(h.localized_name + ' ' + (HERO_ALIASES[h.name?.replace('npc_dota_hero_', '')] || ''))
+    .replace(/\s+/g, ' ');
+  const n = normQ(q);
+  // Короткие прозвища вроде «ам» или «сф» ищем по началу слова, иначе находится полсписка.
+  return n.length <= 2 ? (' ' + aliasIndex[id]).includes(' ' + n) : aliasIndex[id].includes(n);
+}
+
+// Избранные герои — хранятся только в этом браузере.
+const FAV_KEY = 'dota2-picks-favs';
+let favs = new Set();
+try { favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]').map(Number)); } catch {}
+function favBtn(id) {
+  const on = favs.has(id);
+  return `<button class="fav ${on ? 'on' : ''}" data-fav="${id}" aria-pressed="${on}"
+    title="${on ? 'Убрать из избранного' : 'В избранное'}" aria-label="Избранное">★</button>`;
+}
+// Избранные поднимаем наверх, порядок внутри групп не трогаем.
+const favFirst = (list, key = 'hero') => [...list].sort((a, b) => favs.has(b[key]) - favs.has(a[key]));
+
 function heroImg(id) {
   return heroes[id]?.img ? CDN + heroes[id].img : '';
 }
@@ -1731,7 +1869,7 @@ let heroHistory;  // undefined — не загружали, null — нет фа
 function loadHistory() {
   heroHistory = fetch('data/history.json', { cache: 'no-cache' })
     .then(r => r.ok ? r.json() : null).catch(() => null)
-    .then(d => { heroHistory = d; if (tab === 'tier') render(); });
+    .then(d => { heroHistory = d; if (tab === 'tier' || tab === 'trends') render(); });
 }
 
 // Снимок примерно недельной давности, а если истории меньше — самый старый, но не сегодняшний.
@@ -1750,10 +1888,8 @@ function trendMark(h) {
   return ` <span class="${up ? 'wr-hi' : 'wr-lo'}" title="Винрейт ${up ? '+' : ''}${h.dWr.toFixed(1)} п.п., популярность ${h.dRate >= 0 ? '+' : ''}${h.dRate.toFixed(1)} п.п.">${up ? '▲' : '▼'}${Math.abs(h.dWr).toFixed(1)}</span>`;
 }
 
-function renderTier() {
-  if (heroHistory === undefined) loadHistory();
-  const ranks = tierRank ? [tierRank] : RANKS.map(r => r.n);
-  const q = el.search.value.trim().toLowerCase();
+// Статистика публичных матчей на выбранных рангах и изменение за неделю по истории.
+function publicStats(ranks) {
   const all = Object.values(heroes).map(h => {
     let picks = 0, wins = 0;
     for (const n of ranks) { picks += +h[`${n}_pick`] || 0; wins += +h[`${n}_win`] || 0; }
@@ -1782,12 +1918,20 @@ function renderTier() {
       if (pp) { h.dWr = h.wr - pw / pp * 100; h.dRate = h.rate - pp / pastGames * 100; }
     }
   }
+  return { all, games, mean, past };
+}
+
+function renderTier() {
+  if (heroHistory === undefined) loadHistory();
+  const ranks = tierRank ? [tierRank] : RANKS.map(r => r.n);
+  const q = el.search.value.trim().toLowerCase();
+  const { all, games, mean, past } = publicStats(ranks);
   const ranked = all.filter(h => h.rate >= TIER_MIN_RATE).sort((a, b) => b.score - a.score);
   const rare = all.filter(h => h.rate < TIER_MIN_RATE);
   ranked.forEach((h, i) => { h.tier = TIERS_DEF.find(t => i / ranked.length < t.upto).t; });
   rare.forEach(h => { h.tier = 'D'; });
 
-  const shown = [...ranked, ...rare].filter(h => roleOk(h.hero) && (!q || h.name.toLowerCase().includes(q)));
+  const shown = [...ranked, ...rare].filter(h => roleOk(h.hero) && heroMatch(h.hero, q));
   const rk = RANKS.find(r => r.n === tierRank);
   el.stats.innerHTML = `
     <div>Ранг: <b>${rk ? rk.name : 'все'}</b></div>
@@ -1811,12 +1955,13 @@ function renderTier() {
   }
 
   el.view.innerHTML = chips + '<div class="tiers">' + TIERS_DEF.map(t => {
-    const list = shown.filter(h => h.tier === t.t);
+    const list = favFirst(shown.filter(h => h.tier === t.t));
     if (!list.length) return '';
     return `<div class="tier-row">
       <div class="tier-badge" style="--c:${t.c}">${t.t}</div>
       <div class="tier-heroes">${list.map(h => `
-        <div class="tier-hero hero clickable" data-hero="${h.hero}" title="${esc(h.name)}: ${h.wins} из ${h.picks}">
+        <div class="tier-hero hero clickable ${favs.has(h.hero) ? 'is-fav' : ''}" data-hero="${h.hero}" title="${esc(h.name)}: ${h.wins} из ${h.picks}">
+          ${favBtn(h.hero)}
           <img src="${heroImg(h.hero)}" alt="" loading="lazy">
           <span>${esc(h.name)}</span>
           <small><b class="${wrClass(h.wr)}">${h.wr.toFixed(1)}%</b> · ${h.rate.toFixed(1)}%${trendMark(h)}</small>
@@ -1830,6 +1975,162 @@ function renderTier() {
       Под именем — винрейт и доля матчей с героем; стрелка — как изменился винрейт
       ${past ? `с ${new Date(past.day).toLocaleDateString('ru-RU')}` : 'за неделю (история копится с сегодняшнего дня)'}. Героев реже ${TIER_MIN_RATE}% матчей
       отправляем в D: данных слишком мало. Клик по герою открывает его сборку на этом ранге.</div>`;
+  el.msg.hidden = true;
+}
+
+// ---------- Тренды: кто за неделю вырос и просел в публичных матчах ----------
+const TREND_TOP = 10;
+function renderTrends() {
+  if (heroHistory === undefined) loadHistory();
+  const ranks = tierRank ? [tierRank] : RANKS.map(r => r.n);
+  const q = el.search.value.trim();
+  const { all, past } = publicStats(ranks);
+  const rk = RANKS.find(r => r.n === tierRank);
+  const chips = `<div class="acts">
+    <button data-tier="0" class="${tierRank ? '' : 'on'}">Все ранги</button>
+    ${RANKS.map(r => `<button data-tier="${r.n}" class="${tierRank === r.n ? 'on' : ''}"
+      title="${r.name}"><span class="medal" style="--c:${r.c}">${r.name[0]}</span><span class="hide-sm">${r.name}</span></button>`).join('')}
+  </div>`;
+  if (!past) {
+    el.stats.innerHTML = '';
+    el.view.innerHTML = chips + `<div class="msg ${heroHistory === undefined || typeof heroHistory?.then === 'function' ? '' : 'static'}">${
+      heroHistory === null || (heroHistory && typeof heroHistory.then !== 'function')
+        ? 'История только начала копиться — тренды появятся завтра.' : 'Загрузка истории…'}</div>`;
+    el.msg.hidden = true;
+    return;
+  }
+  // Совсем редких героев не берём: у них винрейт скачет от пары игр.
+  const pool = all.filter(h => h.dWr != null && h.rate >= TIER_MIN_RATE && roleOk(h.hero) && heroMatch(h.hero, q));
+  const since = new Date(past.day).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  const by = (key, dir) => [...pool].sort((a, b) => dir * (b[key] - a[key])).filter(h => dir * h[key] > 0).slice(0, TREND_TOP);
+  const wrUp = by('dWr', 1), wrDown = by('dWr', -1), rateUp = by('dRate', 1), rateDown = by('dRate', -1);
+  const sign = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(1);
+  const heroTag = h => h ? `${esc(h.name)} <span class="${h.dWr > 0 ? 'wr-hi' : 'wr-lo'}">${sign(h.dWr)}</span>` : '—';
+  el.stats.innerHTML = `
+    <div>Сравнение с: <b style="font-size:16px">${since}</b></div>
+    <div>Ранг: <b>${rk ? rk.name : 'все'}</b></div>
+    <div>Сильнее всех вырос: <b style="font-size:16px">${heroTag(wrUp[0])}</b></div>
+    <div>Сильнее всех упал: <b style="font-size:16px">${heroTag(wrDown[0])}</b></div>`;
+
+  const panel = (title, note, list, key, unit) => {
+    const top = Math.max(...list.map(h => Math.abs(h[key])), 0.1);
+    return `<div class="bgroup trend-box">
+      <h3>${title}</h3><p>${note}</p>
+      ${list.length ? `<div class="trend-list">${list.map(h => {
+        const up = h[key] > 0;
+        return `<div class="trend-row ${favs.has(h.hero) ? 'is-fav' : ''}">
+          <div class="hero clickable" data-hero="${h.hero}"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}</span></div>
+          <span class="trend-now">${key === 'dWr' ? `<b class="${wrClass(h.wr)}">${h.wr.toFixed(1)}%</b>` : `${h.rate.toFixed(1)}%`}</span>
+          <span class="trend-d ${up ? 'up' : 'down'}"><i style="width:${Math.abs(h[key]) / top * 100}%"></i>${up ? '▲' : '▼'} ${sign(h[key])}${unit}</span>
+        </div>`;
+      }).join('')}</div>` : '<span class="dim">Заметных изменений нет</span>'}
+    </div>`;
+  };
+  el.view.innerHTML = chips + `<div class="trend-grid">
+      ${panel('Винрейт растёт', 'Сильнее всего прибавили в победах', wrUp, 'dWr', ' п.п.')}
+      ${panel('Винрейт падает', 'Сильнее всего потеряли в победах', wrDown, 'dWr', ' п.п.')}
+      ${panel('Берут чаще', 'Доля матчей с героем выросла', rateUp, 'dRate', ' п.п.')}
+      ${panel('Берут реже', 'Доля матчей с героем упала', rateDown, 'dRate', ' п.п.')}
+    </div>
+    <div class="note">Публичные матчи OpenDota на ${rk ? `ранге «${rk.name}»` : 'всех рангах'}: сейчас против ${since}.
+      Изменения — в процентных пунктах: винрейт 50% → 52% это +2 п.п. Героев реже ${TIER_MIN_RATE}% матчей не учитываем —
+      у них винрейт скачет от нескольких игр. После патча списки особенно подвижны. Клик по герою открывает его сборки.</div>`;
+  el.msg.hidden = true;
+}
+
+// ---------- Эфир: матчи, которые идут прямо сейчас (OpenDota /live) ----------
+const LIVE_EVERY = 30000;
+let liveGames = null, liveError = '', liveAt = 0, liveLoading = false, liveTimer = null;
+
+async function fetchLive() {
+  if (liveLoading) return;
+  liveLoading = true;
+  try {
+    const r = await fetch(`${API}/live`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    liveGames = await r.json();
+    liveError = '';
+    liveAt = Date.now();
+  } catch (e) {
+    liveError = e.message;
+  }
+  liveLoading = false;
+  if (tab === 'live') render();
+}
+
+// Обновляем раз в полминуты, пока вкладка открыта и видна.
+function liveTick() {
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(() => {
+    if (tab !== 'live') return;
+    if (!document.hidden) fetchLive();
+    liveTick();
+  }, LIVE_EVERY);
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && tab === 'live' && Date.now() - liveAt > LIVE_EVERY) fetchLive();
+});
+
+function liveCard(g) {
+  const side = t => (g.players || [])
+    .filter((p, i) => p.hero_id > 0 && (p.team ?? (i < 5 ? 0 : 1)) === t)
+    .map(p => `<div class="hero clickable live-hero" data-hero="${p.hero_id}" title="${esc(heroName(p.hero_id))}${p.name ? ' — ' + esc(p.name) : ''}">
+        <img src="${heroImg(p.hero_id)}" alt="" loading="lazy">${p.name ? `<small>${esc(p.name)}</small>` : ''}</div>`).join('');
+  const t = Math.max(0, g.game_time || 0);
+  const lead = g.radiant_lead || 0;
+  const league = g.league_id ? (leagueById[g.league_id]?.name || 'Турнир') : `Паб · средний MMR ${g.average_mmr || '—'}`;
+  const rName = g.team_name_radiant || 'Силы Света', dName = g.team_name_dire || 'Силы Тьмы';
+  return `<div class="live-card">
+    <div class="live-top">
+      <span class="live-league" title="${esc(league)}">${esc(league)}</span>
+      <span class="live-time"><i class="live-dot"></i>${t ? fmtDur(t) : 'драфт'}</span>
+    </div>
+    <div class="live-score">
+      <span class="live-team rad" title="${esc(rName)}">${esc(rName)}</span>
+      <b>${g.radiant_score || 0} : ${g.dire_score || 0}</b>
+      <span class="live-team dire" title="${esc(dName)}">${esc(dName)}</span>
+    </div>
+    ${t ? `<div class="live-lead" title="Преимущество по золоту">
+      <i class="${lead >= 0 ? 'rad' : 'dire'}" style="width:${Math.min(50, Math.abs(lead) / 300)}%;${lead >= 0 ? 'right:50%' : 'left:50%'}"></i>
+      <span>${lead ? `${lead > 0 ? rName : dName} +${Math.abs(lead).toLocaleString('ru-RU')} золота` : 'Золото поровну'}</span>
+    </div>` : ''}
+    ${side(0) || side(1) ? `<div class="live-heroes"><div>${side(0)}</div><div>${side(1)}</div></div>`
+      : '<div class="dim live-empty">Идёт драфт — пиков пока нет</div>'}
+    <div class="live-foot dim">${(g.spectators || 0).toLocaleString('ru-RU')} ${plural(g.spectators || 0, 'зритель', 'зрителя', 'зрителей')}</div>
+  </div>`;
+}
+
+function renderLive() {
+  if (!liveGames && !liveError) {
+    el.stats.innerHTML = '';
+    showMsg('Загрузка матчей…');
+    fetchLive();
+    liveTick();
+    return;
+  }
+  if (!liveTimer || Date.now() - liveAt > LIVE_EVERY * 2) liveTick();
+  if (!liveGames) {
+    el.stats.innerHTML = '';
+    el.view.innerHTML = `<div class="msg err">Не удалось загрузить матчи: ${esc(liveError)}</div>`;
+    el.msg.hidden = true;
+    return;
+  }
+  const games = liveGames.filter(g => (g.players || []).length);
+  const pro = games.filter(g => g.league_id > 0).sort((a, b) => (b.spectators || 0) - (a.spectators || 0));
+  const pubs = games.filter(g => !(g.league_id > 0)).sort((a, b) => (b.average_mmr || 0) - (a.average_mmr || 0)).slice(0, 12);
+  const upd = new Date(liveAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  el.stats.innerHTML = `
+    <div>Турнирных матчей: <b>${pro.length}</b></div>
+    <div>Топ-пабов: <b>${pubs.length}</b></div>
+    <div>Обновлено: <b style="font-size:16px">${upd}</b></div>`;
+  el.view.innerHTML = (liveError ? `<div class="note">Последнее обновление не удалось (${esc(liveError)}), показаны прошлые данные.</div>` : '') +
+    `<h3 class="live-h">Турниры</h3>` +
+    (pro.length ? `<div class="live-grid">${pro.map(liveCard).join('')}</div>`
+      : '<div class="dim live-empty">Сейчас турнирных матчей нет.</div>') +
+    `<h3 class="live-h">Самые сильные пабы</h3>` +
+    (pubs.length ? `<div class="live-grid">${pubs.map(liveCard).join('')}</div>` : '<div class="dim live-empty">Нет данных.</div>') +
+    `<div class="note">Матчи, которые идут прямо сейчас, по данным OpenDota. Страница обновляется сама раз в 30 секунд.
+      Время и счёт приходят с задержкой трансляции — обычно пара минут. Клик по герою открывает его сборки.</div>`;
   el.msg.hidden = true;
 }
 
@@ -2015,7 +2316,7 @@ function renderTournaments() {
   const ids = currentScope();
   const q = el.search.value.trim().toLowerCase();
   const all = aggregateHeroes(ids);
-  const list = sortList(all.filter(h => (!q || h.name.toLowerCase().includes(q)) && roleOk(h.hero)), sort[tab]);
+  const list = favFirst(sortList(all.filter(h => heroMatch(h.hero, q) && roleOk(h.hero)), sort[tab]));
 
   const total = [...ids].reduce((s, id) => s + leagueById[id].matches, 0);
   el.stats.innerHTML = `
@@ -2045,7 +2346,7 @@ function renderTournaments() {
     list.map((h, i) => `
       <tr>
         <td class="rank">${i + 1}</td>
-        <td><div class="hero clickable" data-hero="${h.hero}"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}${posNote(h.hero)}</span></div></td>
+        <td><div class="fav-cell">${favBtn(h.hero)}<div class="hero clickable" data-hero="${h.hero}"><img src="${heroImg(h.hero)}" alt="" loading="lazy"><span>${esc(h.name)}${posNote(h.hero)}</span></div></div></td>
         <td class="num"><div class="bar"><i style="width:${h.picks / max * 100}%"></i><span>${h.picks}</span></div></td>
         <td class="num">${h.bans}</td>
         <td class="num hide-sm">${h.contest.toFixed(0)}%</td>
@@ -2125,7 +2426,7 @@ function renderMatrix() {
   const q = el.search.value.trim().toLowerCase();
   const ranked = aggregateHeroes(idsOf(leagues)).filter(h => roleOk(h.hero)).sort((a, b) => b.picks - a.picks);
   const totals = q
-    ? ranked.filter(h => h.name.toLowerCase().includes(q))
+    ? ranked.filter(h => heroMatch(h.hero, q))
     : ranked.slice(0, MATRIX_HEROES);
 
   const cols = [...leagues].sort((a, b) => b.matches - a.matches).slice(0, MATRIX_LEAGUES);
@@ -2445,7 +2746,7 @@ function renderBuildModal() {
   el.modal.querySelector('.modal-head').innerHTML =
     `<div class="bg" style="background-image:url('${heroImg(id)}')"></div>
      <span class="hv-wrap head-hv"><img src="${heroImg(id)}" alt="">${heroVideo(id)}</span>
-     <div><h2>${esc(heroName(id))}</h2>
+     <div><h2>${esc(heroName(id))} ${favBtn(id)}</h2>
        <div class="sub2">Сборки предметов — про-сцена, TI 2026 и каждый ранг</div>
        <div class="tags">
          ${ATTR[h.primary_attr] ? `<span>${ATTR[h.primary_attr]}</span>` : ''}
@@ -3212,11 +3513,11 @@ function readHash() {
 
 function render() {
   const byLeague = tab === 'tournaments' || tab === 'ti';
-  el.role.hidden = !(byLeague || tab === 'matrix' || tab === 'tier');
+  el.role.hidden = !(byLeague || tab === 'matrix' || tab === 'tier' || tab === 'trends');
   el.league.hidden = !byLeague;
   el.hero.hidden = tab !== 'hero';
   el.group.hidden = tab !== 'prices';
-  el.search.hidden = tab === 'predict' || tab === 'player';
+  el.search.hidden = tab === 'predict' || tab === 'player' || tab === 'live';
   el.search.placeholder = tab === 'hero' ? 'Поиск турнира…'
     : tab === 'prices' ? 'Поиск предмета…' : tab === 'sockets' ? 'Поиск гема…' : 'Поиск героя…';
 
@@ -3225,6 +3526,8 @@ function render() {
     renderTournaments();
   } else if (tab === 'hero') renderHero();
   else if (tab === 'tier') renderTier();
+  else if (tab === 'trends') renderTrends();
+  else if (tab === 'live') renderLive();
   else if (tab === 'player') renderPlayer();
   else if (tab === 'prices') renderPrices();
   else if (tab === 'sockets') renderSocketsTab();
@@ -3295,7 +3598,7 @@ el.view.addEventListener('click', e => {
   const tierBtn = e.target.closest('button[data-tier]');
   if (tierBtn) { tierRank = Number(tierBtn.dataset.tier); return render(); }
   const hero = e.target.closest('.hero.clickable[data-hero]');
-  if (hero) return openPicker(Number(hero.dataset.hero), tab === 'tier' && tierRank ? 'r' + tierRank : 'all');
+  if (hero) return openPicker(Number(hero.dataset.hero), (tab === 'tier' || tab === 'trends') && tierRank ? 'r' + tierRank : 'all');
   const b = e.target.closest('.acts button');
   if (!b || !teams) return;
   if (b.dataset.act === 'clear') predict = {};
@@ -3409,7 +3712,7 @@ function renderPickerInfo() {
   const stat = (label, value, cls = '') => `<div class="pk-stat"><span>${label}</span><b class="${cls}">${value}</b></div>`;
   picker.info.innerHTML = `
     <span class="hv-wrap pk-render"><img src="${heroImg(id)}" alt="">${heroVideo(id)}</span>
-    <h2>${esc(h.localized_name)}</h2>
+    <h2>${esc(h.localized_name)} ${favBtn(id)}</h2>
     <div class="pk-attr" style="color:${g?.c}">${g ? g.name : ''} · ${h.attack_type === 'Melee' ? 'ближний бой' : 'дальний бой'}</div>
     <div class="tags">${(h.roles || []).map(r => `<span>${esc(r)}</span>`).join('')}</div>
     <div class="pk-stats">
@@ -3430,15 +3733,15 @@ function ribbonList() {
   const q = picker.search.value.trim().toLowerCase();
   const rank = Object.fromEntries(ATTR_GROUPS.map((g, i) => [g.key, i]));
   return Object.values(heroes)
-    .filter(h => (!picker.attr || (h.primary_attr || 'all') === picker.attr)
-      && (!q || h.localized_name.toLowerCase().includes(q)))
+    .filter(h => (!picker.attr || (picker.attr === 'fav' ? favs.has(h.id) : (h.primary_attr || 'all') === picker.attr))
+      && heroMatch(h.id, q))
     .sort((a, b) => (rank[a.primary_attr || 'all'] - rank[b.primary_attr || 'all'])
       || a.localized_name.localeCompare(b.localized_name))
     .map(h => h.id);
 }
 
 function buildRibbon() {
-  picker.attrs.innerHTML = [{ key: '', name: 'Все', c: '#e6e9ff' }, ...ATTR_GROUPS].map(g =>
+  picker.attrs.innerHTML = [{ key: '', name: 'Все', c: '#e6e9ff' }, ...ATTR_GROUPS, { key: 'fav', name: '★ Избранные', c: '#f4c542' }].map(g =>
     `<button data-rb-attr="${g.key}" class="${picker.attr === g.key ? 'on' : ''}" style="--c:${g.c}">${g.name}</button>`).join('');
   picker.order = ribbonList();
   picker.track.innerHTML = picker.order.map(id => `
@@ -3586,6 +3889,25 @@ if (matchMedia('(hover: hover) and (pointer: fine)').matches && !noMotion) {
     wrap.classList.remove('pop', 'live');
   });
 }
+
+// Звёздочка стоит внутри кликабельных карточек — перехватываем клик раньше них.
+document.addEventListener('click', e => {
+  const b = e.target.closest?.('[data-fav]');
+  if (!b) return;
+  e.stopPropagation();
+  e.preventDefault();
+  const id = Number(b.dataset.fav);
+  if (favs.has(id)) favs.delete(id); else favs.add(id);
+  try { localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); } catch {}
+  const on = favs.has(id);
+  document.querySelectorAll(`[data-fav="${id}"]`).forEach(x => {
+    x.classList.toggle('on', on);
+    x.setAttribute('aria-pressed', on);
+    x.title = on ? 'Убрать из избранного' : 'В избранное';
+  });
+  // Порядок строк меняем, только если клик был не в открытом окне поверх списка.
+  if (!b.closest('.modal, .picker') && (tab === 'tournaments' || tab === 'ti' || tab === 'tier')) render();
+}, true);
 
 init();
 </script>
