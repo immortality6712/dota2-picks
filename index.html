@@ -2827,7 +2827,8 @@ async function askAi(key, summary) {
     try {
       const res = await ask(summary);
       const text = typeof res === 'string' ? res : res.text;
-      aiCache[key] = { status: 'done', text: text.trim(), by: res.by || name };
+      // Если ответил запасной ИИ, запоминаем, почему не ответил основной, — для подписи под разбором.
+      aiCache[key] = { status: 'done', text: text.trim(), by: res.by || name, skipped: errors.join('; ') };
       saveAi();
       break;
     } catch (e) {
@@ -2923,7 +2924,7 @@ function aiBox(m, p, roles) {
     <button class="ai-link" data-gh-check="${key}">Проверить, готов ли</button>`;
   let body;
   if (st?.status === 'loading') body = '<p class="ai-wait"><i></i>ИИ разбирает матч… обычно 10–30 секунд</p>';
-  else if (st?.status === 'done') body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}${st.by ? `<span class="ai-by">Ответил ${esc(st.by)}</span>` : ''}`;
+  else if (st?.status === 'done') body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}${st.by ? `<span class="ai-by">Ответил ${esc(st.by)}</span>` : ''}${st.skipped ? `<p class="ai-note">Не ответил: ${esc(st.skipped.slice(0, 300))}</p>` : ''}`;
   else if (gh) body = `<div class="ai-text">${aiHtml(gh.text)}</div><span class="ai-by">Ответил GitHub Models · ${esc(gh.model || '')}</span>
     <div class="ai-acts">${btn('Спросить быстрый ИИ')}</div>`;
   else if (wait && !wait.error) body = `<p class="ai-wait"><i></i>Ждём бота GitHub… Отправьте заявку на открывшейся странице (кнопка «Create»),
