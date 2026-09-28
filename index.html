@@ -2729,7 +2729,7 @@ function matchTeamTable(m, radiant, roles) {
 
 // ---- Разбор матча бесплатным ИИ (Pollinations.ai, без ключа) ----
 const AI_URL = 'https://text.pollinations.ai/openai';
-// Адрес воркера с Gemini (см. worker/README.md). Пусто — сразу бесплатный Pollinations.
+// Адрес воркера с OpenRouter/Gemini (см. worker/README.md). Пусто — сразу бесплатный Pollinations.
 const AI_PROXY = '';
 const AI_KEY = 'dota2-picks-ai';
 let aiCache = {};  // «матч:слот» → { status, text }
@@ -2776,8 +2776,8 @@ const AI_SYSTEM = 'Ты опытный тренер по Dota 2. Разбира�
   'Не выдумывай событий, которых нет в данных. Структура ответа: одна строка «Итог:» с общей оценкой; затем «Что получилось:» — 2–3 пункта; ' +
   '«Ошибки:» — 2–4 пункта с объяснением почему это важно; «Что делать в следующей игре:» — 3 конкретных совета для этого героя и роли. Пункты начинай с «- ».';
 
-// Gemini через посредника на Cloudflare (worker/gemini-proxy.js), запасной вариант — Pollinations.
-async function askGemini(summary) {
+// OpenRouter или Gemini через посредника на Cloudflare (worker/ai-proxy.js), запасной вариант — Pollinations.
+async function askProxy(summary) {
   const r = await fetch(AI_PROXY, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2785,7 +2785,7 @@ async function askGemini(summary) {
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.text) throw new Error(data.error || 'HTTP ' + r.status);
-  return data.text;
+  return { text: data.text, by: [data.provider, data.model].filter(Boolean).join(' · ') };
 }
 
 async function askPollinations(summary) {
@@ -2806,14 +2806,15 @@ async function askAi(key, summary) {
   aiCache[key] = { status: 'loading' };
   render();
   const providers = [
-    ...(AI_PROXY ? [['Gemini', askGemini]] : []),
+    ...(AI_PROXY ? [['Посредник', askProxy]] : []),
     ['Pollinations', askPollinations],
   ];
   const errors = [];
   for (const [name, ask] of providers) {
     try {
-      const text = await ask(summary);
-      aiCache[key] = { status: 'done', text: text.trim(), by: name };
+      const res = await ask(summary);
+      const text = typeof res === 'string' ? res : res.text;
+      aiCache[key] = { status: 'done', text: text.trim(), by: res.by || name };
       saveAi();
       break;
     } catch (e) {
@@ -2918,7 +2919,7 @@ function aiBox(m, p, roles) {
       : wait?.error ? `<p class="wr-lo">Бот GitHub не справился: ${esc(wait.error.slice(0, 300))}${wait.url ? ` · <a href="${esc(wait.url)}" target="_blank" rel="noopener">заявка</a>` : ''}</p>`
       : '<p class="dim">ИИ прочитает цифры матча и напишет разбор как тренер: что получилось, где ошибки и что делать в следующей игре.</p>')
     + `<div class="ai-acts">${btn(st?.status === 'error' ? 'Попробовать ещё раз' : 'Разбор от ИИ')}${ghBtn}</div>
-    <p class="ai-note">«Разбор от ИИ» — сразу, бесплатным ${AI_PROXY ? 'Gemini (запасной — Pollinations)' : '<a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>'}.
+    <p class="ai-note">«Разбор от ИИ» — сразу, бесплатным ${AI_PROXY ? 'OpenRouter/Gemini (запасной — Pollinations)' : '<a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>'}.
       «Через GitHub» — модель GPT-4.1 из GitHub Models: откроется заявка, бот ответит в ней и выложит разбор сюда через 1–2 минуты. Нужен аккаунт GitHub.</p>`;
   return `<div class="ai-box"><h4>Разбор от ИИ</h4>${body}
     <p class="ai-note">ИИ видит только цифры матча, а не саму игру, и может ошибаться.
