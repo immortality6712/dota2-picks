@@ -1066,32 +1066,53 @@
   .trend-d.down { color: #ff8a7a; } .trend-d.down i { background: #e5483d; }
 
   /* Эфир */
+  .live-acts { align-items: center; }
+  .live-acts button small { opacity: .6; margin-left: 4px; }
+  .live-refresh { margin-left: auto; }
+  .live-refresh.busy { opacity: .6; pointer-events: none; }
   .live-h { font-family: var(--head); text-transform: uppercase; letter-spacing: .06em; font-size: 16px; margin: 18px 0 10px; }
   .live-empty { padding: 6px 0 10px; }
-  .live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
-  .live-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: var(--radius);
-    background: linear-gradient(180deg, rgba(32, 42, 62, .9), rgba(20, 26, 38, .95)); border: 1px solid rgba(190, 214, 255, .16); min-width: 0; }
+  .live-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .live-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: var(--radius); min-width: 0;
+    background: linear-gradient(180deg, rgba(32, 42, 62, .9), rgba(20, 26, 38, .95)); border: 1px solid rgba(190, 214, 255, .16);
+    transition: border-color .2s, box-shadow .2s; }
+  .live-card:hover { border-color: rgba(190, 214, 255, .35); box-shadow: 0 10px 28px rgba(0, 0, 0, .45); }
+  .live-card.tour { border-color: rgba(244, 197, 66, .35); }
   .live-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
   .live-league { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .live-time { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 8px #ff4d4d; animation: livePulse 1.4s infinite; }
   @keyframes livePulse { 50% { opacity: .35; } }
   .live-score { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; }
-  .live-score b { font-family: var(--head); font-size: 24px; font-variant-numeric: tabular-nums; }
+  .live-score b { font-family: var(--head); font-size: 26px; font-variant-numeric: tabular-nums; display: flex; gap: 8px; }
+  .live-score b i { font-style: normal; opacity: .4; }
   .live-team { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .live-team.rad { color: #7fdc8f; } .live-team.dire { color: #ff8a7a; text-align: right; }
-  .live-lead { position: relative; height: 18px; border-radius: 9px; background: rgba(8, 11, 18, .6); overflow: hidden;
-    font-size: 11px; display: flex; align-items: center; justify-content: center; color: var(--muted); }
-  .live-lead i { position: absolute; top: 0; bottom: 0; }
-  .live-lead i.rad { background: rgba(63, 185, 90, .45); } .live-lead i.dire { background: rgba(229, 72, 61, .45); }
-  .live-lead span { position: relative; }
+  .live-team.rad, .live-chance .rad { color: #7fdc8f; }
+  .live-team.dire, .live-chance .dire { color: #ff8a7a; }
+  .live-team.dire { text-align: right; }
+  .live-chance { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .live-chance .dire { text-align: right; }
+  .live-chance-bar { height: 8px; border-radius: 4px; background: rgba(229, 72, 61, .55); overflow: hidden; }
+  .live-chance-bar i { display: block; height: 100%; background: linear-gradient(90deg, #3fb95a, #7fdc8f); transition: width .6s; }
+  .live-lead-txt { font-size: 11px; color: var(--muted); text-align: center; margin-top: -4px; }
+  .live-lead-txt b { color: var(--text); }
+  .live-graph { display: block; width: 100%; height: 56px; border-radius: 8px; background: rgba(8, 11, 18, .55); }
+  .live-graph.empty { height: auto; padding: 8px; font-size: 11px; color: var(--muted); text-align: center; }
+  .live-graph .ga.rad { fill: rgba(63, 185, 90, .35); }
+  .live-graph .ga.dire { fill: rgba(229, 72, 61, .35); }
+  .live-graph .g0 { stroke: rgba(190, 214, 255, .25); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+  .live-graph .gl { fill: none; stroke: #dfe8ff; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
   .live-heroes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .live-heroes > div { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; align-content: start; }
   .live-heroes > div:first-child { border-right: 1px solid rgba(190, 214, 255, .12); padding-right: 10px; }
   .live-hero { flex-direction: column; gap: 2px; min-width: 0; }
-  .live-hero img { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .live-hero img { width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 4px; }
   .live-hero small { font-size: 9px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .live-foot { font-size: 11px; }
+  .live-hero.pro small { color: #f4c542; font-weight: 700; }
+  .live-hero.is-fav img { box-shadow: 0 0 0 2px #f4c542, 0 0 10px rgba(244, 197, 66, .6); }
+  .live-foot { display: flex; gap: 10px; justify-content: space-between; font-size: 11px; min-width: 0; }
+  .live-pros { color: #f4c542; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   @media (max-width: 720px) {
     .trend-grid { grid-template-columns: 1fr; }
     .live-grid { grid-template-columns: 1fr; }
@@ -2040,17 +2061,38 @@ function renderTrends() {
 
 // ---------- Эфир: матчи, которые идут прямо сейчас (OpenDota /live) ----------
 const LIVE_EVERY = 30000;
-let liveGames = null, liveError = '', liveAt = 0, liveLoading = false, liveTimer = null;
+const LIVE_HIST_KEY = 'dota2-picks-live-gold';
+let liveGames = null, liveError = '', liveAt = 0, liveLoading = false, liveTimer = null, liveFilter = 'all';
+
+// Перевес по золоту копим сами: OpenDota отдаёт только текущее значение.
+// Храним в браузере несколько часов, чтобы график не обнулялся при перезагрузке.
+let liveGold = {};
+try { liveGold = JSON.parse(localStorage.getItem(LIVE_HIST_KEY) || '{}'); } catch {}
+function recordGold(games) {
+  const now = Date.now();
+  for (const g of games) {
+    if (!g.match_id || !(g.game_time > 0)) continue;
+    const h = liveGold[g.match_id] ??= { at: now, pts: [] };
+    h.at = now;
+    const last = h.pts[h.pts.length - 1];
+    if (!last || g.game_time > last[0]) h.pts.push([g.game_time, g.radiant_lead || 0]);
+    if (h.pts.length > 240) h.pts.splice(0, h.pts.length - 240);
+  }
+  for (const [id, h] of Object.entries(liveGold)) if (now - h.at > 4 * 3600e3) delete liveGold[id];
+  try { localStorage.setItem(LIVE_HIST_KEY, JSON.stringify(liveGold)); } catch {}
+}
 
 async function fetchLive() {
   if (liveLoading) return;
   liveLoading = true;
+  if (tab === 'live') document.querySelectorAll('.live-refresh').forEach(b => b.classList.add('busy'));
   try {
     const r = await fetch(`${API}/live`, { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     liveGames = await r.json();
     liveError = '';
     liveAt = Date.now();
+    recordGold(liveGames);
   } catch (e) {
     liveError = e.message;
   }
@@ -2071,34 +2113,85 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden && tab === 'live' && Date.now() - liveAt > LIVE_EVERY) fetchLive();
 });
 
+// Между обновлениями часы матчей и отсчёт до обновления идут сами.
+setInterval(() => {
+  if (tab !== 'live' || !liveAt) return;
+  const passed = Math.floor((Date.now() - liveAt) / 1000);
+  document.querySelectorAll('[data-gt]').forEach(n => { n.textContent = fmtDur(Number(n.dataset.gt) + passed); });
+  const left = Math.max(0, Math.ceil((LIVE_EVERY - (Date.now() - liveAt)) / 1000));
+  document.querySelectorAll('.live-refresh small').forEach(n => { n.textContent = liveLoading ? '…' : left + ' с'; });
+}, 1000);
+
+// Грубая оценка шансов по золоту: ранний перевес значит больше, чем такой же поздний.
+function winChance(lead, t) {
+  const p = 1 / (1 + Math.exp(-lead / (1800 + 160 * t / 60)));
+  return Math.round(Math.min(0.97, Math.max(0.03, p)) * 100);
+}
+
+function goldGraph(id) {
+  const pts = liveGold[id]?.pts || [];
+  if (pts.length < 2) return '<div class="live-graph empty">График перевеса появится после следующего обновления</div>';
+  const W = 300, H = 56, t0 = pts[0][0], t1 = pts[pts.length - 1][0] || t0 + 1;
+  const max = Math.max(1000, ...pts.map(p => Math.abs(p[1])));
+  const x = t => ((t - t0) / (t1 - t0 || 1)) * W, y = v => H / 2 - (v / max) * (H / 2 - 3);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join('');
+  const area = `${line}L${W},${H / 2}L0,${H / 2}Z`;
+  return `<svg class="live-graph" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img"
+      aria-label="Перевес по золоту с ${fmtDur(t0)} по ${fmtDur(t1)}">
+    <defs><clipPath id="up${id}"><rect width="${W}" height="${H / 2}"/></clipPath>
+      <clipPath id="dn${id}"><rect y="${H / 2}" width="${W}" height="${H / 2}"/></clipPath></defs>
+    <path d="${area}" class="ga rad" clip-path="url(#up${id})"/><path d="${area}" class="ga dire" clip-path="url(#dn${id})"/>
+    <line x1="0" x2="${W}" y1="${H / 2}" y2="${H / 2}" class="g0"/>
+    <path d="${line}" class="gl"/>
+  </svg>`;
+}
+
 function liveCard(g) {
-  const side = t => (g.players || [])
-    .filter((p, i) => p.hero_id > 0 && (p.team ?? (i < 5 ? 0 : 1)) === t)
-    .map(p => `<div class="hero clickable live-hero" data-hero="${p.hero_id}" title="${esc(heroName(p.hero_id))}${p.name ? ' — ' + esc(p.name) : ''}">
-        <img src="${heroImg(p.hero_id)}" alt="" loading="lazy">${p.name ? `<small>${esc(p.name)}</small>` : ''}</div>`).join('');
+  const players = (g.players || []).map((p, i) => ({ ...p, side: p.team ?? (i < 5 ? 0 : 1) }));
+  const side = t => players.filter(p => p.hero_id > 0 && p.side === t)
+    .map(p => `<div class="hero clickable live-hero ${favs.has(p.hero_id) ? 'is-fav' : ''} ${!(g.league_id > 0) && p.name ? 'pro' : ''}"
+        data-hero="${p.hero_id}" title="${esc(heroName(p.hero_id))}${p.name ? ' — ' + esc(p.name) : ''}">
+        <img src="${heroImg(p.hero_id)}" alt="" loading="lazy"><small>${esc(p.name || heroName(p.hero_id))}</small></div>`).join('');
   const t = Math.max(0, g.game_time || 0);
   const lead = g.radiant_lead || 0;
-  const league = g.league_id ? (leagueById[g.league_id]?.name || 'Турнир') : `Паб · средний MMR ${g.average_mmr || '—'}`;
+  const tour = g.league_id > 0;
+  const league = tour ? (leagueById[g.league_id]?.name || 'Турнир') : `Паб · средний MMR ${(g.average_mmr || 0).toLocaleString('ru-RU') || '—'}`;
   const rName = g.team_name_radiant || 'Силы Света', dName = g.team_name_dire || 'Силы Тьмы';
-  return `<div class="live-card">
+  const pros = !tour ? players.filter(p => p.name) : [];
+  const chance = t ? winChance(lead, t) : null;
+  const heroesR = side(0), heroesD = side(1);
+  return `<div class="live-card ${tour ? 'tour' : ''}">
     <div class="live-top">
-      <span class="live-league" title="${esc(league)}">${esc(league)}</span>
-      <span class="live-time"><i class="live-dot"></i>${t ? fmtDur(t) : 'драфт'}</span>
+      <span class="live-league" title="${esc(league)}">${tour ? '🏆 ' : ''}${esc(league)}</span>
+      <span class="live-time"><i class="live-dot"></i>${t ? `<span data-gt="${t}">${fmtDur(t)}</span>` : 'драфт'}</span>
     </div>
     <div class="live-score">
       <span class="live-team rad" title="${esc(rName)}">${esc(rName)}</span>
-      <b>${g.radiant_score || 0} : ${g.dire_score || 0}</b>
+      <b>${g.radiant_score || 0}<i>:</i>${g.dire_score || 0}</b>
       <span class="live-team dire" title="${esc(dName)}">${esc(dName)}</span>
     </div>
-    ${t ? `<div class="live-lead" title="Преимущество по золоту">
-      <i class="${lead >= 0 ? 'rad' : 'dire'}" style="width:${Math.min(50, Math.abs(lead) / 300)}%;${lead >= 0 ? 'right:50%' : 'left:50%'}"></i>
-      <span>${lead ? `${lead > 0 ? rName : dName} +${Math.abs(lead).toLocaleString('ru-RU')} золота` : 'Золото поровну'}</span>
-    </div>` : ''}
-    ${side(0) || side(1) ? `<div class="live-heroes"><div>${side(0)}</div><div>${side(1)}</div></div>`
+    ${chance != null ? `<div class="live-chance" title="Примерная оценка по перевесу в золоте и времени матча">
+      <span class="rad">${chance}%</span>
+      <div class="live-chance-bar"><i style="width:${chance}%"></i></div>
+      <span class="dire">${100 - chance}%</span>
+    </div>
+    <div class="live-lead-txt">${lead ? `${esc(lead > 0 ? rName : dName)} впереди на <b>${Math.abs(lead).toLocaleString('ru-RU')}</b> золота` : 'Золото поровну'}</div>
+    ${goldGraph(g.match_id)}` : ''}
+    ${heroesR || heroesD ? `<div class="live-heroes"><div>${heroesR}</div><div>${heroesD}</div></div>`
       : '<div class="dim live-empty">Идёт драфт — пиков пока нет</div>'}
-    <div class="live-foot dim">${(g.spectators || 0).toLocaleString('ru-RU')} ${plural(g.spectators || 0, 'зритель', 'зрителя', 'зрителей')}</div>
+    <div class="live-foot">
+      <span class="dim">👁 ${(g.spectators || 0).toLocaleString('ru-RU')}</span>
+      ${pros.length ? `<span class="live-pros" title="Про-игроки в матче">⭐ ${pros.map(p => esc(p.name)).join(', ')}</span>` : ''}
+    </div>
   </div>`;
 }
+
+const LIVE_FILTERS = [
+  { key: 'all', name: 'Все' },
+  { key: 'tour', name: 'Турниры' },
+  { key: 'pros', name: 'Пабы с про' },
+  { key: 'fav', name: '★ Мои герои' },
+];
 
 function renderLive() {
   if (!liveGames && !liveError) {
@@ -2116,23 +2209,44 @@ function renderLive() {
     return;
   }
   const games = liveGames.filter(g => (g.players || []).length);
-  const pro = games.filter(g => g.league_id > 0).sort((a, b) => (b.spectators || 0) - (a.spectators || 0));
-  const pubs = games.filter(g => !(g.league_id > 0)).sort((a, b) => (b.average_mmr || 0) - (a.average_mmr || 0)).slice(0, 12);
+  const isTour = g => g.league_id > 0;
+  const hasPro = g => !isTour(g) && (g.players || []).some(p => p.name);
+  const hasFav = g => (g.players || []).some(p => favs.has(p.hero_id));
+  const pass = { all: () => true, tour: isTour, pros: hasPro, fav: hasFav }[liveFilter] || (() => true);
+  const pro = games.filter(g => isTour(g) && pass(g)).sort((a, b) => (b.spectators || 0) - (a.spectators || 0));
+  const pubs = games.filter(g => !isTour(g) && pass(g))
+    .sort((a, b) => hasPro(b) - hasPro(a) || (b.average_mmr || 0) - (a.average_mmr || 0)).slice(0, liveFilter === 'all' ? 12 : 30);
   const upd = new Date(liveAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const count = f => games.filter({ all: () => true, tour: isTour, pros: hasPro, fav: hasFav }[f]).length;
   el.stats.innerHTML = `
-    <div>Турнирных матчей: <b>${pro.length}</b></div>
-    <div>Топ-пабов: <b>${pubs.length}</b></div>
-    <div>Обновлено: <b style="font-size:16px">${upd}</b></div>`;
-  el.view.innerHTML = (liveError ? `<div class="note">Последнее обновление не удалось (${esc(liveError)}), показаны прошлые данные.</div>` : '') +
-    `<h3 class="live-h">Турниры</h3>` +
-    (pro.length ? `<div class="live-grid">${pro.map(liveCard).join('')}</div>`
-      : '<div class="dim live-empty">Сейчас турнирных матчей нет.</div>') +
-    `<h3 class="live-h">Самые сильные пабы</h3>` +
-    (pubs.length ? `<div class="live-grid">${pubs.map(liveCard).join('')}</div>` : '<div class="dim live-empty">Нет данных.</div>') +
-    `<div class="note">Матчи, которые идут прямо сейчас, по данным OpenDota. Страница обновляется сама раз в 30 секунд.
-      Время и счёт приходят с задержкой трансляции — обычно пара минут. Клик по герою открывает его сборки.</div>`;
+    <div>Турнирных матчей: <b>${games.filter(isTour).length}</b></div>
+    <div>Пабов с про-игроками: <b>${games.filter(hasPro).length}</b></div>
+    <div>Зрителей сейчас: <b>${games.reduce((s, g) => s + (g.spectators || 0), 0).toLocaleString('ru-RU')}</b></div>`;
+  const bar = `<div class="acts live-acts">
+    ${LIVE_FILTERS.map(f => `<button data-live-filter="${f.key}" class="${liveFilter === f.key ? 'on' : ''}">${f.name} <small>${count(f.key)}</small></button>`).join('')}
+    <button class="live-refresh ${liveLoading ? 'busy' : ''}" title="Обновить сейчас (обновлено в ${upd})">⟳ <small>${Math.max(0, Math.ceil((LIVE_EVERY - (Date.now() - liveAt)) / 1000))} с</small></button>
+  </div>`;
+  const section = (title, list, empty) => `<h3 class="live-h">${title}</h3>` +
+    (list.length ? `<div class="live-grid">${list.map(liveCard).join('')}</div>` : `<div class="dim live-empty">${empty}</div>`);
+  el.view.innerHTML = bar +
+    (liveError ? `<div class="note">Последнее обновление не удалось (${esc(liveError)}), показаны данные на ${upd}.</div>` : '') +
+    (liveFilter !== 'pros' ? section('Турниры', pro, liveFilter === 'fav' ? 'Ваших избранных героев в турнирных матчах сейчас нет.' : 'Сейчас турнирных матчей нет.') : '') +
+    (liveFilter !== 'tour' ? section(liveFilter === 'pros' ? 'Пабы с про-игроками' : 'Самые сильные пабы', pubs,
+      liveFilter === 'fav' ? (favs.size ? 'Ваших избранных героев в пабах сейчас нет.' : 'Отметьте героев звёздочкой — здесь появятся матчи с ними.')
+        : liveFilter === 'pros' ? 'Сейчас про-игроки пабы не играют.' : 'Нет данных.') : '') +
+    `<div class="note">Матчи, которые идут прямо сейчас, по данным OpenDota; обновление раз в 30 секунд.
+      Время и счёт отстают на задержку трансляции — обычно пару минут. Шансы на победу — грубая оценка
+      по перевесу в золоте и времени матча, а не прогноз с учётом драфта. График перевеса строится, пока открыта вкладка.
+      Клик по герою открывает его сборки.</div>`;
   el.msg.hidden = true;
 }
+
+el.view.addEventListener('click', e => {
+  if (tab !== 'live') return;
+  const f = e.target.closest('[data-live-filter]');
+  if (f) { liveFilter = f.dataset.liveFilter; return render(); }
+  if (e.target.closest('.live-refresh')) { fetchLive(); liveTick(); }
+});
 
 // ---------- Игрок: профиль и матчи из OpenDota по Steam ID ----------
 const STEAM64_BASE = 76561197960265728n;
