@@ -4,7 +4,7 @@
 // Имя переменной с ключом не важно: воркер сам находит ключи среди своих переменных
 // и по началу ключа понимает, чей он:
 //   sk-or-…  — OpenRouter (бесплатные модели :free);
-//   AIza…    — Google Gemini;
+//   AIza… или AQ.… — Google Gemini;
 //   gsk_…    — Groq;
 //   sk-ant-… — Anthropic Claude;
 //   sk-sr-…  — Claude через svrtr.org (сторонний посредник с API как у Anthropic);
@@ -33,7 +33,7 @@ function tooMany(ip) {
 // Порядок важен: более узкие шаблоны раньше общего sk-.
 const KINDS = [
   ['openrouter', /^sk-or-/],
-  ['gemini', /^AIza[\w-]{30,}$/],
+  ['gemini', /^(AIza[\w-]{30,}|AQ\.?[\w.-]{30,})$/],  // AQ.… — ключи Google нового формата
   ['groq', /^gsk_/],
   ['anthropic', /^sk-ant-/],
   ['svrtr', /^sk-sr-/],
