@@ -1182,6 +1182,7 @@
   .ai-wait { display: flex; align-items: center; gap: 10px; color: var(--muted); }
   .ai-wait i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(156, 195, 255, .3); border-top-color: #9cc3ff; animation: aiSpin .8s linear infinite; }
   @keyframes aiSpin { to { transform: rotate(360deg); } }
+  .ai-by { margin-left: 12px; font-size: 11px; color: var(--muted); }
   .ai-note { font-size: 11px !important; color: var(--muted); margin: 10px 0 0 !important; }
 
   /* Эфир */
@@ -2724,6 +2725,8 @@ function matchTeamTable(m, radiant, roles) {
 
 // ---- Разбор матча бесплатным ИИ (Pollinations.ai, без ключа) ----
 const AI_URL = 'https://text.pollinations.ai/openai';
+// Адрес воркера с Gemini (см. worker/README.md). Пусто — сразу бесплатный Pollinations.
+const AI_PROXY = '';
 const AI_KEY = 'dota2-picks-ai';
 let aiCache = {};  // «матч:слот» → { status, text }
 try { aiCache = JSON.parse(localStorage.getItem(AI_KEY) || '{}'); } catch {}
@@ -2765,33 +2768,55 @@ function matchSummary(m, p, roles) {
   ].filter(Boolean).join('\n');
 }
 
+const AI_SYSTEM = 'Ты опытный тренер по Dota 2. Разбираешь матч игрока по цифрам. Пиши по-русски, коротко и по делу, обращайся на «ты». ' +
+  'Не выдумывай событий, которых нет в данных. Структура ответа: одна строка «Итог:» с общей оценкой; затем «Что получилось:» — 2–3 пункта; ' +
+  '«Ошибки:» — 2–4 пункта с объяснением почему это важно; «Что делать в следующей игре:» — 3 конкретных совета для этого героя и роли. Пункты начинай с «- ».';
+
+// Gemini через посредника на Cloudflare (worker/gemini-proxy.js), запасной вариант — Pollinations.
+async function askGemini(summary) {
+  const r = await fetch(AI_PROXY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ system: AI_SYSTEM, prompt: summary }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.text) throw new Error(data.error || 'HTTP ' + r.status);
+  return data.text;
+}
+
+async function askPollinations(summary) {
+  const r = await fetch(AI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'openai', messages: [{ role: 'system', content: AI_SYSTEM }, { role: 'user', content: summary }] }),
+  });
+  if (!r.ok) throw new Error(r.status === 429 ? 'слишком много запросов, попробуйте через минуту' : 'HTTP ' + r.status);
+  const raw = await r.text();
+  let text = raw;
+  try { text = JSON.parse(raw).choices?.[0]?.message?.content || raw; } catch {}
+  if (!text.trim()) throw new Error('пустой ответ');
+  return text;
+}
+
 async function askAi(key, summary) {
   aiCache[key] = { status: 'loading' };
   render();
-  try {
-    const r = await fetch(AI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'openai',
-        messages: [
-          { role: 'system', content: 'Ты опытный тренер по Dota 2. Разбираешь матч игрока по цифрам. Пиши по-русски, коротко и по делу, обращайся на «ты». ' +
-            'Не выдумывай событий, которых нет в данных. Структура ответа: одна строка «Итог:» с общей оценкой; затем «Что получилось:» — 2–3 пункта; ' +
-            '«Ошибки:» — 2–4 пункта с объяснением почему это важно; «Что делать в следующей игре:» — 3 конкретных совета для этого героя и роли. Пункты начинай с «- ».' },
-          { role: 'user', content: summary },
-        ],
-      }),
-    });
-    if (!r.ok) throw new Error(r.status === 429 ? 'слишком много запросов, попробуйте через минуту' : 'HTTP ' + r.status);
-    const raw = await r.text();
-    let text = raw;
-    try { text = JSON.parse(raw).choices?.[0]?.message?.content || raw; } catch {}
-    if (!text.trim()) throw new Error('пустой ответ');
-    aiCache[key] = { status: 'done', text: text.trim() };
-    saveAi();
-  } catch (e) {
-    aiCache[key] = { status: 'error', text: e.message };
+  const providers = [
+    ...(AI_PROXY ? [['Gemini', askGemini]] : []),
+    ['Pollinations', askPollinations],
+  ];
+  const errors = [];
+  for (const [name, ask] of providers) {
+    try {
+      const text = await ask(summary);
+      aiCache[key] = { status: 'done', text: text.trim(), by: name };
+      saveAi();
+      break;
+    } catch (e) {
+      errors.push(`${name}: ${e.message}`);
+    }
   }
+  if (aiCache[key].status !== 'done') aiCache[key] = { status: 'error', text: errors.join('; ') };
   if (tab === 'player' && matchId) render();
 }
 
@@ -2819,9 +2844,9 @@ function aiBox(m, p, roles) {
   if (!st) body = `<p class="dim">ИИ прочитает цифры матча и напишет разбор как тренер: что получилось, где ошибки и что делать в следующей игре.</p>${btn('Разбор от ИИ')}`;
   else if (st.status === 'loading') body = '<p class="ai-wait"><i></i>ИИ разбирает матч… обычно 10–30 секунд</p>';
   else if (st.status === 'error') body = `<p class="wr-lo">Не получилось: ${esc(st.text)}</p>${btn('Попробовать ещё раз')}`;
-  else body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}`;
+  else body = `<div class="ai-text">${aiHtml(st.text)}</div>${btn('Разобрать заново')}${st.by ? `<span class="ai-by">Ответил ${esc(st.by)}</span>` : ''}`;
   return `<div class="ai-box"><h4>Разбор от ИИ</h4>${body}
-    <p class="ai-note">Бесплатный ИИ <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>. Он видит только цифры матча, а не саму игру, и может ошибаться.
+    <p class="ai-note">${AI_PROXY ? 'Google Gemini, запасной вариант — ' : 'Бесплатный ИИ '}<a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>. ИИ видит только цифры матча, а не саму игру, и может ошибаться.
       ${m.version ? '' : 'Реплей не разобран — после разбора у ИИ будет больше данных.'}</p></div>`;
 }
 
