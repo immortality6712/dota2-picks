@@ -97,22 +97,38 @@ const PROVIDERS = {
   openai: (key, env, s, p) => chat({
     name: 'OpenAI', url: 'https://api.openai.com/v1/chat/completions', key, model: env.OPENAI_MODEL || 'gpt-4o-mini',
   }, s, p),
+  // Google регулярно снимает старые модели. Пробуем модели по списку, а если Google
+  // в ошибке сам называет замену («use models/…»), повторяем запрос с ней.
   async gemini(key, env, system, prompt) {
-    const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: 4096 },
-      }),
-    });
-    const data = await readJson(r, 'Gemini');
-    const text = (data.candidates?.[0]?.content?.parts || []).map(x => x.text || '').join('').trim();
-    if (!text) throw new Error('Gemini: пустой ответ');
-    return { text, provider: 'Gemini', model };
+    const queue = (env.GEMINI_MODEL || 'gemini-3.8-flash,gemini-2.5-flash').split(',').map(x => x.trim()).filter(Boolean);
+    const tried = new Set(), errors = [];
+    while (queue.length && tried.size < 4) {
+      const model = queue.shift();
+      if (tried.has(model)) continue;
+      tried.add(model);
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: system }] },
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.6, maxOutputTokens: 4096 },
+          }),
+        });
+        const data = await readJson(r, 'Gemini');
+        const text = (data.candidates?.[0]?.content?.parts || []).map(x => x.text || '').join('').trim();
+        if (!text) throw new Error('Gemini: пустой ответ');
+        return { text, provider: 'Gemini', model };
+      } catch (e) {
+        errors.push(`${model}: ${e.message.replace(/^Gemini: /, '')}`);
+        const hint = e.message.match(/use (?:models\/)?(gemini-[\w.-]+)/i);
+        if (hint) queue.unshift(hint[1].replace(/[.,]+$/, ''));
+      }
+    }
+    throw Object.assign(new Error('Gemini: ' + errors.join(' | ')), { status: /429|quota|RESOURCE_EXHAUSTED/i.test(errors.join()) ? 429 : 502 });
   },
+
   anthropic: (key, env, s, p) => messages({
     name: 'Claude', url: 'https://api.anthropic.com/v1/messages', key, model: env.ANTHROPIC_MODEL || 'claude-haiku-4-5',
   }, s, p),
