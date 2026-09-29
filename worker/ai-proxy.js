@@ -9,6 +9,7 @@
 //   sk-ant-… — Anthropic Claude;
 //   sk-sr-…  — Claude через svrtr.org (сторонний посредник с API как у Anthropic);
 //   sk-…     — DeepSeek (sk- и 32 шестнадцатеричных символа) или OpenAI (остальные sk-…).
+//   Kimi и любой sk-… с неочевидным владельцем: назовите переменную с KIMI, DEEPSEEK или OPENAI в имени.
 // Если ключей несколько, пробуются по порядку списка выше.
 // Необязательные настройки: OPENROUTER_MODELS, GEMINI_MODEL, GROQ_MODEL, OPENAI_MODEL,
 // DEEPSEEK_MODEL, ANTHROPIC_MODEL, SVRTR_MODEL (можно несколько через запятую), ALLOWED_ORIGINS (через запятую, с каких сайтов принимать запросы).
@@ -38,15 +39,20 @@ const KINDS = [
   ['anthropic', /^sk-ant-/],
   ['svrtr', /^sk-sr-/],
   ['deepseek', /^sk-[a-f0-9]{32}$/],
+  ['kimi', /^$/],  // по виду ключа Kimi не отличить от OpenAI — только по имени переменной
   ['openai', /^sk-(proj-|svcacct-|admin-)?[\w-]{20,}$/],
 ];
 
+// Имя переменной подсказывает провайдера, если по самому ключу не понять (Kimi, DeepSeek и OpenAI — все sk-…).
+const NAME_HINTS = [['kimi', /kimi|moonshot/i], ['deepseek', /deepseek/i], ['openai', /openai|gpt/i]];
+
 function findKeys(env) {
   const found = {};
-  for (const value of Object.values(env)) {
+  for (const [name, value] of Object.entries(env)) {
     if (typeof value !== 'string') continue;
     const v = value.trim();
-    const kind = KINDS.find(([, re]) => re.test(v))?.[0];
+    const byName = /^sk-[\w-]{20,}$/.test(v) && !/^sk-(or|ant|sr)-/.test(v) ? NAME_HINTS.find(([, re]) => re.test(name))?.[0] : null;
+    const kind = byName || KINDS.find(([, re]) => re.test(v))?.[0];
     if (kind && !found[kind]) found[kind] = v;
   }
   return KINDS.map(([k]) => k).filter(k => found[k]).map(k => [k, found[k]]);
@@ -115,6 +121,29 @@ const PROVIDERS = {
   groq: (key, env, s, p) => chat({
     name: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', key, model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
   }, s, p),
+  // Kimi (Moonshot AI): модели берём из списка сервиса, новые kimi первыми.
+  async kimi(key, env, s, p) {
+    const base = (env.KIMI_BASE_URL || 'https://api.moonshot.ai/v1').replace(/\/$/, '');
+    let models = (env.KIMI_MODEL || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (!models.length) {
+      try {
+        const r = await fetch(`${base}/models`, { headers: { Authorization: `Bearer ${key}` } });
+        const ids = ((await r.json()).data || []).map(m => m.id).filter(id => !/(vision|image|audio|embed)/i.test(id));
+        const score = id => (/kimi/i.test(id) ? 0 : 1) + (/(thinking|preview)/i.test(id) ? 0.3 : 0);
+        models = ids.sort((a, b) => score(a) - score(b) || b.localeCompare(a)).slice(0, 4);
+      } catch { /* список не получили — берём запасные названия */ }
+      if (!models.length) models = ['kimi-latest', 'moonshot-v1-32k'];
+    }
+    const errors = [];
+    for (const model of models) {
+      try {
+        return await chat({ name: 'Kimi', url: `${base}/chat/completions`, key, model }, s, p);
+      } catch (e) {
+        errors.push(`${model}: ${e.message.replace(/^Kimi: /, '')}`);
+      }
+    }
+    throw new Error('Kimi: ' + errors.join(' | '));
+  },
   deepseek: (key, env, s, p) => chat({
     name: 'DeepSeek', url: 'https://api.deepseek.com/chat/completions', key, model: env.DEEPSEEK_MODEL || 'deepseek-chat',
   }, s, p),
